@@ -7,12 +7,12 @@ local function fill_config(config)
     "keep",
     config,
     {
-      scopes = {
-        enabled = true
-      },
-      stacks = {
-        enabled = true
-      }
+      use_icons = false,
+      collapsed_icon = nil,
+      expanded_icon = nil,
+      circular_ref_icon = nil,
+      scopes = true,
+      stacks = true
     }
   )
 end
@@ -20,15 +20,15 @@ end
 function M.setup(config)
   config = fill_config(config or {})
   local buffers_info = {}
-  if config.scopes.enabled then
+  if config.scopes then
     local vars = require("dapui.scopes")
     buffers_info[#buffers_info + 1] = vars.buffer_info
-    vars.setup()
+    vars.setup(config)
   end
-  if config.stacks.enabled then
+  if config.stacks then
     local stacks = require("dapui.stacks")
     buffers_info[#buffers_info + 1] = stacks.buffer_info
-    stacks.setup()
+    stacks.setup(config)
   end
   local dap = require("dap")
   dap.listeners.before.event_initialized[listener_id] = function()

@@ -13,16 +13,22 @@ M.buffer_info = {
 }
 
 local Scopes = {
+  config = {},
   scopes = {},
   references = {},
   line_variable_map = {},
   expanded_references = {}
 }
 
-vim.cmd("hi default link DapUIVariable Normal")
-vim.cmd("hi default DapUIScope guifg=#A9FF68")
-vim.cmd("hi default DapUIType guifg=#D484FF")
-vim.cmd("hi default DapUISpecial guifg=#00f1f5")
+function Scopes:load_config(user_config)
+  self.config = {
+    prefix = {
+      expanded = user_config.expanded_icon or user_config.use_icons and "⯆ " or "v ",
+      collapsed = user_config.collapsed_icon or (user_config.use_icons and "⯈ " or "> "),
+      circular = user_config.circular_ref_icon or (user_config.use_icons and "↺ " or "o ")
+    }
+  }
+end
 
 function Scopes:update_state(session)
   local scopes = session.current_frame.scopes
@@ -42,9 +48,9 @@ function Scopes:reference_prefix(ref, render_state)
   if ref == 0 then
     return "  "
   elseif render_state.expanded[ref] then
-    return "↺ "
+    return self.config.prefix.circular
   end
-  return self.expanded_references[ref] and "⯆ " or "⯈ "
+  return self.expanded_references[ref] and self.config.prefix.expanded or self.config.prefix.collapsed
 end
 
 function Scopes:render_variables(reference, render_state, indent)
@@ -67,7 +73,7 @@ function Scopes:render_variables(reference, render_state, indent)
     }
     new_line = new_line .. variable.name
 
-    if #variable.type > 0 then
+    if #(variable.type or "") > 0 then
       new_line = new_line .. " ("
       render_state.matches[#render_state.matches + 1] = {
         "DapUIType",
@@ -76,7 +82,7 @@ function Scopes:render_variables(reference, render_state, indent)
       new_line = new_line .. variable.type .. ")"
     end
 
-    if #variable.value > 0 then
+    if #(variable.value or "") > 0 then
       new_line = new_line .. ": "
       local value_start = #new_line
       new_line = new_line .. variable.value
@@ -128,18 +134,6 @@ function Scopes:render()
   end
 end
 
-local function fill_reference(session, buf_state, reference)
-  session:request(
-    "variables",
-    {variablesReference = reference},
-    function(_, response)
-      if response then
-        buf_state.references[reference] = response.variables
-      end
-    end
-  )
-end
-
 function Scopes:refresh(session)
   if not session or not session.current_frame then
     return
@@ -163,14 +157,28 @@ function M.toggle_reference()
     Scopes:refresh(session)
   else
     Scopes.expanded_references[current_ref] = true
-    fill_reference(session, Scopes, current_ref)
+    session:request(
+      "variables",
+      {variablesReference = current_ref},
+      function()
+        -- DAP requires a callback function to trigger other listeners
+      end
+    )
   end
 end
 
-function M.setup()
+function M.setup(config)
+  Scopes:load_config(config)
+  vim.cmd("hi default link DapUIVariable Normal")
+  vim.cmd("hi default DapUIScope guifg=#A9FF68")
+  vim.cmd("hi default DapUIType guifg=#D484FF")
+  vim.cmd("hi default DapUISpecial guifg=#00F1F5")
   local dap = require("dap")
-  dap.listeners.after.variables[listener_id] = function(session)
-    Scopes:refresh(session)
+  dap.listeners.after.variables[listener_id] = function(session, err, response, request)
+    if not err then
+      Scopes.references[request.variablesReference] = response.variables
+      Scopes:refresh(session)
+    end
   end
 
   dap.listeners.after.event_stopped[listener_id] = function(session)

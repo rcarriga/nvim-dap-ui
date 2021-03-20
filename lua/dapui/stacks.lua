@@ -69,13 +69,22 @@ function StackTrace:render(win)
     lines = {},
     matches = {}
   }
-  for i, thread in pairs(self.threads or {}) do
+  local ordered_keys = {}
+
+  for k in pairs(self.threads) do
+      table.insert(ordered_keys, k)
+  end
+  table.sort(ordered_keys)
+
+  for i = 1, #ordered_keys do
+    local thread = self.threads[ordered_keys[i]]
     render_state.matches[#render_state.matches + 1] = {"DapUIThread", {#render_state.lines + 1, 1, #thread.name}}
     render_state.lines[#render_state.lines + 1] = thread.name .. ":"
     render_state = self:render_frames(thread.frames, render_state, 1)
-    if i < #self.threads then
+    if i < #ordered_keys then
       render_state.lines[#render_state.lines + 1] = ""
     end
+    i = i + 1
   end
   vim.fn["setbufvar"](M.buffer_info.name, "&modifiable", 1)
   vim.fn["clearmatches"](win)
