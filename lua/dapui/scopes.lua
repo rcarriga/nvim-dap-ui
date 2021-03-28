@@ -1,6 +1,12 @@
 local M = {}
 local listener_id = "dapui_scopes"
 
+local EXPAND_STATE = {
+  COLLAPSED = nil,
+  TO_EXPAND = 1,
+  EXPANDED = 2
+}
+
 M.buffer_info = {
   name = "DAP Scopes",
   settings = {
@@ -30,55 +36,33 @@ function Scopes:load_config(user_config)
   }
 end
 
-function Scopes:update_state(session)
-  local scopes = session.current_frame.scopes
-  local expanded = {}
-  local references = {}
-  for _, scope in pairs(scopes) do
-    expanded[scope.variablesReference] = true
-    references[scope.variablesReference] = scope.variables
-  end
-  self.scopes = vim.tbl_extend("force", self.scopes, scopes)
-  self.references = vim.tbl_extend("force", self.references, references)
-  self.line_variable_map = self.line_variable_map
-  self.expanded_references = vim.tbl_extend("force", self.expanded_references, expanded)
-end
-
-function Scopes:reference_prefix(ref, render_state)
+function Scopes:reference_prefix(ref)
   if ref == 0 then
     return "  "
-  elseif render_state.expanded[ref] then
+  elseif self.expanded_references[ref] == EXPAND_STATE.EXPANDED then
     return self.config.prefix.circular
   end
-  return self.expanded_references[ref] and self.config.prefix.expanded or self.config.prefix.collapsed
+  return self.expanded_references[ref] == EXPAND_STATE.COLLAPSED and self.config.prefix.collapsed or
+    self.config.prefix.expanded
 end
 
 function Scopes:render_variables(reference, render_state, indent)
-  render_state.expanded[reference] = true
-  local refs = {}
-  for _, v in pairs(self.references[reference] or {}) do
-    refs[#refs + 1] = v.variablesReference
-  end
+  self.expanded_references[reference] = EXPAND_STATE.EXPANDED
   for _, variable in pairs(self.references[reference] or {}) do
-    self.line_variable_map[#render_state.lines + 1] = variable.variablesReference
+    local line_no = render_state:length() + 1
+    self.line_variable_map[line_no] = variable.variablesReference
 
     local new_line = string.rep(" ", indent)
-    local prefix = self:reference_prefix(variable.variablesReference, render_state)
-    render_state.matches[#render_state.matches + 1] = {"DapUISpecial", {#render_state.lines + 1, #new_line + 1, 2}}
-    new_line = new_line .. prefix
 
-    render_state.matches[#render_state.matches + 1] = {
-      "DapUIVariable",
-      {#render_state.lines + 1, #new_line + 1, #variable.name}
-    }
+    render_state:add_match("DapUISpecial", line_no, #new_line + 1, 2)
+    new_line = new_line .. self:reference_prefix(variable.variablesReference)
+
+    render_state:add_match("DapUIVariable", line_no, #new_line + 1, #variable.name)
     new_line = new_line .. variable.name
 
     if #(variable.type or "") > 0 then
       new_line = new_line .. " ("
-      render_state.matches[#render_state.matches + 1] = {
-        "DapUIType",
-        {#render_state.lines + 1, #new_line + 1, #variable.type}
-      }
+      render_state:add_match("DapUIType", line_no, #new_line + 1, #variable.type)
       new_line = new_line .. variable.type .. ")"
     end
 
@@ -91,46 +75,26 @@ function Scopes:render_variables(reference, render_state, indent)
         if i > 1 then
           line = string.rep(" ", value_start - 2) .. line
         end
-        render_state.lines[#render_state.lines + 1] = line
+        render_state:add_line(line)
       end
     else
-      render_state.lines[#render_state.lines + 1] = new_line
+      render_state:add_line(new_line)
     end
 
-    if self.expanded_references[variable.variablesReference] and not render_state.expanded[variable.variablesReference] then
-      render_state = self:render_variables(variable.variablesReference, render_state, indent + 1)
+    if self.expanded_references[variable.variablesReference] == EXPAND_STATE.TO_EXPAND then
+      self:render_variables(variable.variablesReference, render_state, indent + 1)
     end
   end
-  return render_state
 end
 
-function Scopes:render()
-  local win = vim.fn["bufwinnr"](M.buffer_info.name)
-  if win >= 0 then
-    local render_state = {
-      lines = {},
-      matches = {},
-      expanded = {}
-    }
-    for i, scope in pairs(self.scopes or {}) do
-      render_state.matches[#render_state.matches + 1] = {"DapUIScope", {#render_state.lines + 1, 1, #scope.name}}
-      render_state.lines[#render_state.lines + 1] = scope.name .. ":"
-      render_state = self:render_variables(scope.variablesReference, render_state, 1)
-      if i < #self.scopes then
-        render_state.lines[#render_state.lines + 1] = ""
-      end
+function Scopes:render_scopes(render_state)
+  for i, scope in pairs(self.scopes or {}) do
+    render_state:add_match("DapUIScope", render_state:length() + 1, 1, #scope.name)
+    render_state:add_line(scope.name .. ":")
+    self:render_variables(scope.variablesReference, render_state, 1)
+    if i < #self.scopes then
+      render_state:add_line()
     end
-    vim.fn["setbufvar"](M.buffer_info.name, "&modifiable", 1)
-    vim.fn["clearmatches"](win)
-    vim.api.nvim_buf_set_lines(vim.fn["bufnr"](M.buffer_info.name), 0, #render_state.lines, false, render_state.lines)
-    local last_line = vim.fn["line"]("$")
-    if last_line > #render_state.lines then
-      vim.api.nvim_buf_set_lines(vim.fn["bufnr"](M.buffer_info.name), #render_state.lines, last_line, false, {})
-    end
-    for _, match in pairs(render_state.matches) do
-      vim.fn["matchaddpos"](match[1], {match[2]}, 10, -1, {window = win})
-    end
-    vim.fn["setbufvar"](M.buffer_info.name, "&modifiable", 0)
   end
 end
 
@@ -138,8 +102,19 @@ function Scopes:refresh(session)
   if not session or not session.current_frame then
     return
   end
-  self:update_state(session)
-  self:render()
+  self.expanded_references =
+    vim.tbl_map(
+    function(val)
+      return val == EXPAND_STATE.EXPANDED and EXPAND_STATE.TO_EXPAND or val
+    end,
+    self.expanded_references
+  )
+  local win = vim.fn["bufwinnr"](M.buffer_info.name)
+  if win >= 0 then
+    local render_state = require("dapui.render").init_state()
+    self:render_scopes(render_state)
+    render_state:render_buffer(win, M.buffer_info.name)
+  end
 end
 
 function M.toggle_reference()
@@ -152,16 +127,16 @@ function M.toggle_reference()
     print("No active session to query")
     return
   end
-  if Scopes.expanded_references[current_ref] then
-    Scopes.expanded_references[current_ref] = nil
+  if Scopes.expanded_references[current_ref] ~= EXPAND_STATE.COLLAPSED then
+    Scopes.expanded_references[current_ref] = EXPAND_STATE.COLLAPSED
     Scopes:refresh(session)
   else
-    Scopes.expanded_references[current_ref] = true
+    Scopes.expanded_references[current_ref] = EXPAND_STATE.TO_EXPAND
     session:request(
       "variables",
       {variablesReference = current_ref},
       function()
-        -- DAP requires a callback function to trigger other listeners
+        -- nvim-dap requires a callback function to trigger other listeners
       end
     )
   end
@@ -181,6 +156,16 @@ function M.setup(config)
     end
   end
 
+  dap.listeners.after.scopes[listener_id] = function(_, err, response)
+    if not err then
+      local references = {}
+      for _, scope in pairs(response.scopes) do
+        references[scope.variablesReference] = scope.variables
+      end
+      Scopes.scopes = vim.tbl_extend("force", Scopes.scopes, response.scopes)
+      Scopes.references = vim.tbl_extend("force", Scopes.references, references)
+    end
+  end
   dap.listeners.after.event_stopped[listener_id] = function(session)
     Scopes:refresh(session)
   end

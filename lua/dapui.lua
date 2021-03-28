@@ -7,7 +7,7 @@ local function fill_config(config)
     "keep",
     config,
     {
-      use_icons = false,
+      use_icons = true,
       collapsed_icon = nil,
       expanded_icon = nil,
       circular_ref_icon = nil,

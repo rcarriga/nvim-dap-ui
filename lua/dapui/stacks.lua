@@ -113,11 +113,13 @@ function M.jump_to_frame()
     bufnr = vim.uri_to_bufnr(vim.uri_from_fname(source.path))
   end
 
-  local cursor_set = false
+  vim.fn.bufload(bufnr)
+
   for _, win in pairs(api.nvim_tabpage_list_wins(0)) do
     if api.nvim_win_get_buf(win) == bufnr then
       api.nvim_win_set_cursor(win, {line, column - 1})
       api.nvim_set_current_win(win)
+      return
     end
   end
 

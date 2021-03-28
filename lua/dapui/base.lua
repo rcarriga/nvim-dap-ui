@@ -32,7 +32,6 @@ local function init_win_settings(win)
 end
 
 local function open_wins(buffers_info)
-  local wins = {}
   for i, buf in pairs(buffers_info) do
     local win = vim.fn["bufwinnr"](buf.name)
     if win == -1 then
@@ -45,7 +44,6 @@ local function open_wins(buffers_info)
     end
     init_buf_settings(buf)
     init_win_settings(win)
-    wins[i] = win
   end
 end
 
@@ -62,7 +60,7 @@ function M.close(buffers_info)
   for _, buf in pairs(buffers_info) do
     local win = vim.fn.bufwinnr(buf.name)
     if win > -1 then
-      vim.cmd(win.."close")
+      vim.cmd(win .. "close")
     end
   end
 end

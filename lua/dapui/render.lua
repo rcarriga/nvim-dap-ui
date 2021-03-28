@@ -40,5 +40,4 @@ function M.init_state()
   return Render
 end
 
-
 return M
