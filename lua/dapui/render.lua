@@ -21,7 +21,22 @@ function M.init_state()
     return #self.lines
   end
 
-  function Render:render_buffer(win, buffer)
+  function Render:width()
+    local width = 0
+    for _, line in pairs(self.lines) do
+      width = width < #line and #line or width
+    end
+    return width
+  end
+
+  function Render:render_buffer(buffer)
+    if buffer < 0 then
+      return false
+    end
+    local win = vim.fn.bufwinnr(buffer)
+    if win == -1 then
+      return false
+    end
     local lines = self.lines
     local matches = self.matches
     vim.fn["setbufvar"](buffer, "&modifiable", 1)
@@ -35,6 +50,7 @@ function M.init_state()
       vim.fn["matchaddpos"](match[1], {match[2]}, 10, -1, {window = win})
     end
     vim.fn["setbufvar"](buffer, "&modifiable", 0)
+    return true
   end
 
   return Render
