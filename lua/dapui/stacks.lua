@@ -2,21 +2,15 @@ local M = {}
 local api = vim.api
 local listener_id = "dapui_stack"
 
-vim.cmd("hi default DapUIThread guifg=#A9FF68")
-vim.cmd("hi default DapUIStoppedThread guifg=#F70067 gui=bold")
-vim.cmd("hi default link DapUIFrameName Normal")
-vim.cmd("hi default DapUIFrameSource guifg=#D484FF")
-vim.cmd("hi default DapUILineNumber guifg=#00f1f5")
-
-local StackTrace = {
-  render_receiver = nil,
+local Element = {
+  render_receivers = {},
   threads = {},
   thread_frames = {},
   current_frame_id = nil,
   line_frame_map = {}
 }
 
-function StackTrace:render_frames(frames, render_state, indent)
+function Element:render_frames(frames, render_state, indent)
   for _, frame in pairs(frames or {}) do
     local line_no = render_state:length() + 1
     self.line_frame_map[line_no] = frame
@@ -40,7 +34,7 @@ function StackTrace:render_frames(frames, render_state, indent)
   end
 end
 
-function StackTrace:render_threads(match_group, threads, render_state)
+function Element:render_threads(match_group, threads, render_state)
   local ordered_keys = {}
 
   for k in pairs(threads) do
@@ -48,7 +42,7 @@ function StackTrace:render_threads(match_group, threads, render_state)
   end
   table.sort(ordered_keys)
 
-  for i = 1, #ordered_keys do
+  for i = 1, #ordered_keys, 1 do
     local thread = threads[ordered_keys[i]]
     render_state:add_match(match_group, render_state:length() + 1, 1, #thread.name)
     render_state:add_line(thread.name .. ":")
@@ -56,11 +50,10 @@ function StackTrace:render_threads(match_group, threads, render_state)
     if i < #ordered_keys then
       render_state:add_line()
     end
-    i = i + 1
   end
 end
 
-function StackTrace:fill_render_state(render_state, stopped_thread)
+function Element:fill_render_state(render_state, stopped_thread)
   if not self.threads then
     return
   end
@@ -75,18 +68,25 @@ function StackTrace:fill_render_state(render_state, stopped_thread)
   self:render_threads("DapUIThread", secondary_threads, render_state)
 end
 
-function StackTrace:render(session)
-  if not session or not session.current_frame then
+function Element:should_render(session)
+  return session and session.current_frame and not vim.tbl_isempty(self.render_receivers)
+end
+
+function Element:render(session)
+  if not self:should_render(session) then
     return
   end
   self.current_frame_id = session.current_frame.id
   local render_state = require("dapui.render").init_state()
   self:fill_render_state(render_state, session.stopped_thread_id)
-  self.render_receiver(render_state)
+  for _, reciever in pairs(self.render_receivers) do
+    reciever(render_state)
+  end
 end
 
-function StackTrace:jump_to_frame(cur_line)
-  local current_frame = StackTrace.line_frame_map[cur_line]
+function _G.stacks_jump_to_frame()
+  local cur_line = vim.fn.line(".")
+  local current_frame = Element.line_frame_map[cur_line]
   if not current_frame then
     return
   end
@@ -128,30 +128,22 @@ function StackTrace:jump_to_frame(cur_line)
   end
 end
 
-function M.jump_to_frame()
-  StackTrace:jump_to_frame(vim.fn.line("."))
-end
-
 function M.setup()
-end
+  vim.cmd("hi default DapUIThread guifg=#A9FF68")
+  vim.cmd("hi default DapUIStoppedThread guifg=#F70067 gui=bold")
+  vim.cmd("hi default link DapUIFrameName Normal")
+  vim.cmd("hi default DapUIFrameSource guifg=#D484FF")
+  vim.cmd("hi default DapUILineNumber guifg=#00f1f5")
 
-M.name = "DAP Stacks"
-
-M.buf_settings = {
-  filetype = "dapui_stacks"
-}
-
-function M.on_open(buf, render_reciever)
-  api.nvim_buf_set_keymap(buf, "n", "<CR>", "<Cmd>lua require('dapui.stacks').jump_to_frame()<CR>", {})
-  StackTrace.render_receiver = render_reciever
   local dap = require("dap")
+
   dap.listeners.after.threads[listener_id] = function(session, err, response)
     if err then
       return
     end
     for _, thread in pairs(response.threads) do
-      StackTrace.threads[thread.id] = thread
-      if not StackTrace.thread_frames[thread.id] then
+      Element.threads[thread.id] = thread
+      if not Element.thread_frames[thread.id] then
         session:request(
           "stackTrace",
           {threadId = thread.id},
@@ -160,15 +152,17 @@ function M.on_open(buf, render_reciever)
         )
       end
     end
-    StackTrace:render(session)
+    Element:render(session)
   end
+
   dap.listeners.after.stackTrace[listener_id] = function(session, err, response, request)
     if err then
       return
     end
-    StackTrace.thread_frames[request.threadId] = response.stackFrames
-    StackTrace:render(session)
+    Element.thread_frames[request.threadId] = response.stackFrames
+    Element:render(session)
   end
+
   dap.listeners.after.event_stopped[listener_id] = function(session)
     session:request(
       "threads",
@@ -177,8 +171,22 @@ function M.on_open(buf, render_reciever)
       end
     )
   end
+end
 
-  StackTrace:render(dap.session())
+M.name = "DAP Stacks"
+
+M.buf_settings = {
+  filetype = "dapui_stacks"
+}
+
+function M.on_open(buf, render_receiver)
+  api.nvim_buf_set_keymap(buf, "n", "<CR>", "<Cmd>call v:lua.stacks_jump_to_frame()<CR>", {})
+  Element.render_receivers[buf] = render_receiver
+  Element:render(require("dap").session())
+end
+
+function M.on_close(buf)
+  Element.render_receivers[buf] = nil
 end
 
 return M

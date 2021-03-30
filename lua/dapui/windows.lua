@@ -67,15 +67,16 @@ function M.open_sidebar(elements)
   vim.api.nvim_set_current_win(cur_win)
 end
 
-function M.open_float(element)
+function M.open_float(element, position)
   if float_windows[element.name] then
     float_windows[element.name]:jump_to()
-    return
+    return float_windows[element.name]
   end
-  local float_win =
-    require("dapui.windows.float").open_float({height = 1, width = 1, filetype = element.buf_settings.filetype})
+  local float_win = require("dapui.windows.float").open_float({height = 1, width = 1, position = position})
+  local buf = float_win:get_buf()
+  vim.fn.setbufvar(buf, "&filetype", element.buf_settings.filetype)
   element.on_open(
-    float_win:get_buf(),
+    buf,
     function(render_state)
       local rendered = render_state:render_buffer(float_win:get_buf())
       if rendered then
@@ -84,6 +85,7 @@ function M.open_float(element)
     end
   )
   vim.cmd("au CursorMoved * ++once lua require('dapui.windows').close_float('" .. element.name .. "')")
+  float_win:listen("close", element.on_close)
   float_windows[element.name] = float_win
   return float_win
 end
