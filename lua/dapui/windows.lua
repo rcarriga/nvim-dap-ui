@@ -2,72 +2,77 @@ local M = {}
 
 vim.cmd("hi default DapUIFloatBorder guifg=#00F1F5")
 local float_windows = {}
-
-local function init_buf_settings(element)
-  local buf_settings =
-    vim.tbl_extend(
-    "force",
-    {
-      buftype = "nofile",
-      bufhidden = "hide",
-      buflisted = 0,
-      swapfile = 0,
-      modifiable = 0,
-      relativenumber = 0,
-      number = 0,
-      foldmethod = "expr"
-    },
-    element.buf_settings or {}
-  )
-  for key, val in pairs(buf_settings) do
-    vim.fn["setbufvar"](element.name, "&" .. key, val)
-  end
-end
+local sidebar_windows = {}
+local tray_windows = {}
 
 local function init_win_settings(win)
   local win_settings = {
-    list = 0,
-    winfixwidth = 1
+    list = false,
+    relativenumber = false,
+    number = false,
+    winfixwidth = true
   }
   for key, val in pairs(win_settings) do
-    vim.fn["setwinvar"](win, "&" .. key, val)
+    vim.api.nvim_win_set_option(win, key, val)
   end
 end
 
-local function open_wins(elements)
-  local win_bufnrs = {}
-  for i, element in pairs(elements) do
-    local win_id = vim.fn["bufwinnr"](element.name)
-    if win_id == -1 then
-      if i == 1 then
-        vim.cmd("botright vnew " .. element.name .. " | vertical resize 60")
-      else
-        vim.cmd("new " .. element.name)
-      end
-      win_id = vim.fn["bufwinnr"](element.name)
-    end
-    init_buf_settings(element)
-    init_win_settings(win_id)
-    win_bufnrs[#win_bufnrs + 1] = vim.fn.winbufnr(win_id)
-  end
-  return win_bufnrs
+local function open_sidebar_win(index)
+  vim.cmd(index == 1 and "botright 60vsplit" or "split")
 end
 
-function M.open_sidebar(elements)
+local function open_tray_win(index)
+  vim.cmd(index == 1 and "botright 15split" or "vsplit")
+end
+
+local function open_wins(elements, open, saved)
   local cur_win = vim.api.nvim_get_current_win()
-  local bufnrs = open_wins(elements)
-  for i, buf in pairs(elements) do
-    buf.on_open(
-      bufnrs[i],
+  for i, element in pairs(elements) do
+    local win_id = vim.fn["bufwinid"](element.name)
+    if win_id == -1 then
+      local buf = vim.api.nvim_create_buf(false, true)
+      open(i)
+      win_id = vim.api.nvim_get_current_win()
+      vim.api.nvim_set_current_buf(buf)
+      saved[win_id] = element
+    end
+    local bufnr = vim.fn.winbufnr(win_id)
+    element.on_open(
+      bufnr,
       function(render_state)
-        render_state:render_buffer(bufnrs[i])
+        render_state:render_buffer(bufnr)
       end
     )
+    init_win_settings(win_id)
   end
   vim.api.nvim_set_current_win(cur_win)
 end
 
-function M.open_float(element, position)
+local function close_wins(saved)
+  for win, element in pairs(saved) do
+    local buf = vim.fn.winbufnr(win)
+    vim.api.nvim_win_close(win, true)
+    element.on_close({buffer = buf})
+  end
+end
+
+function M.open_sidebar(elements)
+  open_wins(elements, open_sidebar_win, sidebar_windows)
+end
+
+function M.open_tray(elements)
+  open_wins(elements, open_tray_win, tray_windows)
+end
+
+function M.close_sidebar()
+  close_wins(sidebar_windows)
+end
+
+function M.close_tray()
+  close_wins(tray_windows)
+end
+
+function M.open_float(element, position, settings)
   if float_windows[element.name] then
     float_windows[element.name]:jump_to()
     return float_windows[element.name]
@@ -80,13 +85,16 @@ function M.open_float(element, position)
     function(render_state)
       local rendered = render_state:render_buffer(float_win:get_buf())
       if rendered then
-        float_win:resize(render_state:width(), render_state:length())
+        float_win:resize(settings.width or render_state:width(), settings.height or render_state:length())
       end
     end
   )
-  vim.cmd("au CursorMoved * ++once lua require('dapui.windows').close_float('" .. element.name .. "')")
+  vim.cmd("au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('" .. element.name .. "')")
   float_win:listen("close", element.on_close)
   float_windows[element.name] = float_win
+  if settings.enter then
+    float_win:jump_to()
+  end
   return float_win
 end
 
@@ -96,18 +104,9 @@ function M.close_float(element_name)
   end
   local closed = float_windows[element_name]:close(false)
   if not closed then
-    vim.cmd("au CursorMoved * ++once lua require('dapui.windows').close_float('" .. element_name .. "')")
+    vim.cmd("au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('" .. element_name .. "')")
   else
     float_windows[element_name] = nil
-  end
-end
-
-function M.close_sidebar(buffers_info)
-  for _, buf in pairs(buffers_info) do
-    local win = vim.fn.bufwinnr(buf.name)
-    if win > -1 then
-      vim.cmd(win .. "close")
-    end
   end
 end
 

@@ -114,7 +114,7 @@ end
 local M = {}
 local listener_id = "dapui_scopes"
 
-M.name = "DAP Element"
+M.name = "DAP Scopes"
 
 M.buf_settings = {
   filetype = "dapui_scopes"

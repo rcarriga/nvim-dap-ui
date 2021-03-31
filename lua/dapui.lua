@@ -4,8 +4,13 @@ local listener_id = "dapui"
 
 local elements = {
   STACKS = "stacks",
-  SCOPES = "scopes"
+  SCOPES = "scopes",
+  REPL = "repl"
 }
+
+local function element(name)
+  return require("dapui.elements." .. name)
+end
 
 local open_float = nil
 
@@ -24,7 +29,10 @@ local function fill_config(config)
       },
       sidebar_elems = {
         elements.SCOPES,
-        elements.STACKS
+        elements.STACKS,
+      },
+      tray_elems = {
+        elements.REPL,
       },
       collapsed_icon = nil,
       expanded_icon = nil,
@@ -57,8 +65,8 @@ function M.float_element(elem_name)
     return
   end
   open_float = elem_name
-  local element = require("dapui." .. elem_name)
-  local win = require("dapui.windows").open_float(element, position)
+  local elem = element(elem_name)
+  local win = require("dapui.windows").open_float(elem, position, elem.float_defaults or {})
   win:listen(
     "close",
     function()
@@ -69,24 +77,32 @@ end
 
 function M.setup(config)
   config = fill_config(config or {})
-  require("dapui.scopes").setup(config)
-  require("dapui.stacks").setup(config)
+  for _, module in pairs(elements) do
+    element(module).setup(config)
+  end
 
   local sidebar_elems = {}
   for _, module in pairs(config.sidebar_elems) do
-    sidebar_elems[#sidebar_elems + 1] = require("dapui." .. module)
+    sidebar_elems[#sidebar_elems + 1] = element(module)
+  end
+  local tray_elems = {}
+  for _, module in pairs(config.tray_elems) do
+    tray_elems[#tray_elems + 1] = element(module)
   end
 
   local dap = require("dap")
-  dap.listeners.before.event_initialized[listener_id] = function()
+  dap.listeners.after.event_initialized[listener_id] = function()
+    require("dapui.windows").open_tray(tray_elems)
     require("dapui.windows").open_sidebar(sidebar_elems)
   end
 
   dap.listeners.before.event_terminated[listener_id] = function()
+    require("dapui.windows").close_tray(tray_elems)
     require("dapui.windows").close_sidebar(sidebar_elems)
   end
 
   dap.listeners.before.event_exited[listener_id] = function()
+    require("dapui.windows").close_tray(tray_elems)
     require("dapui.windows").close_sidebar(sidebar_elems)
   end
 end
