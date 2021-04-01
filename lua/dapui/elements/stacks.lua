@@ -3,6 +3,7 @@ local api = vim.api
 local listener_id = "dapui_stack"
 
 local Element = {
+  config = {},
   render_receivers = {},
   threads = {},
   thread_frames = {},
@@ -128,7 +129,9 @@ function _G.stacks_jump_to_frame()
   end
 end
 
-function M.setup()
+function M.setup(user_config)
+  Element.config = user_config
+
   vim.cmd("hi default DapUIThread guifg=#A9FF68")
   vim.cmd("hi default DapUIStoppedThread guifg=#F70067 gui=bold")
   vim.cmd("hi default link DapUIFrameName Normal")
@@ -180,7 +183,13 @@ M.buf_settings = {
 }
 
 function M.on_open(buf, render_receiver)
-  api.nvim_buf_set_keymap(buf, "n", "<CR>", "<Cmd>call v:lua.stacks_jump_to_frame()<CR>", {})
+  api.nvim_buf_set_keymap(
+    buf,
+    "n",
+    Element.config.mappings.jump_to_frame,
+    "<Cmd>call v:lua.stacks_jump_to_frame()<CR>",
+    {}
+  )
   Element.render_receivers[buf] = render_receiver
   Element:render(require("dap").session())
 end

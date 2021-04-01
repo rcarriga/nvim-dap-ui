@@ -25,20 +25,16 @@ local function fill_config(config)
         circular = "↺"
       },
       mappings = {
-        expand_variable = "<CR>"
+        expand_variable = "<CR>",
+        jump_to_frame = "<CR>"
       },
       sidebar_elems = {
         elements.SCOPES,
-        elements.STACKS,
+        elements.STACKS
       },
       tray_elems = {
-        elements.REPL,
-      },
-      collapsed_icon = nil,
-      expanded_icon = nil,
-      circular_ref_icon = nil,
-      open_scopes = true,
-      open_stacks = true
+        elements.REPL
+      }
     }
   )
 end
