@@ -1,4 +1,3 @@
-
 local Element = {
   render_receiver = {},
   config = {},
@@ -32,13 +31,13 @@ function Element:render_variables(reference, render_state, indent, expanded)
     new_line = new_line .. variable.name
 
     if #(variable.type or "") > 0 then
-      new_line = new_line .. " ("
+      new_line = new_line .. ": "
       render_state:add_match("DapUIType", line_no, #new_line + 1, #variable.type)
-      new_line = new_line .. variable.type .. ")"
+      new_line = new_line .. variable.type
     end
 
     if #(variable.value or "") > 0 then
-      new_line = new_line .. ": "
+      new_line = new_line .. " = "
       local value_start = #new_line
       new_line = new_line .. variable.value
 
@@ -80,8 +79,10 @@ function Element:render(session)
   end
   local render_state = require("dapui.render").init_state()
   self:render_scopes(render_state)
-  for _, reciever in pairs(self.render_receiver) do
+  for buf, reciever in pairs(self.render_receiver) do
+    vim.api.nvim_buf_set_option(buf, "modifiable", true)
     reciever(render_state)
+    vim.api.nvim_buf_set_option(buf, "modifiable", false)
   end
 end
 
@@ -116,11 +117,10 @@ local listener_id = "dapui_scopes"
 
 M.name = "DAP Scopes"
 
-M.buf_settings = {
-  filetype = "dapui_scopes"
-}
-
 function M.on_open(buf, render_receiver)
+  vim.api.nvim_buf_set_option(buf, "filetype", "dapui_scopes")
+  vim.api.nvim_buf_set_option(buf, "modifiable", false)
+  pcall(vim.api.nvim_buf_set_name, buf, M.name)
   Element.render_receiver[buf] = render_receiver
   vim.api.nvim_buf_set_keymap(
     buf,
@@ -135,7 +135,6 @@ end
 function M.on_close(info)
   Element.render_receiver[info.buffer] = nil
 end
-
 
 function M.setup(user_config)
   Element.config = user_config

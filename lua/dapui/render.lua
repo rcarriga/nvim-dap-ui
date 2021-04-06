@@ -39,17 +39,15 @@ function M.init_state()
     end
     local lines = self.lines
     local matches = self.matches
-    vim.fn["setbufvar"](buffer, "&modifiable", 1)
     vim.fn["clearmatches"](win)
-    vim.api.nvim_buf_set_lines(vim.fn["bufnr"](buffer), 0, #lines, false, lines)
-    local last_line = vim.fn["line"]("$")
+    vim.api.nvim_buf_set_lines(buffer, 0, #lines, false, lines)
+    local last_line = vim.fn.getbufinfo(buffer)[1].linecount
     if last_line > #lines then
-      vim.api.nvim_buf_set_lines(vim.fn["bufnr"](buffer), #lines, last_line, false, {})
+      vim.api.nvim_buf_set_lines(buffer, #lines, last_line, false, {})
     end
     for _, match in pairs(matches) do
       vim.fn["matchaddpos"](match[1], {match[2]}, 10, -1, {window = win})
     end
-    vim.fn["setbufvar"](buffer, "&modifiable", 0)
     return true
   end
 

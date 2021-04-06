@@ -5,7 +5,8 @@ local listener_id = "dapui"
 local elements = {
   STACKS = "stacks",
   SCOPES = "scopes",
-  REPL = "repl"
+  REPL = "repl",
+  WATCHES = "watches"
 }
 
 local function element(name)
@@ -30,7 +31,8 @@ local function fill_config(config)
       },
       sidebar_elems = {
         elements.SCOPES,
-        elements.STACKS
+        elements.STACKS,
+        elements.WATCHES
       },
       tray_elems = {
         elements.REPL

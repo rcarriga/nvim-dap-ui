@@ -19,7 +19,7 @@ function Element:render_frames(frames, render_state, indent)
     local new_line = string.rep(" ", indent)
 
     render_state:add_match("DapUIFrameName", line_no, #new_line + 1, #frame.name)
-    new_line = new_line .. frame.name .. " ("
+    new_line = new_line .. frame.name .. " "
 
     local source_name = vim.fn.fnamemodify(frame.source.path, ":.")
     if vim.startswith(source_name, ".") then
@@ -29,7 +29,7 @@ function Element:render_frames(frames, render_state, indent)
     new_line = new_line .. source_name .. ":"
 
     render_state:add_match("DapUILineNumber", line_no, #new_line + 1, #tostring(frame.line))
-    new_line = new_line .. frame.line .. ")"
+    new_line = new_line .. frame.line
 
     render_state:add_line(new_line)
   end
@@ -80,8 +80,10 @@ function Element:render(session)
   self.current_frame_id = session.current_frame.id
   local render_state = require("dapui.render").init_state()
   self:fill_render_state(render_state, session.stopped_thread_id)
-  for _, reciever in pairs(self.render_receivers) do
+  for buf, reciever in pairs(self.render_receivers) do
+    vim.api.nvim_buf_set_option(buf, "modifiable", true)
     reciever(render_state)
+    vim.api.nvim_buf_set_option(buf, "modifiable", false)
   end
 end
 
@@ -178,11 +180,10 @@ end
 
 M.name = "DAP Stacks"
 
-M.buf_settings = {
-  filetype = "dapui_stacks"
-}
-
 function M.on_open(buf, render_receiver)
+  vim.api.nvim_buf_set_option(buf, "filetype", "dapui_stacks")
+  vim.api.nvim_buf_set_option(buf, "modifiable", false)
+  pcall(vim.api.nvim_buf_set_name,buf, M.name)
   api.nvim_buf_set_keymap(
     buf,
     "n",
@@ -194,8 +195,8 @@ function M.on_open(buf, render_receiver)
   Element:render(require("dap").session())
 end
 
-function M.on_close(buf)
-  Element.render_receivers[buf] = nil
+function M.on_close(info)
+  Element.render_receivers[info.buffer] = nil
 end
 
 return M

@@ -22,7 +22,7 @@ local function open_sidebar_win(index)
 end
 
 local function open_tray_win(index)
-  vim.cmd(index == 1 and "botright 15split" or "vsplit")
+  vim.cmd(index == 1 and "botright 10split" or "vsplit")
 end
 
 local function open_wins(elements, open, saved)
@@ -36,7 +36,7 @@ local function open_wins(elements, open, saved)
       vim.api.nvim_set_current_buf(buf)
       saved[win_id] = element
     end
-    local bufnr = vim.fn.winbufnr(win_id)
+    local bufnr = vim.api.nvim_win_get_buf(win_id)
     element.on_open(
       bufnr,
       function(render_state)
@@ -50,9 +50,10 @@ end
 
 local function close_wins(saved)
   for win, element in pairs(saved) do
-    local buf = vim.fn.winbufnr(win)
-    vim.api.nvim_win_close(win, true)
+    local buf = vim.api.nvim_win_get_buf(win)
+    pcall(vim.api.nvim_win_close, win, true)
     element.on_close({buffer = buf})
+    vim.api.nvim_buf_delete(buf, {force = true, unload = false})
   end
 end
 
@@ -66,10 +67,12 @@ end
 
 function M.close_sidebar()
   close_wins(sidebar_windows)
+  sidebar_windows = {}
 end
 
 function M.close_tray()
   close_wins(tray_windows)
+  tray_windows = {}
 end
 
 function M.open_float(element, position, settings)
@@ -79,7 +82,6 @@ function M.open_float(element, position, settings)
   end
   local float_win = require("dapui.windows.float").open_float({height = 1, width = 1, position = position})
   local buf = float_win:get_buf()
-  vim.fn.setbufvar(buf, "&filetype", element.buf_settings.filetype)
   element.on_open(
     buf,
     function(render_state)
