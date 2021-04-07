@@ -1,8 +1,6 @@
 local M = {}
 local api = vim.api
 
-vim.cmd("hi default DapUIFloatBorder guifg=#00F1F5")
-
 local Float = {ids = {}, listeners = {close = {}}, position = {}}
 
 local function create_border_lines(border_opts)

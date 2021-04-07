@@ -2,6 +2,8 @@ local M = {}
 
 local listener_id = "dapui"
 
+require("dapui.highlights")
+
 local elements = {
   STACKS = "stacks",
   SCOPES = "scopes",
@@ -27,7 +29,9 @@ local function fill_config(config)
       },
       mappings = {
         expand_variable = "<CR>",
-        jump_to_frame = "<CR>"
+        jump_to_frame = "<CR>",
+        expand_expression = "<CR>",
+        remove_expression = "d"
       },
       sidebar_elems = {
         elements.SCOPES,

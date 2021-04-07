@@ -133,13 +133,6 @@ end
 
 function M.setup(user_config)
   Element.config = user_config
-
-  vim.cmd("hi default DapUIThread guifg=#A9FF68")
-  vim.cmd("hi default DapUIStoppedThread guifg=#F70067 gui=bold")
-  vim.cmd("hi default link DapUIFrameName Normal")
-  vim.cmd("hi default DapUIFrameSource guifg=#D484FF")
-  vim.cmd("hi default DapUILineNumber guifg=#00f1f5")
-
   local dap = require("dap")
 
   dap.listeners.after.threads[listener_id] = function(session, err, response)

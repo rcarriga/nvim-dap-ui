@@ -11,9 +11,16 @@ function M.init_state()
   end
 
   function Render:add_match(group, line, start_col, length)
+    local pos = {line}
+    if start_col ~= nil then
+      pos[#pos+1] = start_col
+    end
+    if length ~= nil then
+      pos[#pos+1] = length
+    end
     self.matches[#self.matches + 1] = {
       group,
-      {line, start_col, length}
+      pos
     }
   end
 

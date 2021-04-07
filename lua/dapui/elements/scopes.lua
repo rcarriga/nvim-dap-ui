@@ -24,7 +24,7 @@ function Element:render_variables(reference, render_state, indent, expanded)
 
     local new_line = string.rep(" ", indent)
     local prefix = self:reference_prefix(variable.variablesReference, expanded)
-    render_state:add_match("DapUISpecial", line_no, #new_line + 1, 1)
+    render_state:add_match("DapUIDecoration", line_no, #new_line + 1, 1)
     new_line = new_line .. prefix .. " "
 
     render_state:add_match("DapUIVariable", line_no, #new_line + 1, #variable.name)
@@ -138,11 +138,6 @@ end
 
 function M.setup(user_config)
   Element.config = user_config
-
-  vim.cmd("hi default link DapUIVariable Normal")
-  vim.cmd("hi default DapUIScope guifg=#A9FF68")
-  vim.cmd("hi default DapUIType guifg=#D484FF")
-  vim.cmd("hi default DapUISpecial guifg=#00F1F5")
 
   local dap = require("dap")
   dap.listeners.after.variables[listener_id] = function(session, err, response, request)
