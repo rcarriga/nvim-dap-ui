@@ -35,7 +35,7 @@ function Element:fill_render_state(render_state)
     local line_no = render_state:length() + 1
     self.line_expr_map[line_no] = i
 
-    local prefix = self.config.icons[#expr.evaluated > 0 and "expanded" or "collapsed"]
+    local prefix = self.config.icons[expr.expanded and "expanded" or "collapsed"]
     local new_line = " " .. prefix
     render_state:add_match("DapUIDecoration", line_no, 1, 3)
 
@@ -43,9 +43,22 @@ function Element:fill_render_state(render_state)
 
     render_state:add_line(new_line)
 
-    if #expr.evaluated > 0 then
-      local val_prefix = "  Value: "
-      render_state:add_match("DapUIWatchesValue", line_no + 1, 1, #val_prefix)
+    if expr.expanded then
+      local frame_line = line_no + 1
+
+      local frame_prefix = "  Frame: "
+      render_state:add_match("DapUIWatchesFrame", frame_line, 1, #frame_prefix)
+      render_state:add_line(frame_prefix .. expr.frame.name)
+
+      local val_line = frame_line + 1
+      local val_prefix
+      if expr.error then 
+        val_prefix = "  Error: "
+        render_state:add_match("DapUIWatchesError", val_line, 1, #val_prefix)
+      else
+        val_prefix = "  Value: "
+        render_state:add_match("DapUIWatchesValue", val_line, 1, #val_prefix)
+      end
       for j, line in pairs(vim.split(expr.evaluated, "\n")) do
         if j > 1 then
           line = string.rep(" ", #val_prefix) .. line
@@ -74,30 +87,33 @@ function Element:refresh_expr(session, expr)
     "evaluate",
     {
       expression = expr.value,
-      frameId = expr.frame,
+      frameId = expr.frame.id,
       context = "watch"
     },
     function(err, response)
       expr.evaluated = response and response.result or format_error(err)
+      expr.error = err and true
       self:render(session)
     end
   )
 end
 
 function Element:evaluate(session, expr)
-  local frame = session.current_frame.id
+  local frame = session.current_frame
   session:request(
     "evaluate",
     {
       expression = expr,
-      frameId = frame,
+      frameId = frame.id,
       context = "watch"
     },
     function(err, response)
       self.expressions[#self.expressions + 1] = {
         value = expr,
         evaluated = response and response.result or format_error(err),
-        frame = frame
+        error = err and true,
+        frame = frame,
+        expanded = true
       }
       self:render(require("dap").session())
     end
@@ -116,12 +132,8 @@ function _G.watches_toggle_expr()
     print("No active session to query")
     return
   end
-  if #current_expr.evaluated > 0 then
-    current_expr.evaluated = ""
-    Element:render(session)
-  else
-    Element:refresh_expr(session, current_expr)
-  end
+  current_expr.expanded = not current_expr.expanded
+  Element:render(session)
 end
 
 function _G.watches_remove_expr()
