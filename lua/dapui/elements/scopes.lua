@@ -31,7 +31,7 @@ function Element:render_variables(reference, render_state, indent, expanded)
     new_line = new_line .. variable.name
 
     if #(variable.type or "") > 0 then
-      new_line = new_line .. ": "
+      new_line = new_line .. " "
       render_state:add_match("DapUIType", line_no, #new_line + 1, #variable.type)
       new_line = new_line .. variable.type
     end

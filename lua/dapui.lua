@@ -33,13 +33,20 @@ local function fill_config(config)
         expand_expression = "<CR>",
         remove_expression = "d"
       },
-      sidebar_elems = {
-        elements.SCOPES,
-        elements.STACKS,
-        elements.WATCHES
+      sidebar = {
+        elements = {
+          elements.SCOPES,
+          elements.STACKS,
+          elements.WATCHES
+        },
+        width = 60,
+        position = "left"
       },
-      tray_elems = {
-        elements.REPL
+      tray = {
+        elements = {
+        },
+        height = 10,
+        position = "top"
       }
     }
   )
@@ -84,18 +91,18 @@ function M.setup(config)
   end
 
   local sidebar_elems = {}
-  for _, module in pairs(config.sidebar_elems) do
+  for _, module in pairs(config.sidebar.elements) do
     sidebar_elems[#sidebar_elems + 1] = element(module)
   end
   local tray_elems = {}
-  for _, module in pairs(config.tray_elems) do
+  for _, module in pairs(config.tray.elements) do
     tray_elems[#tray_elems + 1] = element(module)
   end
 
   local dap = require("dap")
   dap.listeners.after.event_initialized[listener_id] = function()
-    require("dapui.windows").open_tray(tray_elems)
-    require("dapui.windows").open_sidebar(sidebar_elems)
+    require("dapui.windows").open_tray(tray_elems, config.tray.position, config.tray.height)
+    require("dapui.windows").open_sidebar(sidebar_elems, config.sidebar.position, config.sidebar.width)
   end
 
   dap.listeners.before.event_terminated[listener_id] = function()

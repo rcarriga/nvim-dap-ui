@@ -17,14 +17,6 @@ local function init_win_settings(win)
   end
 end
 
-local function open_sidebar_win(index)
-  vim.cmd(index == 1 and "botright 60vsplit" or "split")
-end
-
-local function open_tray_win(index)
-  vim.cmd(index == 1 and "botright 10split" or "vsplit")
-end
-
 local function open_wins(elements, open, saved)
   local cur_win = vim.api.nvim_get_current_win()
   for i, element in pairs(elements) do
@@ -57,11 +49,20 @@ local function close_wins(saved)
   end
 end
 
-function M.open_sidebar(elements)
+function M.open_sidebar(elements, position, width)
+  local open_cmd = position == "left" and "topleft" or "botright"
+  local function open_sidebar_win(index)
+    vim.cmd(index == 1 and open_cmd .. " " .. width .. "vsplit" or "split")
+  end
+
   open_wins(elements, open_sidebar_win, sidebar_windows)
 end
 
-function M.open_tray(elements)
+function M.open_tray(elements, position, height)
+  local open_cmd = position == "top" and "topleft" or "botright"
+  local function open_tray_win(index)
+    vim.cmd(index == 1 and open_cmd .. " " .. height .. " split" or "vsplit")
+  end
   open_wins(elements, open_tray_win, tray_windows)
 end
 
