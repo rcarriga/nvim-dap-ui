@@ -24,6 +24,10 @@ function M.on_open(buf, render_receiver)
   local wincmd = "call nvim_set_current_win(" .. tostring(win) .. ")"
   require("dap").repl.open({}, wincmd)
   vim.fn.setwinvar(win, "&winhl", "Normal:Normal")
+  local cur_win = vim.api.nvim_get_current_win()
+  vim.api.nvim_set_current_win(win)
+  vim.fn.winrestview({leftcol = 0})
+  vim.api.nvim_set_current_win(cur_win)
   render_receiver(false_render)
 end
 
