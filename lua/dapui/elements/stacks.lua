@@ -21,7 +21,7 @@ function Element:render_frames(frames, render_state, indent)
     render_state:add_match("DapUIFrameName", line_no, #new_line + 1, #frame.name)
     new_line = new_line .. frame.name .. " "
 
-    local source_name = vim.fn.fnamemodify(frame.source.path, ":.")
+    local source_name = frame.source and vim.fn.fnamemodify(frame.source.path, ":.") or 'NO SOURCE'
     if vim.startswith(source_name, ".") then
       source_name = frame.source.path
     end
