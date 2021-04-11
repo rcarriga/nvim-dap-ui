@@ -5,7 +5,7 @@ local Hover = {
   stack_frames = {}
 }
 
-function M.eval_cursor()
+function M.eval(expr)
   if Hover.eval.win ~= nil then
     Hover.eval.win:jump_to()
     return
@@ -16,7 +16,6 @@ function M.eval_cursor()
     print("No active session to query")
     return
   end
-  local expr = vim.fn.expand("<cexpr>")
   local filetype = (vim.fn.getbufvar(vim.fn.expand("%"), "&filetype"))
   session:request(
     "evaluate",

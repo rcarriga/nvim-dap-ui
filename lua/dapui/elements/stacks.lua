@@ -87,48 +87,13 @@ function Element:render(session)
   end
 end
 
-function _G.stacks_jump_to_frame()
+function _G.stacks_open_frame()
   local cur_line = vim.fn.line(".")
   local current_frame = Element.line_frame_map[cur_line]
   if not current_frame then
     return
   end
-  local source = current_frame.source
-  local line = current_frame.line
-  local column = current_frame.column
-  if not column or column == 0 then
-    column = 1
-  end
-
-  local scheme = source.path:match("^([a-z]+)://.*")
-  local bufnr
-  if scheme then
-    bufnr = vim.uri_to_bufnr(source.path)
-  else
-    bufnr = vim.uri_to_bufnr(vim.uri_from_fname(source.path))
-  end
-
-  vim.fn.bufload(bufnr)
-
-  for _, win in pairs(api.nvim_tabpage_list_wins(0)) do
-    if api.nvim_win_get_buf(win) == bufnr then
-      api.nvim_win_set_cursor(win, {line, column - 1})
-      api.nvim_set_current_win(win)
-      return
-    end
-  end
-
-  for _, win in pairs(api.nvim_tabpage_list_wins(0)) do
-    local winbuf = api.nvim_win_get_buf(win)
-    if api.nvim_buf_get_option(winbuf, "buftype") == "" then
-      local bufchanged, _ = pcall(api.nvim_win_set_buf, win, bufnr)
-      if bufchanged then
-        api.nvim_win_set_cursor(win, {line, column - 1})
-        api.nvim_set_current_win(win)
-        return
-      end
-    end
-  end
+  require("dapui.util").jump_to_frame(current_frame)
 end
 
 function M.setup(user_config)
@@ -180,8 +145,8 @@ function M.on_open(buf, render_receiver)
   api.nvim_buf_set_keymap(
     buf,
     "n",
-    Element.config.mappings.jump_to_frame,
-    "<Cmd>call v:lua.stacks_jump_to_frame()<CR>",
+    Element.config.mappings.open,
+    "<Cmd>call v:lua.stacks_open_frame()<CR>",
     {}
   )
   Element.render_receivers[buf] = render_receiver

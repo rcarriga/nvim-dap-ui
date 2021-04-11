@@ -125,7 +125,7 @@ function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_keymap(
     buf,
     "n",
-    Element.config.mappings.expand_variable,
+    Element.config.mappings.expand,
     "<Cmd>call v:lua.scopes_toggle_reference()<CR>",
     {}
   )

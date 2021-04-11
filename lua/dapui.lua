@@ -28,10 +28,9 @@ local function fill_config(config)
         circular = "↺"
       },
       mappings = {
-        expand_variable = "<CR>",
-        jump_to_frame = "<CR>",
-        expand_expression = "<CR>",
-        remove_expression = "d"
+        expand = "<CR>",
+        open = "o",
+        remove = "d"
       },
       sidebar = {
         elements = {
@@ -39,14 +38,15 @@ local function fill_config(config)
           elements.STACKS,
           elements.WATCHES
         },
-        width = 60,
+        width = 40,
         position = "left"
       },
       tray = {
         elements = {
+          elements.REPL
         },
         height = 10,
-        position = "top"
+        position = "bottom"
       }
     }
   )
@@ -82,6 +82,20 @@ function M.float_element(elem_name)
       open_float = nil
     end
   )
+end
+
+function M.eval(expr)
+  if not expr then
+    if vim.fn.mode() == "v" then
+      local start = vim.fn.getpos("v")
+      local finish = vim.fn.getpos(".")
+      local lines = require("dapui.util").get_selection(start, finish)
+      expr = table.concat(lines, "\n")
+    else
+      expr = expr or vim.fn.expand("<cexpr>")
+    end
+  end
+  require("dapui.hover").eval(expr)
 end
 
 function M.setup(config)

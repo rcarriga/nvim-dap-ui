@@ -45,6 +45,7 @@ function Element:fill_render_state(render_state)
 
     if expr.expanded then
       local frame_line = line_no + 1
+      self.line_expr_map[frame_line] = i
 
       local frame_prefix = "  Frame: "
       render_state:add_match("DapUIWatchesFrame", frame_line, 1, #frame_prefix)
@@ -60,6 +61,7 @@ function Element:fill_render_state(render_state)
         render_state:add_match("DapUIWatchesValue", val_line, 1, #val_prefix)
       end
       for j, line in pairs(vim.split(expr.evaluated, "\n")) do
+        self.line_expr_map[val_line + j - 1] = i
         if j > 1 then
           line = string.rep(" ", #val_prefix) .. line
         else
@@ -136,6 +138,17 @@ function _G.watches_toggle_expr()
   Element:render(session)
 end
 
+function _G.watches_open_expr_frame()
+  local line = vim.fn.line(".")
+  local current_expr_i = Element.line_expr_map[line]
+  if not current_expr_i then
+    return
+  end
+  local current_expr = Element.expressions[current_expr_i]
+  require("dapui.util").jump_to_frame(current_expr.frame)
+
+end
+
 function _G.watches_remove_expr()
   local line = vim.fn.line(".")
   local current_expr_i = Element.line_expr_map[line]
@@ -181,15 +194,22 @@ function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_keymap(
     buf,
     "n",
-    Element.config.mappings.expand_expression,
+    Element.config.mappings.expand,
     "<Cmd>call v:lua.watches_toggle_expr()<CR>",
     {}
   )
   vim.api.nvim_buf_set_keymap(
     buf,
     "n",
-    Element.config.mappings.remove_expression,
+    Element.config.mappings.remove,
     "<Cmd>call v:lua.watches_remove_expr()<CR>",
+    {}
+  )
+  vim.api.nvim_buf_set_keymap(
+    buf,
+    "n",
+    Element.config.mappings.open,
+    "<Cmd>call v:lua.watches_open_expr_frame()<CR>",
     {}
   )
   vim.cmd("autocmd InsertEnter <buffer=" .. buf .. "> call prompt_setprompt(" .. buf .. ", 'New Expression: ')")
