@@ -66,7 +66,7 @@ require("dapui").setup({
     elements = {
       -- You can change the order of elements in the sidebar
       "scopes",
-      "scopes",
+      "stacks",
       "watches"
     },
     width = 40,
