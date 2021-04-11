@@ -190,6 +190,7 @@ function M.on_open(buf, render_receiver)
   vim.fn.prompt_setcallback(buf, add_watch)
   vim.api.nvim_buf_set_option(buf, "filetype", "dapui_watches")
   vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
+  vim.api.nvim_buf_set_option(buf, 'omnifunc', "v:lua.require'dap'.omnifunc")
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
   vim.api.nvim_buf_set_keymap(
     buf,
