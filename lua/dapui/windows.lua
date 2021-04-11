@@ -10,7 +10,8 @@ local function init_win_settings(win)
     list = false,
     relativenumber = false,
     number = false,
-    winfixwidth = true
+    winfixwidth = true,
+    wrap = false,
   }
   for key, val in pairs(win_settings) do
     vim.api.nvim_win_set_option(win, key, val)
