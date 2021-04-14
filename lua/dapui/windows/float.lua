@@ -1,7 +1,15 @@
 local M = {}
 local api = vim.api
+local config = {
+  max_height = nil,
+  max_width = nil
+}
 
 local Float = {ids = {}, listeners = {close = {}}, position = {}}
+
+function M.setup(float_config)
+  config = vim.tbl_deep_extend("keep", float_config, config)
+end
 
 local function create_border_lines(border_opts)
   local width = border_opts.width
@@ -21,8 +29,16 @@ local function create_border_opts(content_width, content_height, position)
   local vert_anchor = "N"
   local hor_anchor = "W"
 
-  local height = math.min(content_height + 2, vim.o.lines - 2)
-  local width = math.min(content_width + 4, vim.o.columns - 2)
+  local max_height = config.max_height or vim.o.lines
+  local max_width = config.max_width or vim.o.columns
+  if 0 < max_height and max_height < 1 then
+    max_height = math.floor(vim.o.lines * max_height)
+  end
+  if 0 < max_width and max_width < 1 then
+    max_width = math.floor(vim.o.columns * max_width)
+  end
+  local height = math.min(content_height + 2, max_height - 2)
+  local width = math.min(content_width + 4, max_width - 2)
 
   local row = line_no + math.min(0, vim.o.lines - (height + line_no + 2))
   local col = col_no + math.min(0, vim.o.columns - (width + col_no + 2))

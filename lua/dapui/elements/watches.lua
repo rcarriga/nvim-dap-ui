@@ -36,8 +36,8 @@ function Element:fill_render_state(render_state)
     self.line_expr_map[line_no] = i
 
     local prefix = self.config.icons[expr.expanded and "expanded" or "collapsed"]
-    local new_line = " " .. prefix
-    render_state:add_match("DapUIDecoration", line_no, 1, 3)
+    local new_line = string.rep(" ", self.config.windows.indent) .. prefix
+    render_state:add_match("DapUIDecoration", line_no, self.config.windows.indent, 3)
 
     new_line = new_line .. " " .. expr.value
 
@@ -46,18 +46,19 @@ function Element:fill_render_state(render_state)
     if expr.expanded then
       local frame_line = line_no + 1
       self.line_expr_map[frame_line] = i
+      local indent = string.rep(" ", self.config.windows.indent * 2)
 
-      local frame_prefix = "  Frame: "
+      local frame_prefix = indent.."Frame: "
       render_state:add_match("DapUIWatchesFrame", frame_line, 1, #frame_prefix)
       render_state:add_line(frame_prefix .. expr.frame.name)
 
       local val_line = frame_line + 1
       local val_prefix
-      if expr.error then 
-        val_prefix = "  Error: "
+      if expr.error then
+        val_prefix = indent .. "Error: "
         render_state:add_match("DapUIWatchesError", val_line, 1, #val_prefix)
       else
-        val_prefix = "  Value: "
+        val_prefix = indent .. "Value: "
         render_state:add_match("DapUIWatchesValue", val_line, 1, #val_prefix)
       end
       for j, line in pairs(vim.split(expr.evaluated, "\n")) do
@@ -146,7 +147,6 @@ function _G.watches_open_expr_frame()
   end
   local current_expr = Element.expressions[current_expr_i]
   require("dapui.util").jump_to_frame(current_expr.frame)
-
 end
 
 function _G.watches_remove_expr()
@@ -190,22 +190,10 @@ function M.on_open(buf, render_receiver)
   vim.fn.prompt_setcallback(buf, add_watch)
   vim.api.nvim_buf_set_option(buf, "filetype", "dapui_watches")
   vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
-  vim.api.nvim_buf_set_option(buf, 'omnifunc', "v:lua.require'dap'.omnifunc")
+  vim.api.nvim_buf_set_option(buf, "omnifunc", "v:lua.require'dap'.omnifunc")
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
-  vim.api.nvim_buf_set_keymap(
-    buf,
-    "n",
-    Element.config.mappings.expand,
-    "<Cmd>call v:lua.watches_toggle_expr()<CR>",
-    {}
-  )
-  vim.api.nvim_buf_set_keymap(
-    buf,
-    "n",
-    Element.config.mappings.remove,
-    "<Cmd>call v:lua.watches_remove_expr()<CR>",
-    {}
-  )
+  vim.api.nvim_buf_set_keymap(buf, "n", Element.config.mappings.expand, "<Cmd>call v:lua.watches_toggle_expr()<CR>", {})
+  vim.api.nvim_buf_set_keymap(buf, "n", Element.config.mappings.remove, "<Cmd>call v:lua.watches_remove_expr()<CR>", {})
   vim.api.nvim_buf_set_keymap(
     buf,
     "n",

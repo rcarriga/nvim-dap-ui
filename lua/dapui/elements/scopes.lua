@@ -52,7 +52,7 @@ function Element:render_variables(reference, render_state, indent, expanded)
     end
 
     if self.expanded_references[variable.variablesReference] and not expanded[variable.variablesReference] then
-      self:render_variables(variable.variablesReference, render_state, indent + 1, expanded)
+      self:render_variables(variable.variablesReference, render_state, indent + self.config.windows.indent, expanded)
     end
   end
 end
@@ -62,7 +62,7 @@ function Element:render_scopes(render_state)
   for i, scope in pairs(self.scopes or {}) do
     render_state:add_match("DapUIScope", render_state:length() + 1, 1, #scope.name)
     render_state:add_line(scope.name .. ":")
-    self:render_variables(scope.variablesReference, render_state, 1, expanded)
+    self:render_variables(scope.variablesReference, render_state, self.config.windows.indent, expanded)
     if i < #self.scopes then
       render_state:add_line()
     end

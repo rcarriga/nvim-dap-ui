@@ -11,7 +11,7 @@ local function init_win_settings(win)
     relativenumber = false,
     number = false,
     winfixwidth = true,
-    wrap = false,
+    wrap = false
   }
   for key, val in pairs(win_settings) do
     vim.api.nvim_win_set_option(win, key, val)

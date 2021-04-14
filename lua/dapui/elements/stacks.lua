@@ -47,7 +47,7 @@ function Element:render_threads(match_group, threads, render_state)
     local thread = threads[ordered_keys[i]]
     render_state:add_match(match_group, render_state:length() + 1, 1, #thread.name)
     render_state:add_line(thread.name .. ":")
-    self:render_frames(self.thread_frames[thread.id], render_state, 1)
+    self:render_frames(self.thread_frames[thread.id], render_state, self.config.windows.indent)
     if i < #ordered_keys then
       render_state:add_line()
     end

@@ -2,13 +2,47 @@ local M = {}
 
 local listener_id = "dapui"
 
-require("dapui.highlights")
-
 local elements = {
   STACKS = "stacks",
   SCOPES = "scopes",
   REPL = "repl",
   WATCHES = "watches"
+}
+
+local user_config = {
+  icons = {
+    expanded = "⯆",
+    collapsed = "⯈",
+    circular = "↺"
+  },
+  mappings = {
+    expand = "<CR>",
+    open = "o",
+    remove = "d"
+  },
+  sidebar = {
+    elements = {
+      elements.SCOPES,
+      elements.STACKS,
+      elements.WATCHES
+    },
+    width = 40,
+    position = "left"
+  },
+  tray = {
+    elements = {
+      elements.REPL
+    },
+    height = 10,
+    position = "bottom"
+  },
+  floating = {
+    max_height = nil,
+    max_width = nil
+  },
+  windows = {
+    indent = 1
+  }
 }
 
 local function element(name)
@@ -18,38 +52,7 @@ end
 local open_float = nil
 
 local function fill_config(config)
-  return vim.tbl_deep_extend(
-    "keep",
-    config,
-    {
-      icons = {
-        expanded = "⯆",
-        collapsed = "⯈",
-        circular = "↺"
-      },
-      mappings = {
-        expand = "<CR>",
-        open = "o",
-        remove = "d"
-      },
-      sidebar = {
-        elements = {
-          elements.SCOPES,
-          elements.STACKS,
-          elements.WATCHES
-        },
-        width = 40,
-        position = "left"
-      },
-      tray = {
-        elements = {
-          elements.REPL
-        },
-        height = 10,
-        position = "bottom"
-      }
-    }
-  )
+  return vim.tbl_deep_extend("keep", config, user_config)
 end
 
 local function query_elem_name()
@@ -99,24 +102,28 @@ function M.eval(expr)
 end
 
 function M.setup(config)
-  config = fill_config(config or {})
+  user_config = fill_config(config or {})
+
+  require("dapui.highlights").setup()
+  require("dapui.windows.float").setup(user_config.floating)
+
   for _, module in pairs(elements) do
-    element(module).setup(config)
+    element(module).setup(user_config)
   end
 
   local sidebar_elems = {}
-  for _, module in pairs(config.sidebar.elements) do
+  for _, module in pairs(user_config.sidebar.elements) do
     sidebar_elems[#sidebar_elems + 1] = element(module)
   end
   local tray_elems = {}
-  for _, module in pairs(config.tray.elements) do
+  for _, module in pairs(user_config.tray.elements) do
     tray_elems[#tray_elems + 1] = element(module)
   end
 
   local dap = require("dap")
   dap.listeners.after.event_initialized[listener_id] = function()
-    require("dapui.windows").open_tray(tray_elems, config.tray.position, config.tray.height)
-    require("dapui.windows").open_sidebar(sidebar_elems, config.sidebar.position, config.sidebar.width)
+    require("dapui.windows").open_tray(tray_elems, user_config.tray.position, user_config.tray.height)
+    require("dapui.windows").open_sidebar(sidebar_elems, user_config.sidebar.position, user_config.sidebar.width)
   end
 
   dap.listeners.before.event_terminated[listener_id] = function()
