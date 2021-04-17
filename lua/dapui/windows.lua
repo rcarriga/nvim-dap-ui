@@ -43,10 +43,12 @@ end
 
 local function close_wins(saved)
   for win, element in pairs(saved) do
-    local buf = vim.api.nvim_win_get_buf(win)
-    pcall(vim.api.nvim_win_close, win, true)
-    element.on_close({buffer = buf})
-    vim.api.nvim_buf_delete(buf, {force = true, unload = false})
+    local win_exists, buf = pcall(vim.api.nvim_win_get_buf, win)
+    if win_exists then
+      pcall(vim.api.nvim_win_close, win, true)
+      element.on_close({buffer = buf})
+      vim.api.nvim_buf_delete(buf, {force = true, unload = false})
+    end
   end
 end
 
