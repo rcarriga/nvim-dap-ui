@@ -22,7 +22,7 @@ local function create_border_lines(border_opts)
   return border_lines
 end
 
-local function create_border_opts(content_width, content_height, position)
+local function create_opts(content_width, content_height, position)
   local line_no = position.line
   local col_no = position.col
 
@@ -37,8 +37,8 @@ local function create_border_opts(content_width, content_height, position)
   if 0 < max_width and max_width < 1 then
     max_width = math.floor(vim.o.columns * max_width)
   end
-  local height = math.min(content_height + 2, max_height - 2)
-  local width = math.min(content_width + 4, max_width - 2)
+  local height = math.min(content_height, max_height - 2)
+  local width = math.min(content_width, max_width - 2)
 
   local row = line_no + math.min(0, vim.o.lines - (height + line_no + 2))
   local col = col_no + math.min(0, vim.o.columns - (width + col_no + 2))
@@ -50,21 +50,9 @@ local function create_border_opts(content_width, content_height, position)
     anchor = vert_anchor .. hor_anchor,
     width = width,
     height = height,
-    style = "minimal"
+    style = "minimal",
+    border = "single"
   }
-end
-
-local function create_content_opts(border_opts)
-  return vim.tbl_extend(
-    "keep",
-    {
-      row = border_opts.row + 1,
-      height = border_opts.height - 2,
-      col = border_opts.col + 2,
-      width = border_opts.width - 4
-    },
-    border_opts
-  )
 end
 
 function Float:new(ids, position)
@@ -81,14 +69,8 @@ function Float:listen(event, callback)
 end
 
 function Float:resize(width, height)
-  local border_opts = create_border_opts(width, height, self.position)
-  local content_opts = create_content_opts(border_opts)
-
-  api.nvim_win_set_config(self.ids[1], content_opts)
-  api.nvim_win_set_config(self.ids[2], border_opts)
-
-  local border_buffer = api.nvim_win_get_buf(self.ids[2])
-  api.nvim_buf_set_lines(border_buffer, 0, -1, true, create_border_lines(border_opts))
+  local opts = create_opts(width, height, self.position)
+  api.nvim_win_set_config(self.ids[1], opts)
 end
 
 function Float:get_buf()
@@ -128,27 +110,15 @@ function M.open_float(settings)
   local line_no = vim.fn.screenrow()
   local col_no = vim.fn.screencol()
   local position = settings.position or {line = line_no, col = col_no}
-
-  local border_opts = create_border_opts(settings.width, settings.height, position)
-  local content_opts = create_content_opts(border_opts)
-
+  local opts = create_opts(settings.width, settings.height, position)
   local content_buffer = settings.buffer or api.nvim_create_buf(false, true)
-  local border_buffer = api.nvim_create_buf(false, true)
-
-  local content_window = api.nvim_open_win(content_buffer, false, content_opts)
+  local content_window = api.nvim_open_win(content_buffer, false, opts)
 
   local output_win_id = api.nvim_win_get_number(content_window)
-  vim.fn.setwinvar(output_win_id, "&winhl", "Normal:Normal")
+  vim.fn.setwinvar(output_win_id, "&winhl", "Normal:Normal,FloatBorder:DapUIFloatBorder")
   vim.api.nvim_win_set_var(content_window, "wrap", false)
 
-  local border_lines = create_border_lines(border_opts)
-
-  api.nvim_buf_set_lines(border_buffer, 0, -1, true, border_lines)
-  local border_window = api.nvim_open_win(border_buffer, false, border_opts)
-  vim.fn.setwinvar(border_window, "&winhl", "Normal:Normal")
-  vim.fn.matchadd("DapUIFloatBorder", ".*", 100, -1, {window = border_window})
-
-  return Float:new({content_window, border_window}, position)
+  return Float:new({content_window}, position)
 end
 
 return M
