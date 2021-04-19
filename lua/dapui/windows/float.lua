@@ -40,8 +40,8 @@ local function create_opts(content_width, content_height, position)
   local height = math.min(content_height, max_height - 2)
   local width = math.min(content_width, max_width - 2)
 
-  local row = line_no + math.min(0, vim.o.lines - (height + line_no + 2))
-  local col = col_no + math.min(0, vim.o.columns - (width + col_no + 2))
+  local row = line_no + math.min(0, vim.o.lines - (height + line_no + 3))
+  local col = col_no + math.min(0, vim.o.columns - (width + col_no + 3))
 
   return {
     relative = "editor",
