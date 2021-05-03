@@ -29,7 +29,7 @@ function M.eval(expr)
         print("Couldn't evaluate expression '" .. expr .. "' in current frame.")
         return
       end
-      local val = " "..#response.result.." "
+      local val = " "..response.result.." "
       local hover_win = require("dapui.windows.float").open_float({height = 1, width = #val})
       local buf = hover_win:get_buf()
       vim.api.nvim_buf_set_lines(buf, 0, -1, true, {val})
