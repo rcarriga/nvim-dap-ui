@@ -17,6 +17,9 @@ function M.eval(expr)
     return
   end
   local filetype = (vim.fn.getbufvar(vim.fn.expand("%"), "&filetype"))
+  local hover_win = require("dapui.windows.float").open_float({height = 1, width = 1})
+  Hover.eval.win = hover_win
+  vim.cmd("au CursorMoved * ++once lua require('dapui.hover').close_eval()")
   session:request(
     "evaluate",
     {
@@ -29,13 +32,15 @@ function M.eval(expr)
         print("Couldn't evaluate expression '" .. expr .. "' in current frame.")
         return
       end
-      local val = " "..response.result.." "
-      local hover_win = require("dapui.windows.float").open_float({height = 1, width = #val})
+      local render_state = require("dapui.render").init_state()
+      for _, line in ipairs(vim.split(response.result, "\n")) do
+        render_state:add_line(" " .. line .. " ")
+      end
       local buf = hover_win:get_buf()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, true, {val})
+      hover_win:resize(render_state:width(), render_state:length())
+      render_state:render_buffer(buf)
       vim.fn.setbufvar(buf, "&filetype", filetype)
-      Hover.eval.win = hover_win
-      vim.cmd("au CursorMoved * ++once lua require('dapui.hover').close_eval()")
+      vim.api.nvim_buf_set_option(buf, "modifiable", false)
     end
   )
 end
