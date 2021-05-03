@@ -91,7 +91,7 @@ function Float:close(force)
   end
   local buf = self:get_buf()
   for _, win_id in pairs(self.ids) do
-    api.nvim_win_close(win_id, true)
+    pcall(api.nvim_win_close, win_id, true)
   end
   for _, listener in pairs(self.listeners.close) do
     listener({buffer = buf})
