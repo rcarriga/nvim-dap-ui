@@ -1,3 +1,5 @@
+local M = {}
+
 local Element = {
   render_receiver = {},
   config = {},
@@ -86,7 +88,7 @@ function Element:render(session)
   end
 end
 
-function _G.scopes_toggle_reference()
+function M.toggle_reference()
   local line = vim.fn.line(".")
   local current_ref = Element.line_variable_map[line]
   if not current_ref then
@@ -112,7 +114,6 @@ function _G.scopes_toggle_reference()
   end
 end
 
-local M = {}
 local listener_id = "dapui_scopes"
 
 M.name = "DAP Scopes"
@@ -124,7 +125,7 @@ function M.on_open(buf, render_receiver)
   Element.render_receiver[buf] = render_receiver
   require("dapui.util").apply_mapping(
     Element.config.mappings.expand,
-    "<Cmd>call v:lua.scopes_toggle_reference()<CR>",
+    "<Cmd>lua require('dapui.elements.scopes').toggle_reference()<CR>",
     buf
   )
   Element:render(require("dap").session())

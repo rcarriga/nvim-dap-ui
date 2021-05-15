@@ -8,7 +8,8 @@ local Element = {
   render_receivers = {},
   current_frame_id = nil,
   expressions = {},
-  line_expr_map = {}
+  line_expr_map = {},
+  mode = "new"
 }
 
 local function format_error(error)
@@ -48,7 +49,7 @@ function Element:fill_render_state(render_state)
       self.line_expr_map[frame_line] = i
       local indent = string.rep(" ", self.config.windows.indent * 2)
 
-      local frame_prefix = indent.."Frame: "
+      local frame_prefix = indent .. "Frame: "
       render_state:add_match("DapUIWatchesFrame", frame_line, 1, #frame_prefix)
       render_state:add_line(frame_prefix .. expr.frame.name)
 
@@ -123,7 +124,7 @@ function Element:evaluate(session, expr)
   )
 end
 
-function _G.watches_toggle_expr()
+function M.toggle_expr()
   local line = vim.fn.line(".")
   local current_expr_i = Element.line_expr_map[line]
   if not current_expr_i then
@@ -139,7 +140,58 @@ function _G.watches_toggle_expr()
   Element:render(session)
 end
 
-function _G.watches_open_expr_frame()
+local function add_watch(value)
+  if value == "" then
+    Element:render(require("dap").session())
+    return
+  end
+  vim.cmd("stopinsert")
+  local session = require("dap").session()
+  Element:evaluate(session, value)
+end
+
+function M.edit_expr()
+  local line = vim.fn.line(".")
+  Element.mode = "edit"
+  local current_expr_i = Element.line_expr_map[line]
+  if not current_expr_i then
+    return
+  end
+  local current_expr = Element.expressions[current_expr_i]
+  vim.cmd("normal i" .. current_expr.value)
+  local buf = api.nvim_win_get_buf(0)
+  vim.fn.prompt_setcallback(buf, add_watch)
+  local function edit_watch(value)
+    vim.cmd("stopinsert")
+    if value ~= "" then
+      Element.mode = "new"
+      local session = require("dap").session()
+      session:request(
+        "evaluate",
+        {
+          expression = value,
+          frameId = current_expr.frame.id,
+          context = "watch"
+        },
+        function(err, response)
+          Element.expressions[current_expr_i] = {
+            value = value,
+            evaluated = response and response.result or format_error(err),
+            error = err and true,
+            frame = current_expr.frame,
+            expanded = true
+          }
+          vim.cmd("normal " .. line .. "gg")
+          Element:render(session)
+        end
+      )
+    end
+  end
+  vim.fn.prompt_setcallback(buf, edit_watch)
+  vim.cmd("startinsert")
+end
+
+function M.open_expr_frame()
   local line = vim.fn.line(".")
   local current_expr_i = Element.line_expr_map[line]
   if not current_expr_i then
@@ -149,7 +201,7 @@ function _G.watches_open_expr_frame()
   require("dapui.util").jump_to_frame(current_expr.frame)
 end
 
-function _G.watches_remove_expr()
+function M.remove_expr()
   local line = vim.fn.line(".")
   local current_expr_i = Element.line_expr_map[line]
   if not current_expr_i then
@@ -157,16 +209,6 @@ function _G.watches_remove_expr()
   end
   Element.expressions[current_expr_i] = nil
   Element:render(require("dap").session())
-end
-
-local function add_watch(value)
-  if value == "" then
-    Element:render(require("dap").session())
-    return
-  end
-  vim.cmd("stopinsert")
-  local session = require("dap").session()
-  Element:evaluate(session, value)
 end
 
 function Element:render(session)
@@ -184,6 +226,14 @@ function M.setup(user_config)
   Element.config = user_config
 end
 
+function M.set_prompt(buf)
+  if Element.mode == "new" then
+    vim.fn.prompt_setprompt(buf, "New Expression: ")
+  else
+    vim.fn.prompt_setprompt(buf, "Edit Expression: ")
+  end
+end
+
 M.name = "DAP Watches"
 
 function M.on_open(buf, render_receiver)
@@ -192,14 +242,27 @@ function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
   vim.api.nvim_buf_set_option(buf, "omnifunc", "v:lua.require'dap'.omnifunc")
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
-  require("dapui.util").apply_mapping(Element.config.mappings.expand, "<Cmd>call v:lua.watches_toggle_expr()<CR>", buf)
-  require("dapui.util").apply_mapping(Element.config.mappings.remove, "<Cmd>call v:lua.watches_remove_expr()<CR>", buf)
   require("dapui.util").apply_mapping(
-    Element.config.mappings.open,
-    "<Cmd>call v:lua.watches_open_expr_frame()<CR>",
+    Element.config.mappings.expand,
+    "<Cmd>lua require('dapui.elements.watches').toggle_expr()<CR>",
     buf
   )
-  vim.cmd("autocmd InsertEnter <buffer=" .. buf .. "> call prompt_setprompt(" .. buf .. ", 'New Expression: ')")
+  require("dapui.util").apply_mapping(
+    Element.config.mappings.remove,
+    "<Cmd>lua require('dapui.elements.watches').remove_expr()<CR>",
+    buf
+  )
+  require("dapui.util").apply_mapping(
+    Element.config.mappings.open,
+    "<Cmd>lua require('dapui.elements.watches').open_expr_frame()<CR>",
+    buf
+  )
+  require("dapui.util").apply_mapping(
+    Element.config.mappings.edit,
+    "<Cmd>lua require('dapui.elements.watches').edit_expr()<CR>",
+    buf
+  )
+  vim.cmd("autocmd InsertEnter <buffer=" .. buf .. "> lua require('dapui.elements.watches').set_prompt(" .. buf .. ")")
   Element.render_receivers[buf] = render_receiver
   vim.api.nvim_buf_attach(
     buf,

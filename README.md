@@ -61,7 +61,8 @@ require("dapui").setup({
     -- Use a table to apply multiple mappings
     expand = {"<CR>", "<2-LeftMouse>"},
     open = "o",
-    remove = "d"
+    remove = "d",
+    edit = "e",
   },
   sidebar = {
     elements = {
@@ -127,6 +128,7 @@ Mappings:
 - `open`: Jump to the stack frame the expression was defined in.
 - `expand`: Toggle the value and frame position of the expression.
 - `remove`: Remove the watched expression.
+- `edit`: Edit an expression
 
 ### REPL
 

@@ -87,7 +87,7 @@ function Element:render(session)
   end
 end
 
-function _G.stacks_open_frame()
+function M.open_frame()
   local cur_line = vim.fn.line(".")
   local current_frame = Element.line_frame_map[cur_line]
   if not current_frame then
@@ -142,7 +142,7 @@ function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_option(buf, "filetype", "dapui_stacks")
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
-  require("dapui.util").apply_mapping(Element.config.mappings.open, "<Cmd>call v:lua.stacks_open_frame()<CR>", buf)
+  require("dapui.util").apply_mapping(Element.config.mappings.open, "<Cmd>lua require('dapui.elements.stacks').open_frame()<CR>", buf)
   Element.render_receivers[buf] = render_receiver
   Element:render(require("dap").session())
 end

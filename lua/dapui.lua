@@ -18,7 +18,8 @@ local user_config = {
   mappings = {
     expand = {"<CR>", "<2-LeftMouse>"},
     open = "o",
-    remove = "d"
+    remove = "d",
+    edit = "e",
   },
   sidebar = {
     elements = {
