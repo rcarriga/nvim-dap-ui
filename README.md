@@ -58,7 +58,8 @@ require("dapui").setup({
     circular = "↺"
   },
   mappings = {
-    expand = "<CR>",
+    -- Use a table to apply multiple mappings
+    expand = {"<CR>", "<2-LeftMouse>"},
     open = "o",
     remove = "d"
   },

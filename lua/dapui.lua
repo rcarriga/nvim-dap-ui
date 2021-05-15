@@ -16,7 +16,7 @@ local user_config = {
     circular = "↺"
   },
   mappings = {
-    expand = "<CR>",
+    expand = {"<CR>", "<2-LeftMouse>"},
     open = "o",
     remove = "d"
   },
@@ -52,7 +52,13 @@ end
 local open_float = nil
 
 local function fill_config(config)
-  return vim.tbl_deep_extend("keep", config, user_config)
+  local filled = vim.tbl_deep_extend("keep", config, user_config)
+  local mappings = {}
+  for action, keys in pairs(filled.mappings) do
+    mappings[action] = type(keys) == "table" and keys or {keys}
+  end
+  filled.mappings = mappings
+  return filled
 end
 
 local function query_elem_name()

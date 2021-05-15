@@ -192,14 +192,12 @@ function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
   vim.api.nvim_buf_set_option(buf, "omnifunc", "v:lua.require'dap'.omnifunc")
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
-  vim.api.nvim_buf_set_keymap(buf, "n", Element.config.mappings.expand, "<Cmd>call v:lua.watches_toggle_expr()<CR>", {})
-  vim.api.nvim_buf_set_keymap(buf, "n", Element.config.mappings.remove, "<Cmd>call v:lua.watches_remove_expr()<CR>", {})
-  vim.api.nvim_buf_set_keymap(
-    buf,
-    "n",
+  require("dapui.util").apply_mapping(Element.config.mappings.expand, "<Cmd>call v:lua.watches_toggle_expr()<CR>", buf)
+  require("dapui.util").apply_mapping(Element.config.mappings.remove, "<Cmd>call v:lua.watches_remove_expr()<CR>", buf)
+  require("dapui.util").apply_mapping(
     Element.config.mappings.open,
     "<Cmd>call v:lua.watches_open_expr_frame()<CR>",
-    {}
+    buf
   )
   vim.cmd("autocmd InsertEnter <buffer=" .. buf .. "> call prompt_setprompt(" .. buf .. ", 'New Expression: ')")
   Element.render_receivers[buf] = render_receiver

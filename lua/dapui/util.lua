@@ -52,4 +52,10 @@ function M.get_selection(start, finish)
   return lines
 end
 
+function M.apply_mapping(mappings, func, buffer)
+  for _, key in pairs(mappings) do
+    vim.api.nvim_buf_set_keymap(buffer, "n", key, func, {})
+  end
+end
+
 return M

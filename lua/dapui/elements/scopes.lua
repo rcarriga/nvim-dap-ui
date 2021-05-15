@@ -122,12 +122,10 @@ function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
   Element.render_receiver[buf] = render_receiver
-  vim.api.nvim_buf_set_keymap(
-    buf,
-    "n",
+  require("dapui.util").apply_mapping(
     Element.config.mappings.expand,
     "<Cmd>call v:lua.scopes_toggle_reference()<CR>",
-    {}
+    buf
   )
   Element:render(require("dap").session())
 end

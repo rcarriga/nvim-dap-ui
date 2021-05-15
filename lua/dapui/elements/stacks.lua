@@ -21,7 +21,7 @@ function Element:render_frames(frames, render_state, indent)
     render_state:add_match("DapUIFrameName", line_no, #new_line + 1, #frame.name)
     new_line = new_line .. frame.name .. " "
 
-    local source_name = frame.source and vim.fn.fnamemodify(frame.source.path, ":.") or 'NO SOURCE'
+    local source_name = frame.source and vim.fn.fnamemodify(frame.source.path, ":.") or "NO SOURCE"
     if vim.startswith(source_name, ".") then
       source_name = frame.source.path
     end
@@ -141,14 +141,8 @@ M.name = "DAP Stacks"
 function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_option(buf, "filetype", "dapui_stacks")
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
-  pcall(vim.api.nvim_buf_set_name,buf, M.name)
-  api.nvim_buf_set_keymap(
-    buf,
-    "n",
-    Element.config.mappings.open,
-    "<Cmd>call v:lua.stacks_open_frame()<CR>",
-    {}
-  )
+  pcall(vim.api.nvim_buf_set_name, buf, M.name)
+  require("dapui.util").apply_mapping(Element.config.mappings.open, "<Cmd>call v:lua.stacks_open_frame()<CR>", buf)
   Element.render_receivers[buf] = render_receiver
   Element:render(require("dap").session())
 end
