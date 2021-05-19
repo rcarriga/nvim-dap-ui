@@ -2,14 +2,17 @@ local M = {}
 local api = vim.api
 local listener_id = "dapui_stack"
 
-local Element = {
-  config = {},
-  render_receivers = {},
-  threads = {},
-  thread_frames = {},
-  current_frame_id = nil,
-  line_frame_map = {}
-}
+local Element = {}
+
+local function reset_state()
+    Element.render_receivers = {}
+    Element.threads = {}
+    Element.thread_frames = {}
+    Element.current_frame_id = nil
+    Element.line_frame_map = {}
+end
+
+reset_state()
 
 function Element:render_frames(frames, render_state, indent)
   for _, frame in pairs(frames or {}) do
@@ -145,6 +148,10 @@ function M.on_open(buf, render_receiver)
   require("dapui.util").apply_mapping(Element.config.mappings.open, "<Cmd>lua require('dapui.elements.stacks').open_frame()<CR>", buf)
   Element.render_receivers[buf] = render_receiver
   Element:render(require("dap").session())
+  local dap = require("dap")
+  dap.listeners.before.event_terminated[listener_id] = function()
+    reset_state()
+  end
 end
 
 function M.on_close(info)

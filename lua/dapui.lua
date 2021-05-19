@@ -9,7 +9,7 @@ local elements = {
   WATCHES = "watches"
 }
 
-local user_config = {
+local default_config = {
   icons = {
     expanded = "⯆",
     collapsed = "⯈",
@@ -19,7 +19,7 @@ local user_config = {
     expand = {"<CR>", "<2-LeftMouse>"},
     open = "o",
     remove = "d",
-    edit = "e",
+    edit = "e"
   },
   sidebar = {
     elements = {
@@ -46,6 +46,9 @@ local user_config = {
   }
 }
 
+local user_config = {}
+local open = true
+
 local function element(name)
   return require("dapui.elements." .. name)
 end
@@ -53,7 +56,7 @@ end
 local open_float = nil
 
 local function fill_config(config)
-  local filled = vim.tbl_deep_extend("keep", config, user_config)
+  local filled = vim.tbl_deep_extend("keep", config, default_config)
   local mappings = {}
   for action, keys in pairs(filled.mappings) do
     mappings[action] = type(keys) == "table" and keys or {keys}
@@ -118,6 +121,28 @@ function M.setup(config)
     element(module).setup(user_config)
   end
 
+  local dap = require("dap")
+  dap.listeners.after.event_initialized[listener_id] = function()
+    M.open()
+  end
+
+  dap.listeners.before.event_terminated[listener_id] = function()
+    M.close()
+  end
+
+  dap.listeners.before.event_exited[listener_id] = function()
+    M.close()
+  end
+end
+
+function M.close()
+  open = false
+  require("dapui.windows").close_tray()
+  require("dapui.windows").close_sidebar()
+end
+
+function M.open()
+  open = true
   local sidebar_elems = {}
   for _, module in pairs(user_config.sidebar.elements) do
     sidebar_elems[#sidebar_elems + 1] = element(module)
@@ -126,21 +151,15 @@ function M.setup(config)
   for _, module in pairs(user_config.tray.elements) do
     tray_elems[#tray_elems + 1] = element(module)
   end
+  require("dapui.windows").open_tray(tray_elems, user_config.tray.position, user_config.tray.height)
+  require("dapui.windows").open_sidebar(sidebar_elems, user_config.sidebar.position, user_config.sidebar.width)
+end
 
-  local dap = require("dap")
-  dap.listeners.after.event_initialized[listener_id] = function()
-    require("dapui.windows").open_tray(tray_elems, user_config.tray.position, user_config.tray.height)
-    require("dapui.windows").open_sidebar(sidebar_elems, user_config.sidebar.position, user_config.sidebar.width)
-  end
-
-  dap.listeners.before.event_terminated[listener_id] = function()
-    require("dapui.windows").close_tray(tray_elems)
-    require("dapui.windows").close_sidebar(sidebar_elems)
-  end
-
-  dap.listeners.before.event_exited[listener_id] = function()
-    require("dapui.windows").close_tray(tray_elems)
-    require("dapui.windows").close_sidebar(sidebar_elems)
+function M.toggle()
+  if open then
+    M.close()
+  else
+    M.open()
   end
 end
 

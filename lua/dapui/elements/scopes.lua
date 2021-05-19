@@ -1,13 +1,16 @@
 local M = {}
 
-local Element = {
-  render_receiver = {},
-  config = {},
-  scopes = {},
-  references = {},
-  line_variable_map = {},
-  expanded_references = {}
-}
+  Element = {}
+
+local function reset_state()
+    Element.render_receiver = {}
+    Element.scopes = {}
+    Element.references = {}
+    Element.line_variable_map = {}
+    Element.expanded_references = {}
+end
+
+reset_state()
 
 function Element:reference_prefix(ref, expanded)
   if ref == 0 then
@@ -160,6 +163,10 @@ function M.setup(user_config)
 
   dap.listeners.after.event_stopped[listener_id] = function(session)
     Element:render(session)
+  end
+
+  dap.listeners.after.event_terminated[listener_id] = function(session)
+    reset_state()
   end
 end
 

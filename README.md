@@ -148,6 +148,14 @@ require("dapui").setup()
 nvim-dap-ui will add hooks to nvim-dap to open the sidebar and tray whenever
 you start a debugging session, and close when the session is finished.
 
+You can manually open, close and toggle the windows with corresponding functions:
+
+```lua
+require("dapui").open()
+require("dapui").close()
+require("dapui").toggle()
+```
+
 ### Floating Elements
 
 For elements that are not opened in the tray or sidebar, you can open them in a
