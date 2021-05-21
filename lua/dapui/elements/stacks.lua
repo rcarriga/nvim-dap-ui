@@ -5,36 +5,38 @@ local listener_id = "dapui_stack"
 local Element = {}
 
 local function reset_state()
-    Element.render_receivers = {}
-    Element.threads = {}
-    Element.thread_frames = {}
-    Element.current_frame_id = nil
-    Element.line_frame_map = {}
+  Element.render_receivers = {}
+  Element.threads = {}
+  Element.thread_frames = {}
+  Element.current_frame_id = nil
+  Element.line_frame_map = {}
 end
 
 reset_state()
 
 function Element:render_frames(frames, render_state, indent)
   for _, frame in pairs(frames or {}) do
-    local line_no = render_state:length() + 1
-    self.line_frame_map[line_no] = frame
+    if frame.line ~= nil then
+      local line_no = render_state:length() + 1
+      self.line_frame_map[line_no] = frame
 
-    local new_line = string.rep(" ", indent)
+      local new_line = string.rep(" ", indent)
 
-    render_state:add_match("DapUIFrameName", line_no, #new_line + 1, #frame.name)
-    new_line = new_line .. frame.name .. " "
+      render_state:add_match("DapUIFrameName", line_no, #new_line + 1, #frame.name)
+      new_line = new_line .. frame.name .. " "
 
-    local source_name = frame.source and vim.fn.fnamemodify(frame.source.path, ":.") or "NO SOURCE"
-    if vim.startswith(source_name, ".") then
-      source_name = frame.source.path
+      local source_name = frame.source and vim.fn.fnamemodify(frame.source.path, ":.") or "NO SOURCE"
+      if vim.startswith(source_name, ".") then
+        source_name = frame.source.path
+      end
+      render_state:add_match("DapUIFrameSource", line_no, #new_line + 1, #source_name)
+      new_line = new_line .. source_name .. ":"
+
+      render_state:add_match("DapUILineNumber", line_no, #new_line + 1, #tostring(frame.line))
+      new_line = new_line .. frame.line
+
+      render_state:add_line(new_line)
     end
-    render_state:add_match("DapUIFrameSource", line_no, #new_line + 1, #source_name)
-    new_line = new_line .. source_name .. ":"
-
-    render_state:add_match("DapUILineNumber", line_no, #new_line + 1, #tostring(frame.line))
-    new_line = new_line .. frame.line
-
-    render_state:add_line(new_line)
   end
 end
 
@@ -145,7 +147,11 @@ function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_option(buf, "filetype", "dapui_stacks")
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
-  require("dapui.util").apply_mapping(Element.config.mappings.open, "<Cmd>lua require('dapui.elements.stacks').open_frame()<CR>", buf)
+  require("dapui.util").apply_mapping(
+    Element.config.mappings.open,
+    "<Cmd>lua require('dapui.elements.stacks').open_frame()<CR>",
+    buf
+  )
   Element.render_receivers[buf] = render_receiver
   Element:render(require("dap").session())
   local dap = require("dap")
