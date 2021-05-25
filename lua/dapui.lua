@@ -3,9 +3,10 @@ local M = {}
 local listener_id = "dapui"
 
 local elements = {
-  STACKS = "stacks",
-  SCOPES = "scopes",
+  BREAKPOINTS = "breakpoints",
   REPL = "repl",
+  SCOPES = "scopes",
+  STACKS = "stacks",
   WATCHES = "watches"
 }
 
@@ -24,6 +25,7 @@ local default_config = {
   sidebar = {
     elements = {
       elements.SCOPES,
+      elements.BREAKPOINTS,
       elements.STACKS,
       elements.WATCHES
     },
@@ -71,7 +73,7 @@ local function query_elem_name()
   end
   local entries = {"Select an element:"}
   local elems = {}
-  for _, name in pairs(elements) do
+  for _, name in ipairs(elements) do
     entries[#entries + 1] = tostring(#entries) .. ": " .. name
     elems[#elems + 1] = name
   end

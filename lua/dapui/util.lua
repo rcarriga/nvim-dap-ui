@@ -2,6 +2,15 @@ local M = {}
 
 local api = vim.api
 
+function M.is_uri(path)
+  local scheme = path:match("^([a-z]+)://.*")
+  if scheme then
+    return true
+  else
+    return false
+  end
+end
+
 function M.jump_to_frame(frame)
   local line = frame.line
   local column = frame.column
@@ -9,13 +18,7 @@ function M.jump_to_frame(frame)
   if not column or column == 0 then
     column = 1
   end
-  local scheme = path:match("^([a-z]+)://.*")
-  local bufnr
-  if scheme then
-    bufnr = vim.uri_to_bufnr(path)
-  else
-    bufnr = vim.uri_to_bufnr(vim.uri_from_fname(path))
-  end
+  local bufnr = vim.uri_to_bufnr(M.is_uri(path) and path or vim.uri_from_fname(path))
 
   vim.fn.bufload(bufnr)
 
@@ -56,6 +59,17 @@ function M.apply_mapping(mappings, func, buffer)
   for _, key in pairs(mappings) do
     vim.api.nvim_buf_set_keymap(buffer, "n", key, func, {})
   end
+end
+
+function M.pretty_name(path)
+  if M.is_uri(path) then
+    path = vim.uri_to_fname(path)
+  end
+  local source_name = vim.fn.fnamemodify(path, ":.")
+  if vim.startswith(source_name, ".") then
+    source_name = path
+  end
+  return source_name
 end
 
 return M

@@ -1,6 +1,6 @@
 local M = {}
 
-  Element = {}
+local Element = {}
 
 local function reset_state()
     Element.render_receiver = {}

@@ -68,6 +68,7 @@ require("dapui").setup({
     elements = {
       -- You can change the order of elements in the sidebar
       "scopes",
+      "breakpoints",
       "stacks",
       "watches"
     },
@@ -129,6 +130,18 @@ Mappings:
 - `expand`: Toggle the value and frame position of the expression.
 - `remove`: Remove the watched expression.
 - `edit`: Edit an expression
+
+### Breakpoints
+
+![image](https://user-images.githubusercontent.com/24252670/119557290-e4b96a00-bd97-11eb-9c97-ebaa847b1b7c.png)
+
+Element ID: `breakpoints`
+
+List all breakpoints currently set.
+
+Mappings:
+
+- `open`: Jump to the location the breakpoint is set
 
 ### REPL
 
