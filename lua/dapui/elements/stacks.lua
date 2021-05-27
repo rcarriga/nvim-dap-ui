@@ -16,24 +16,27 @@ reset_state()
 
 function Element:render_frames(frames, render_state, indent)
   for _, frame in pairs(frames or {}) do
-    if frame.line ~= nil then
-      local line_no = render_state:length() + 1
-      self.line_frame_map[line_no] = frame
+    local line_no = render_state:length() + 1
+    self.line_frame_map[line_no] = frame
 
-      local new_line = string.rep(" ", indent)
+    local new_line = string.rep(" ", indent)
 
-      render_state:add_match("DapUIFrameName", line_no, #new_line + 1, #frame.name)
-      new_line = new_line .. frame.name .. " "
+    render_state:add_match("DapUIFrameName", line_no, #new_line + 1, #frame.name)
+    new_line = new_line .. frame.name .. " "
 
-      local source_name = frame.source and require("dapui.util").pretty_name(frame.source.path) or "NO SOURCE"
+    if frame.source ~= nil then
+      local source_name = require("dapui.util").pretty_name(frame.source.path)
       render_state:add_match("DapUISource", line_no, #new_line + 1, #source_name)
-      new_line = new_line .. source_name .. ":"
+      new_line = new_line .. source_name
+    end
 
+    if frame.line ~= nil then
+      new_line = new_line .. ":"
       render_state:add_match("DapUILineNumber", line_no, #new_line + 1, #tostring(frame.line))
       new_line = new_line .. frame.line
-
-      render_state:add_line(new_line)
     end
+
+    render_state:add_line(new_line)
   end
 end
 
