@@ -10,6 +10,10 @@ function M.init_state()
     self.lines[#self.lines + 1] = line or ""
   end
 
+  function Render:remove_line()
+    self.lines[#self.lines] = nil
+  end
+
   function Render:add_match(group, line, start_col, length)
     local pos = {line}
     if start_col ~= nil then
