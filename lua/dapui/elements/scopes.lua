@@ -3,32 +3,33 @@ local M = {}
 local Element = {}
 
 local function reset_state()
-    Element.render_receiver = {}
-    Element.scopes = {}
-    Element.references = {}
-    Element.line_variable_map = {}
-    Element.expanded_references = {}
+  Element.render_receiver = {}
+  Element.scopes = {}
+  Element.references = {}
+  Element.line_variable_map = {}
+  Element.expanded_references = {}
 end
 
 reset_state()
 
-function Element:reference_prefix(ref, expanded)
-  if ref == 0 then
+function Element:reference_prefix(ref_path)
+  if vim.endswith(ref_path, "/0") then
     return " "
-  elseif expanded[ref] then
-    return self.config.icons.circular
   end
-  return self.config.icons[self.expanded_references[ref] and "expanded" or "collapsed"]
+  return self.config.icons[self.expanded_references[ref_path] and "expanded" or "collapsed"]
 end
 
-function Element:render_variables(reference, render_state, indent, expanded)
-  expanded[reference] = true
-  for _, variable in pairs(self.references[reference] or {}) do
+function Element:render_variables(ref_path, render_state, indent, expanded)
+  expanded[ref_path] = true
+  local var_path_elems = vim.split(ref_path, "/")
+  local var_ref = tonumber(var_path_elems[#var_path_elems])
+  for _, variable in pairs(self.references[var_ref] or {}) do
     local line_no = render_state:length() + 1
-    self.line_variable_map[line_no] = variable.variablesReference
+    local var_reference_path = ref_path .. "/" .. variable.variablesReference
+    self.line_variable_map[line_no] = var_reference_path
 
     local new_line = string.rep(" ", indent)
-    local prefix = self:reference_prefix(variable.variablesReference, expanded)
+    local prefix = self:reference_prefix(var_reference_path)
     render_state:add_match("DapUIDecoration", line_no, #new_line + 1, 1)
     new_line = new_line .. prefix .. " "
 
@@ -56,8 +57,8 @@ function Element:render_variables(reference, render_state, indent, expanded)
       render_state:add_line(new_line)
     end
 
-    if self.expanded_references[variable.variablesReference] and not expanded[variable.variablesReference] then
-      self:render_variables(variable.variablesReference, render_state, indent + self.config.windows.indent, expanded)
+    if self.expanded_references[var_reference_path] and not expanded[var_reference_path] then
+      self:render_variables(var_reference_path, render_state, indent + self.config.windows.indent, expanded)
     end
   end
 end
@@ -67,7 +68,7 @@ function Element:render_scopes(render_state)
   for i, scope in pairs(self.scopes or {}) do
     render_state:add_match("DapUIScope", render_state:length() + 1, 1, #scope.name)
     render_state:add_line(scope.name .. ":")
-    self:render_variables(scope.variablesReference, render_state, self.config.windows.indent, expanded)
+    self:render_variables(tostring(scope.variablesReference), render_state, self.config.windows.indent, expanded)
     if i < #self.scopes then
       render_state:add_line()
     end
@@ -93,8 +94,8 @@ end
 
 function M.toggle_reference()
   local line = vim.fn.line(".")
-  local current_ref = Element.line_variable_map[line]
-  if not current_ref then
+  local current_ref_path = Element.line_variable_map[line]
+  if not current_ref_path then
     return
   end
   local session = require("dap").session()
@@ -102,11 +103,13 @@ function M.toggle_reference()
     print("No active session to query")
     return
   end
-  if Element.expanded_references[current_ref] then
-    Element.expanded_references[current_ref] = nil
+  if Element.expanded_references[current_ref_path] then
+    Element.expanded_references[current_ref_path] = nil
     Element:render(session)
   else
-    Element.expanded_references[current_ref] = true
+    Element.expanded_references[current_ref_path] = true
+    local var_path_elems = vim.split(current_ref_path, "/")
+    local current_ref = tonumber(var_path_elems[#var_path_elems])
     session:request(
       "variables",
       {variablesReference = current_ref},
@@ -165,7 +168,7 @@ function M.setup(user_config)
     Element:render(session)
   end
 
-  dap.listeners.after.event_terminated[listener_id] = function(session)
+  dap.listeners.after.event_terminated[listener_id] = function()
     reset_state()
   end
 end

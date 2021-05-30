@@ -13,8 +13,7 @@ local elements = {
 local default_config = {
   icons = {
     expanded = "⯆",
-    collapsed = "⯈",
-    circular = "↺"
+    collapsed = "⯈"
   },
   mappings = {
     expand = {"<CR>", "<2-LeftMouse>"},

@@ -54,8 +54,7 @@ Default settings:
 require("dapui").setup({
   icons = {
     expanded = "⯆",
-    collapsed = "⯈",
-    circular = "↺"
+    collapsed = "⯈"
   },
   mappings = {
     -- Use a table to apply multiple mappings
