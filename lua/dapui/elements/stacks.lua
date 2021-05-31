@@ -25,7 +25,7 @@ function Element:render_frames(frames, render_state, indent)
     new_line = new_line .. frame.name .. " "
 
     if frame.source ~= nil then
-      local source_name = require("dapui.util").pretty_name(frame.source.path)
+      local source_name = require("dapui.util").pretty_name(frame.source.path or frame.source.name)
       render_state:add_match("DapUISource", line_no, #new_line + 1, #source_name)
       new_line = new_line .. source_name
     end
