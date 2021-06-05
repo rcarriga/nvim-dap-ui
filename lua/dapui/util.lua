@@ -65,11 +65,7 @@ function M.pretty_name(path)
   if M.is_uri(path) then
     path = vim.uri_to_fname(path)
   end
-  local source_name = vim.fn.fnamemodify(path, ":.")
-  if vim.startswith(source_name, ".") then
-    source_name = path
-  end
-  return source_name
+  return vim.fn.fnamemodify(path, ":.")
 end
 
 return M
