@@ -15,7 +15,14 @@ end
 reset_state()
 
 function Element:render_frames(frames, render_state, indent)
-  for _, frame in pairs(frames or {}) do
+  local visible =
+    vim.tbl_filter(
+    function(frame)
+      return frame.presentationHint ~= "subtle"
+    end,
+    frames or {}
+  )
+  for _, frame in pairs(visible) do
     local line_no = render_state:length() + 1
     self.line_frame_map[line_no] = frame
 
