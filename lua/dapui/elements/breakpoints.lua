@@ -62,7 +62,7 @@ function Element:render(session)
   local current_frame = session.current_frame
   local current_file = ""
   local current_line = -1
-  if current_frame then
+  if current_frame and current_frame.source then
     current_file = require("dapui.util").pretty_name(current_frame.source.path)
     current_line = current_frame.line
   end
