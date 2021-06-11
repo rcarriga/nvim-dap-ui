@@ -141,7 +141,7 @@ function M.setup(user_config)
   dap.listeners.after.event_stopped[listener_id] = function(session)
     session:request(
       "threads",
-      {},
+      nil,
       function()
       end
     )
