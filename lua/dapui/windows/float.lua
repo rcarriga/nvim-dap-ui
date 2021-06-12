@@ -116,7 +116,7 @@ function M.open_float(settings)
 
   local output_win_id = api.nvim_win_get_number(content_window)
   vim.fn.setwinvar(output_win_id, "&winhl", "Normal:Normal,FloatBorder:DapUIFloatBorder")
-  vim.api.nvim_win_set_var(content_window, "wrap", false)
+  vim.api.nvim_win_set_option(content_window, "wrap", false)
 
   return Float:new({content_window}, position)
 end
