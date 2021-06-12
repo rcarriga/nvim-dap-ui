@@ -119,7 +119,7 @@ Mappings:
 Element ID: `watches`
 
 Allows creation of expressions to watch the value of in the context of the
-stack frame they are defined in.
+current frame.
 This uses a prompt buffer for input. To enter a new expression, just enter
 insert mode and you will see a prompt appear. Press enter to submit
 

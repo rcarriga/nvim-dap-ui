@@ -6,7 +6,6 @@ local listener_id = "dapui_watch"
 local Element = {
   config = {},
   render_receivers = {},
-  current_frame_id = nil,
   expressions = {},
   line_expr_map = {},
   mode = "new"
@@ -45,15 +44,8 @@ function Element:fill_render_state(render_state)
     render_state:add_line(new_line)
 
     if expr.expanded then
-      local frame_line = line_no + 1
-      self.line_expr_map[frame_line] = i
       local indent = string.rep(" ", self.config.windows.indent * 2)
-
-      local frame_prefix = indent .. "Frame: "
-      render_state:add_match("DapUIWatchesFrame", frame_line, 1, #frame_prefix)
-      render_state:add_line(frame_prefix .. expr.frame.name)
-
-      local val_line = frame_line + 1
+      local val_line = line_no + 1
       local val_prefix
       if expr.error then
         val_prefix = indent .. "Error: "
@@ -87,11 +79,12 @@ function Element:refresh(session)
 end
 
 function Element:refresh_expr(session, expr)
+  if not session.current_frame then return end
   session:request(
     "evaluate",
     {
       expression = expr.value,
-      frameId = expr.frame.id,
+      frameId = session.current_frame.id,
       context = "watch"
     },
     function(err, response)
@@ -116,7 +109,6 @@ function Element:evaluate(session, expr)
         value = expr,
         evaluated = response and response.result or format_error(err),
         error = err and true,
-        frame = frame,
         expanded = true
       }
       self:render(require("dap").session())
@@ -158,6 +150,7 @@ function M.edit_expr()
     return
   end
   local current_expr = Element.expressions[current_expr_i]
+  local frame = require("dap").session().current_frame
   vim.cmd("normal i" .. current_expr.value)
   local buf = api.nvim_win_get_buf(0)
   vim.fn.prompt_setcallback(buf, add_watch)
@@ -170,7 +163,7 @@ function M.edit_expr()
         "evaluate",
         {
           expression = value,
-          frameId = current_expr.frame.id,
+          frameId = frame.id,
           context = "watch"
         },
         function(err, response)
@@ -178,7 +171,6 @@ function M.edit_expr()
             value = value,
             evaluated = response and response.result or format_error(err),
             error = err and true,
-            frame = current_expr.frame,
             expanded = true
           }
           vim.cmd("normal " .. line .. "gg")
@@ -279,14 +271,8 @@ function M.on_open(buf, render_receiver)
   Element:render(require("dap").session())
 
   local dap = require("dap")
-  dap.listeners.after.event_stopped[listener_id] = function(session)
+  dap.listeners.after.scopes[listener_id] = function(session)
     Element:refresh(session)
-  end
-  dap.listeners.after.event_stopped[listener_id] = function(session)
-    Element:refresh(session)
-  end
-  dap.listeners.before.event_terminated[listener_id] = function()
-    Element.expressions = {}
   end
 end
 
