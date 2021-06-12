@@ -80,20 +80,24 @@ local function query_elem_name()
 end
 
 function M.float_element(elem_name)
-  local line_no = vim.fn.screenrow()
-  local col_no = vim.fn.screencol()
-  local position = {line = line_no, col = col_no}
-  elem_name = elem_name or query_elem_name()
-  if not elem_name then
-    return
-  end
-  open_float = elem_name
-  local elem = element(elem_name)
-  local win = require("dapui.windows").open_float(elem, position, elem.float_defaults or {})
-  win:listen(
-    "close",
+  vim.schedule(
     function()
-      open_float = nil
+      local line_no = vim.fn.screenrow()
+      local col_no = vim.fn.screencol()
+      local position = {line = line_no, col = col_no}
+      elem_name = elem_name or query_elem_name()
+      if not elem_name then
+        return
+      end
+      open_float = elem_name
+      local elem = element(elem_name)
+      local win = require("dapui.windows").open_float(elem, position, elem.float_defaults or {})
+      win:listen(
+        "close",
+        function()
+          open_float = nil
+        end
+      )
     end
   )
 end
