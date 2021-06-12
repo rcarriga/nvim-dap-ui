@@ -32,7 +32,8 @@ function Element:render_frames(frames, render_state, indent)
     new_line = new_line .. frame.name .. " "
 
     if frame.source ~= nil then
-      local source_name = require("dapui.util").pretty_name(frame.source.path or frame.source.name)
+      local file_name = frame.source.name or frame.source.path or "<unknown>"
+      local source_name = require("dapui.util").pretty_name(file_name)
       render_state:add_match("DapUISource", line_no, #new_line + 1, #source_name)
       new_line = new_line .. source_name
     end
@@ -105,7 +106,8 @@ function M.open_frame()
   if not current_frame then
     return
   end
-  require("dapui.util").jump_to_frame(current_frame)
+  local session = require("dap").session()
+  require("dapui.util").jump_to_frame(current_frame, session)
 end
 
 function M.setup(user_config)
