@@ -125,7 +125,6 @@ insert mode and you will see a prompt appear. Press enter to submit
 
 Mappings:
 
-- `open`: Jump to the stack frame the expression was defined in.
 - `expand`: Toggle the value and frame position of the expression.
 - `remove`: Remove the watched expression.
 - `edit`: Edit an expression

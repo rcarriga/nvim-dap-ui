@@ -183,15 +183,7 @@ function M.edit_expr()
   vim.cmd("startinsert")
 end
 
-function M.open_expr_frame()
-  local line = vim.fn.line(".")
-  local current_expr_i = Element.line_expr_map[line]
-  if not current_expr_i then
-    return
-  end
-  local current_expr = Element.expressions[current_expr_i]
-  require("dapui.util").jump_to_frame(current_expr.frame)
-end
+
 
 function M.remove_expr()
   local line = vim.fn.line(".")
@@ -242,11 +234,6 @@ function M.on_open(buf, render_receiver)
   require("dapui.util").apply_mapping(
     Element.config.mappings.remove,
     "<Cmd>lua require('dapui.elements.watches').remove_expr()<CR>",
-    buf
-  )
-  require("dapui.util").apply_mapping(
-    Element.config.mappings.open,
-    "<Cmd>lua require('dapui.elements.watches').open_expr_frame()<CR>",
     buf
   )
   require("dapui.util").apply_mapping(
