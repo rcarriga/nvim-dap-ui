@@ -12,7 +12,7 @@ local Element = {
 }
 
 local function format_error(error)
-  if not error.body then
+  if vim.tbl_isempty(error.body or {}) then
     return error.message
   end
   local formatted = error.body.error.format
