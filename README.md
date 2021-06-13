@@ -24,8 +24,8 @@ call dein#add("rcarriga/nvim-dap-ui")
 [**vim-plug**](https://github.com/junegunn/vim-plug)
 
 ```vim
-Plug "mfussenegger/nvim-dap"
-Plug "rcarriga/nvim-dap-ui"
+Plug 'mfussenegger/nvim-dap'
+Plug 'rcarriga/nvim-dap-ui'
 ```
 
 [packer.nvim](https://github.com/wbthomason/packer.nvim)
