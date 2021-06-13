@@ -64,6 +64,7 @@ require("dapui").setup({
     edit = "e",
   },
   sidebar = {
+    open_on_start = true,
     elements = {
       -- You can change the order of elements in the sidebar
       "scopes",
@@ -75,6 +76,7 @@ require("dapui").setup({
     position = "left" -- Can be "left" or "right"
   },
   tray = {
+    open_on_start = true,
     elements = {
       "repl"
     },
@@ -166,6 +168,9 @@ require("dapui").open()
 require("dapui").close()
 require("dapui").toggle()
 ```
+
+Each of the functions optionally takes either `"sidebar"` or `"tray"` as an
+argument to only change the specified component.
 
 ### Floating Elements
 

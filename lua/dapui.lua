@@ -22,6 +22,7 @@ local default_config = {
     edit = "e"
   },
   sidebar = {
+    open_on_start = true,
     elements = {
       elements.SCOPES,
       elements.BREAKPOINTS,
@@ -32,6 +33,7 @@ local default_config = {
     position = "left"
   },
   tray = {
+    open_on_start = false,
     elements = {
       elements.REPL
     },
@@ -48,7 +50,8 @@ local default_config = {
 }
 
 local user_config = {}
-local open = true
+local sidebar_open = true
+local tray_open = true
 
 local function element(name)
   return require("dapui.elements." .. name)
@@ -128,7 +131,12 @@ function M.setup(config)
 
   local dap = require("dap")
   dap.listeners.after.event_initialized[listener_id] = function()
-    M.open()
+    if user_config.tray.open_on_start then
+      M.open("tray")
+    end
+    if user_config.sidebar.open_on_start then
+      M.open("sidebar")
+    end
   end
 
   dap.listeners.before.event_terminated[listener_id] = function()
@@ -140,31 +148,54 @@ function M.setup(config)
   end
 end
 
-function M.close()
-  open = false
-  require("dapui.windows").close_tray()
-  require("dapui.windows").close_sidebar()
+function M.close(component)
+  if not component or component == "tray" then
+    tray_open = false
+    require("dapui.windows").close_tray()
+  end
+  if not component or component == "sidebar" then
+    sidebar_open = false
+    require("dapui.windows").close_sidebar()
+  end
 end
 
-function M.open()
-  open = true
-  local sidebar_elems = {}
-  for _, module in pairs(user_config.sidebar.elements) do
-    sidebar_elems[#sidebar_elems + 1] = element(module)
+function M.open(component)
+  if not component or component == "tray" then
+    tray_open = true
+    local tray_elems = {}
+    for _, module in pairs(user_config.tray.elements) do
+      tray_elems[#tray_elems + 1] = element(module)
+    end
+    require("dapui.windows").open_tray(tray_elems, user_config.tray.position, user_config.tray.height)
   end
-  local tray_elems = {}
-  for _, module in pairs(user_config.tray.elements) do
-    tray_elems[#tray_elems + 1] = element(module)
+  if not component or component == "sidebar" then
+    sidebar_open = true
+    local sidebar_elems = {}
+    for _, module in pairs(user_config.sidebar.elements) do
+      sidebar_elems[#sidebar_elems + 1] = element(module)
+    end
+    require("dapui.windows").open_sidebar(sidebar_elems, user_config.sidebar.position, user_config.sidebar.width)
   end
-  require("dapui.windows").open_tray(tray_elems, user_config.tray.position, user_config.tray.height)
-  require("dapui.windows").open_sidebar(sidebar_elems, user_config.sidebar.position, user_config.sidebar.width)
 end
 
-function M.toggle()
-  if open then
-    M.close()
-  else
-    M.open()
+function M.toggle(component)
+  if not component then
+    M.toggle("tray")
+    M.toggle("sidebar")
+  end
+  if component == "tray" then
+    if tray_open then
+      M.close(component)
+    else
+      M.open(component)
+    end
+  end
+  if component == "sidebar" then
+    if sidebar_open then
+      M.close(component)
+    else
+      M.open(component)
+    end
   end
 end
 
