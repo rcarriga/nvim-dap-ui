@@ -12,6 +12,11 @@ end
 
 reset_state()
 
+local function var_from_ref_path(ref_path)
+  local var_path_elems = vim.split(ref_path, "/")
+  return tonumber(var_path_elems[#var_path_elems])
+end
+
 function Element:reference_prefix(ref_path)
   if vim.endswith(ref_path, "/0") then
     return " "
@@ -158,16 +163,26 @@ function M.setup(user_config)
       for _, scope in pairs(response.scopes) do
         references[scope.variablesReference] = scope.variables
       end
+      local to_refresh = {}
+
+      for ref_path, _ in pairs(Element.expanded_references) do
+        to_refresh[#to_refresh + 1] = var_from_ref_path(ref_path)
+      end
+
+      for _, ref in pairs(to_refresh) do
+        session:request(
+          "variables",
+          {variablesReference = ref},
+          function()
+          end
+        )
+      end
+
       Element.scopes = vim.tbl_extend("force", Element.scopes, response.scopes)
       Element.references = vim.tbl_extend("force", Element.references, references)
       Element:render(session)
     end
   end
-
-  dap.listeners.after.event_stopped[listener_id] = function(session)
-    Element:render(session)
-  end
-
   dap.listeners.after.event_terminated[listener_id] = function()
     reset_state()
   end
