@@ -2,56 +2,10 @@ local M = {}
 
 local listener_id = "dapui"
 
-local elements = {
-  BREAKPOINTS = "breakpoints",
-  REPL = "repl",
-  SCOPES = "scopes",
-  STACKS = "stacks",
-  WATCHES = "watches"
-}
-
-local default_config = {
-  icons = {
-    expanded = "▾",
-    collapsed = "▸"
-  },
-  mappings = {
-    expand = {"<CR>", "<2-LeftMouse>"},
-    open = "o",
-    remove = "d",
-    edit = "e"
-  },
-  sidebar = {
-    open_on_start = true,
-    elements = {
-      elements.SCOPES,
-      elements.BREAKPOINTS,
-      elements.STACKS,
-      elements.WATCHES
-    },
-    width = 40,
-    position = "left"
-  },
-  tray = {
-    open_on_start = true,
-    elements = {
-      elements.REPL
-    },
-    height = 10,
-    position = "bottom"
-  },
-  floating = {
-    max_height = nil,
-    max_width = nil
-  },
-  windows = {
-    indent = 1
-  }
-}
-
-local user_config = {}
 local sidebar_open = true
 local tray_open = true
+
+local config = require("dapui.config")
 
 local function element(name)
   return require("dapui.elements." .. name)
@@ -59,23 +13,13 @@ end
 
 local open_float = nil
 
-local function fill_config(config)
-  local filled = vim.tbl_deep_extend("keep", config, default_config)
-  local mappings = {}
-  for action, keys in pairs(filled.mappings) do
-    mappings[action] = type(keys) == "table" and keys or {keys}
-  end
-  filled.mappings = mappings
-  return filled
-end
-
 local function query_elem_name()
   if open_float then
     return open_float
   end
   local entries = {"Select an element:"}
   local elems = {}
-  for _, name in ipairs(elements) do
+  for _, name in ipairs(config.elements) do
     entries[#entries + 1] = tostring(#entries) .. ": " .. name
     elems[#elems + 1] = name
   end
@@ -119,22 +63,21 @@ function M.eval(expr)
   require("dapui.hover").eval(expr)
 end
 
-function M.setup(config)
-  user_config = fill_config(config or {})
+function M.setup(user_config)
+  config.setup(user_config)
 
   require("dapui.highlights").setup()
-  require("dapui.windows.float").setup(user_config.floating)
 
-  for _, module in pairs(elements) do
-    element(module).setup(user_config)
+  for _, module in pairs(config.elements) do
+    element(module).setup()
   end
 
   local dap = require("dap")
   dap.listeners.after.event_initialized[listener_id] = function()
-    if user_config.tray.open_on_start then
+    if config.tray().open_on_start then
       M.open("tray")
     end
-    if user_config.sidebar.open_on_start then
+    if config.sidebar().open_on_start then
       M.open("sidebar")
     end
   end
@@ -163,18 +106,18 @@ function M.open(component)
   if not component or component == "tray" then
     tray_open = true
     local tray_elems = {}
-    for _, module in pairs(user_config.tray.elements) do
+    for _, module in pairs(config().tray.elements) do
       tray_elems[#tray_elems + 1] = element(module)
     end
-    require("dapui.windows").open_tray(tray_elems, user_config.tray.position, user_config.tray.height)
+    require("dapui.windows").open_tray(tray_elems)
   end
   if not component or component == "sidebar" then
     sidebar_open = true
     local sidebar_elems = {}
-    for _, module in pairs(user_config.sidebar.elements) do
+    for _, module in pairs(config.sidebar().elements) do
       sidebar_elems[#sidebar_elems + 1] = element(module)
     end
-    require("dapui.windows").open_sidebar(sidebar_elems, user_config.sidebar.position, user_config.sidebar.width)
+    require("dapui.windows").open_sidebar(sidebar_elems)
   end
 end
 

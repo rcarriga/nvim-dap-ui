@@ -1,10 +1,10 @@
 local M = {}
 
+local config = require("dapui.config")
 local api = vim.api
 local listener_id = "dapui_watch"
 
 local Element = {
-  config = {},
   render_receivers = {},
   expressions = {},
   line_expr_map = {},
@@ -35,16 +35,16 @@ function Element:fill_render_state(render_state)
     local line_no = render_state:length() + 1
     self.line_expr_map[line_no] = i
 
-    local prefix = self.config.icons[expr.expanded and "expanded" or "collapsed"]
-    local new_line = string.rep(" ", self.config.windows.indent) .. prefix
-    render_state:add_match("DapUIDecoration", line_no, self.config.windows.indent, 3)
+    local prefix = config.icons()[expr.expanded and "expanded" or "collapsed"]
+    local new_line = string.rep(" ", config.windows().indent) .. prefix
+    render_state:add_match("DapUIDecoration", line_no, config.windows().indent, 3)
 
     new_line = new_line .. " " .. expr.value
 
     render_state:add_line(new_line)
 
     if expr.expanded then
-      local indent = string.rep(" ", self.config.windows.indent * 2)
+      local indent = string.rep(" ", config.windows().indent * 2)
       local val_line = line_no + 1
       local val_prefix
       if expr.error then
@@ -79,7 +79,9 @@ function Element:refresh(session)
 end
 
 function Element:refresh_expr(session, expr)
-  if not session.current_frame then return end
+  if not session.current_frame then
+    return
+  end
   session:request(
     "evaluate",
     {
@@ -183,8 +185,6 @@ function M.edit_expr()
   vim.cmd("startinsert")
 end
 
-
-
 function M.remove_expr()
   local line = vim.fn.line(".")
   local current_expr_i = Element.line_expr_map[line]
@@ -206,8 +206,7 @@ function Element:render(session)
   end
 end
 
-function M.setup(user_config)
-  Element.config = user_config
+function M.setup()
 end
 
 function M.set_prompt(buf)
@@ -226,21 +225,18 @@ function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
   vim.api.nvim_buf_set_option(buf, "omnifunc", "v:lua.require'dap'.omnifunc")
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
+  local mappings = config.mappings()
   require("dapui.util").apply_mapping(
-    Element.config.mappings.expand,
+    mappings.expand,
     "<Cmd>lua require('dapui.elements.watches').toggle_expr()<CR>",
     buf
   )
   require("dapui.util").apply_mapping(
-    Element.config.mappings.remove,
+    mappings.remove,
     "<Cmd>lua require('dapui.elements.watches').remove_expr()<CR>",
     buf
   )
-  require("dapui.util").apply_mapping(
-    Element.config.mappings.edit,
-    "<Cmd>lua require('dapui.elements.watches').edit_expr()<CR>",
-    buf
-  )
+  require("dapui.util").apply_mapping(mappings.edit, "<Cmd>lua require('dapui.elements.watches').edit_expr()<CR>", buf)
   vim.cmd("autocmd InsertEnter <buffer=" .. buf .. "> lua require('dapui.elements.watches').set_prompt(" .. buf .. ")")
   Element.render_receivers[buf] = render_receiver
   vim.api.nvim_buf_attach(

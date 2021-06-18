@@ -2,6 +2,8 @@ local M = {}
 local api = vim.api
 local listener_id = "dapui_stack"
 
+local config = require("dapui.config")
+
 local Element = {}
 
 local function reset_state()
@@ -60,7 +62,7 @@ function Element:render_threads(match_group, threads, render_state)
     local thread = threads[ordered_keys[i]]
     render_state:add_match(match_group, render_state:length() + 1, 1, #thread.name)
     render_state:add_line(thread.name .. ":")
-    self:render_frames(self.thread_frames[thread.id], render_state, self.config.windows.indent)
+    self:render_frames(self.thread_frames[thread.id], render_state, config.windows().indent)
     if i < #ordered_keys then
       render_state:add_line()
     end
@@ -94,9 +96,9 @@ function Element:render(session)
   local render_state = require("dapui.render").init_state()
   self:fill_render_state(render_state, session.stopped_thread_id)
   for buf, reciever in pairs(self.render_receivers) do
-    vim.api.nvim_buf_set_option(buf, "modifiable", true)
+    api.nvim_buf_set_option(buf, "modifiable", true)
     reciever(render_state)
-    vim.api.nvim_buf_set_option(buf, "modifiable", false)
+    api.nvim_buf_set_option(buf, "modifiable", false)
   end
 end
 
@@ -110,8 +112,7 @@ function M.open_frame()
   require("dapui.util").jump_to_frame(current_frame, session)
 end
 
-function M.setup(user_config)
-  Element.config = user_config
+function M.setup()
   local dap = require("dap")
 
   dap.listeners.after.threads[listener_id] = function(session, err, response)
@@ -153,11 +154,11 @@ end
 M.name = "DAP Stacks"
 
 function M.on_open(buf, render_receiver)
-  vim.api.nvim_buf_set_option(buf, "filetype", "dapui_stacks")
-  vim.api.nvim_buf_set_option(buf, "modifiable", false)
-  pcall(vim.api.nvim_buf_set_name, buf, M.name)
+  api.nvim_buf_set_option(buf, "filetype", "dapui_stacks")
+  api.nvim_buf_set_option(buf, "modifiable", false)
+  pcall(api.nvim_buf_set_name, buf, M.name)
   require("dapui.util").apply_mapping(
-    Element.config.mappings.open,
+    config.mappings().open,
     "<Cmd>lua require('dapui.elements.stacks').open_frame()<CR>",
     buf
   )

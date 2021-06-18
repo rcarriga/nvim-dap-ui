@@ -1,5 +1,7 @@
 local M = {}
 
+local config = require("dapui.config")
+
 vim.cmd("hi default DapUIFloatBorder guifg=#00F1F5")
 local float_windows = {}
 local sidebar_windows = {}
@@ -56,7 +58,9 @@ local function close_wins(saved)
   end
 end
 
-function M.open_sidebar(elements, position, width)
+function M.open_sidebar(elements)
+  local position = config.sidebar().position
+  local width = config.sidebar().width
   local open_cmd = position == "left" and "topleft" or "botright"
   local function open_sidebar_win(index)
     vim.cmd(index == 1 and open_cmd .. " " .. width .. "vsplit" or "split")
@@ -65,7 +69,9 @@ function M.open_sidebar(elements, position, width)
   open_wins(elements, open_sidebar_win, sidebar_windows)
 end
 
-function M.open_tray(elements, position, height)
+function M.open_tray(elements)
+  local position = config.tray().position
+  local height = config.tray().height
   local open_cmd = position == "top" and "topleft" or "botright"
   local function open_tray_win(index)
     vim.cmd(index == 1 and open_cmd .. " " .. height .. " split" or "vsplit")

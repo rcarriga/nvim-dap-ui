@@ -34,7 +34,7 @@ end
 function M.on_close()
 end
 
-function M.setup(user_config)
+function M.setup()
   local dap = require("dap")
   dap.listeners.before.event_initialized[listener_id] = function()
     if win then

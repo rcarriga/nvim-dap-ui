@@ -1,5 +1,6 @@
 local M = {}
 
+local config = require("dapui.config")
 local Element = {}
 
 local function reset_state()
@@ -12,7 +13,7 @@ end
 reset_state()
 
 function Element:render_breakpoints(buffer, breakpoints, render_state, is_current_line)
-  local indent = self.config.windows.indent
+  local indent = config.windows().indent
   for _, bp in pairs(breakpoints) do
     local line_no = render_state:length() + 1
     self.line_breakpoint_map[line_no] = bp
@@ -119,7 +120,7 @@ function M.on_open(buf, render_receiver)
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
   Element.render_receiver[buf] = render_receiver
   require("dapui.util").apply_mapping(
-    Element.config.mappings.open,
+    config.mappings().open,
     "<Cmd>lua require('dapui.elements.breakpoints').open_breakpoint()<CR>",
     buf
   )
@@ -131,8 +132,7 @@ function M.on_close(info)
   Element.render_receiver[info.buffer] = nil
 end
 
-function M.setup(user_config)
-  Element.config = user_config
+function M.setup()
 
   local dap = require("dap")
   local refresh = function(session)

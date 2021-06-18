@@ -1,6 +1,7 @@
 local M = {}
 
 local Element = {}
+local config = require("dapui.config")
 
 local function reset_state()
   Element.render_receiver = {}
@@ -21,7 +22,7 @@ function Element:reference_prefix(ref_path)
   if vim.endswith(ref_path, "/0") then
     return " "
   end
-  return self.config.icons[self.expanded_references[ref_path] and "expanded" or "collapsed"]
+  return config.icons()[self.expanded_references[ref_path] and "expanded" or "collapsed"]
 end
 
 function Element:render_variables(ref_path, render_state, indent, expanded)
@@ -63,7 +64,7 @@ function Element:render_variables(ref_path, render_state, indent, expanded)
     end
 
     if self.expanded_references[var_reference_path] and not expanded[var_reference_path] then
-      self:render_variables(var_reference_path, render_state, indent + self.config.windows.indent, expanded)
+      self:render_variables(var_reference_path, render_state, indent + config.windows().indent, expanded)
     end
   end
 end
@@ -73,7 +74,7 @@ function Element:render_scopes(render_state)
   for i, scope in pairs(self.scopes or {}) do
     render_state:add_match("DapUIScope", render_state:length() + 1, 1, #scope.name)
     render_state:add_line(scope.name .. ":")
-    self:render_variables(tostring(scope.variablesReference), render_state, self.config.windows.indent, expanded)
+    self:render_variables(tostring(scope.variablesReference), render_state, config().windows.indent, expanded)
     if i < #self.scopes then
       render_state:add_line()
     end
@@ -135,7 +136,7 @@ function M.on_open(buf, render_receiver)
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
   Element.render_receiver[buf] = render_receiver
   require("dapui.util").apply_mapping(
-    Element.config.mappings.expand,
+    config.mappings().expand,
     "<Cmd>lua require('dapui.elements.scopes').toggle_reference()<CR>",
     buf
   )
@@ -146,9 +147,7 @@ function M.on_close(info)
   Element.render_receiver[info.buffer] = nil
 end
 
-function M.setup(user_config)
-  Element.config = user_config
-
+function M.setup()
   local dap = require("dap")
   dap.listeners.after.variables[listener_id] = function(session, err, response, request)
     if not err then

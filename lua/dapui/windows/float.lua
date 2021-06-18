@@ -1,15 +1,8 @@
 local M = {}
 local api = vim.api
-local config = {
-  max_height = nil,
-  max_width = nil
-}
+local config = require("dapui.config")
 
 local Float = {ids = {}, listeners = {close = {}}, position = {}}
-
-function M.setup(float_config)
-  config = vim.tbl_deep_extend("keep", float_config, config)
-end
 
 local function create_border_lines(border_opts)
   local width = border_opts.width
@@ -29,8 +22,8 @@ local function create_opts(content_width, content_height, position)
   local vert_anchor = "N"
   local hor_anchor = "W"
 
-  local max_height = config.max_height or vim.o.lines
-  local max_width = config.max_width or vim.o.columns
+  local max_height = config.floating().max_height or vim.o.lines
+  local max_width = config.floating().max_width or vim.o.columns
   if 0 < max_height and max_height < 1 then
     max_height = math.floor(vim.o.lines * max_height)
   end
