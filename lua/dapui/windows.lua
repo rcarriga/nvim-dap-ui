@@ -42,9 +42,13 @@ local function open_wins(elements, open, saved)
 end
 
 local function close_wins(saved)
+  local current_win = vim.api.nvim_get_current_win()
   for win, element in pairs(saved) do
     local win_exists, buf = pcall(vim.api.nvim_win_get_buf, win)
     if win_exists then
+      if win == current_win then
+        vim.cmd("stopinsert") -- Prompt buffers act poorly when closed in insert mode, see #33
+      end
       pcall(vim.api.nvim_win_close, win, true)
       element.on_close({buffer = buf})
       vim.api.nvim_buf_delete(buf, {force = true, unload = false})
