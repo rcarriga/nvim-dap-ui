@@ -16,37 +16,37 @@ function Element:render_breakpoints(buffer, breakpoints, render_state, is_curren
   for _, bp in pairs(breakpoints) do
     local line_no = render_state:length() + 1
     self.line_breakpoint_map[line_no] = bp
-
     local text = vim.api.nvim_buf_get_lines(buffer, bp.line - 1, bp.line, false)
+    if text ~= 0 then
+      local new_line = string.rep(" ", indent) .. bp.line
+      render_state:add_match(
+        is_current_line(bp) and "DapUIBreakpointsCurrentLine" or "DapUIBreakpointsLine",
+        line_no,
+        indent + 1,
+        #tostring(bp.line)
+      )
 
-    local new_line = string.rep(" ", indent) .. bp.line
-    render_state:add_match(
-      is_current_line(bp) and "DapUIBreakpointsCurrentLine" or "DapUIBreakpointsLine",
-      line_no,
-      indent + 1,
-      #tostring(bp.line)
-    )
+      new_line = new_line .. " " .. vim.trim(text[1])
+      render_state:add_line(new_line)
 
-    new_line = new_line .. " " .. vim.trim(text[1])
-    render_state:add_line(new_line)
+      local info_indent = indent + #tostring(bp.line) + 1
+      local whitespace = string.rep(" ", info_indent)
 
-    local info_indent = indent + #tostring(bp.line) + 1
-    local whitespace = string.rep(" ", info_indent)
-
-    local function add_info(message, data)
-      local log_line = whitespace .. message .. " " .. data
-      render_state:add_line(log_line)
-      render_state:add_match("DapUIBreakpointsInfo", render_state:length(), info_indent, #message)
-      self.line_breakpoint_map[render_state:length()] = bp
-    end
-    if bp.logMessage then
-      add_info("Log Message:", bp.logMessage)
-    end
-    if bp.condition then
-      add_info("Condition:", bp.condition)
-    end
-    if bp.hitCondition then
-      add_info("Hit Condition:", bp.hitCondition)
+      local function add_info(message, data)
+        local log_line = whitespace .. message .. " " .. data
+        render_state:add_line(log_line)
+        render_state:add_match("DapUIBreakpointsInfo", render_state:length(), info_indent, #message)
+        self.line_breakpoint_map[render_state:length()] = bp
+      end
+      if bp.logMessage then
+        add_info("Log Message:", bp.logMessage)
+      end
+      if bp.condition then
+        add_info("Condition:", bp.condition)
+      end
+      if bp.hitCondition then
+        add_info("Hit Condition:", bp.hitCondition)
+      end
     end
   end
 end
