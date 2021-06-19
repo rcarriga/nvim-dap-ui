@@ -1,5 +1,6 @@
 local M = {}
 local listener_id = "dapui_hover"
+local render = require("dapui.render")
 local Hover = {
   eval = {win = nil},
   stack_frames = {}
@@ -32,13 +33,13 @@ function M.eval(expr)
         print("Couldn't evaluate expression '" .. expr .. "' in current frame.")
         return
       end
-      local render_state = require("dapui.render").init_state()
+      local render_state = render.new()
       for _, line in ipairs(vim.split(response.result, "\n")) do
         render_state:add_line(" " .. line .. " ")
       end
       local buf = hover_win:get_buf()
       hover_win:resize(render_state:width(), render_state:length())
-      render_state:render_buffer(buf)
+      render.render_buffer(render_state, buf)
       vim.fn.setbufvar(buf, "&filetype", filetype)
       vim.api.nvim_buf_set_option(buf, "modifiable", false)
     end

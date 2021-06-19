@@ -1,6 +1,7 @@
 local M = {}
 
 local config = require("dapui.config")
+local render = require("dapui.render")
 
 vim.cmd("hi default DapUIFloatBorder guifg=#00F1F5")
 local float_windows = {}
@@ -35,7 +36,7 @@ local function open_wins(elements, open, saved)
     element.on_open(
       bufnr,
       function(render_state)
-        render_state:render_buffer(bufnr)
+        render.render_buffer(render_state, bufnr)
       end
     )
     init_win_settings(win_id)
@@ -99,7 +100,7 @@ function M.open_float(element, position, settings)
   element.on_open(
     buf,
     function(render_state)
-      local rendered = render_state:render_buffer(float_win:get_buf())
+      local rendered = render.render_buffer(render_state, float_win:get_buf())
       if rendered then
         float_win:resize(settings.width or render_state:width(), settings.height or render_state:length())
       end
