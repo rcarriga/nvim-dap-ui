@@ -33,7 +33,7 @@ local default_config = {
     position = "left"
   },
   tray = {
-    open_on_start = false,
+    open_on_start = true,
     elements = {
       elements.REPL
     },
