@@ -4,9 +4,11 @@ local M = {}
 
 local UIState = {}
 
-function UIState:new(listener_id)
+local events = {CLEAR = "clear", REFRESH = "refresh"}
+
+function UIState:new()
   local state = {
-    listener_id = listener_id,
+    listener_id = nil,
     awaiting_requests = 0,
     variables = {},
     monitored_vars = {},
@@ -14,116 +16,97 @@ function UIState:new(listener_id)
     frames = {},
     threads = {},
     current_frame = {},
-    listeners = {}
+    stopped_thread_id = nil,
+    listeners = {[events.CLEAR] = {}, [events.REFRESH] = {}}
   }
   setmetatable(state, self)
   self.__index = self
-
-  dap.listeners.after.scopes[listener_id] = function(session, err, response)
-    if not err then
-      state.scopes = response.scopes
-      for ref, _ in pairs(state.monitored_vars) do
-        session:request(
-          "variables",
-          {variablesReference = ref},
-          function()
-          end
-        )
-      end
-    end
-  end
-
-  dap.listeners.after.variables[listener_id] = function(session, err, response, request)
-    if not err then
-      state.variables[request.variablesReference] = response.variables
-      state:emit_refreshed(session)
-    end
-  end
-
-  dap.listeners.after.threads[listener_id] = function(session, err, response)
-    if not err then
-      for _, thread in pairs(response.threads) do
-        state.threads[thread.id] = thread
-        session:request(
-          "stackTrace",
-          {threadId = thread.id},
-          function()
-          end
-        )
-      end
-    end
-  end
-
-  dap.listeners.after.stackTrace[listener_id] = function(session, err, response, request)
-    if not err then
-      state.frames[request.threadId] = response.stackFrames
-      state:emit_refreshed(session)
-    end
-  end
-
   return state
 end
 
-function UIState:destroy()
-  for _, listeners in pairs(dap.listeners.after) do
-    listeners[self.listener_id] = nil
-  end
+function UIState:clear()
+  self.awaiting_requests = 0
+  self.variables = {}
+  self.monitored_vars = {}
+  self.scopes = {}
+  self.frames = {}
+  self.threads = {}
+  self.current_frame = {}
+  self.stopped_thread_id = nil
+  for _, receiver in pairs(self.listeners[events.CLEAR]) do receiver() end
+end
+
+function UIState:attach(listener_id)
+  self.listener_id = listener_id
+  dap.listeners.after.scopes[listener_id] =
+    function(session, err, response)
+      if not err then
+        self.scopes = response.scopes
+        for ref, _ in pairs(self.monitored_vars) do
+          session:request(
+            "variables", {variablesReference = ref}, function() end
+          )
+        end
+      end
+    end
+
+  dap.listeners.after.variables[listener_id] =
+    function(session, err, response, request)
+      if not err then
+        self.variables[request.variablesReference] = response.variables
+        self:emit_refreshed(session)
+      end
+    end
+
+  dap.listeners.after.threads[listener_id] =
+    function(session, err, response)
+      if not err then
+        for _, thread in pairs(response.threads) do
+          self.threads[thread.id] = thread
+          session:request("stackTrace", {threadId = thread.id}, function() end)
+        end
+      end
+    end
+
+  dap.listeners.after.stackTrace[listener_id] =
+    function(session, err, response, request)
+      if not err then
+        self.frames[request.threadId] = response.stackFrames
+        self:emit_refreshed(session)
+      end
+    end
 end
 
 function UIState:refresh(session)
-  if not session.current_frame then
-    return
-  end
-  session:request(
-    "scopes",
-    {frameId = session.current_frame.id},
-    function()
-    end
-  )
+  if not session.current_frame then return end
+  session:request("scopes", {frameId = session.current_frame.id}, function() end)
   for ref, _ in pairs(self.monitored_vars) do
-    session:request(
-      "variables",
-      {variablesReference = ref},
-      function()
-      end
-    )
+    session:request("variables", {variablesReference = ref}, function() end)
   end
-  session:request(
-    "threads",
-    nil,
-    function()
-    end
-  )
+  session:request("threads", nil, function() end)
 end
 
 function UIState:emit_refreshed(session)
   self.current_frame = session.current_frame
-  if not self.current_frame then
-    return
-  end
-  for _, receiver in pairs(self.listeners) do
-    receiver(session)
-  end
+  self.stopped_thread_id = session.stopped_thread_id
+  for _, receiver in pairs(self.listeners[events.REFRESH]) do receiver(session) end
 end
 
 local ui_state
 
 function M.setup()
   local listener_id = "dapui_state"
-  ui_state = UIState:new(listener_id)
+  ui_state = UIState:new()
+  ui_state:attach(listener_id)
   dap.listeners.after.event_terminated[listener_id] = function()
-    ui_state:destroy()
-    ui_state = UIState:new(listener_id)
+    ui_state:clear()
   end
 end
 
 function M.monitor(var_ref)
   ui_state.monitored_vars[var_ref] = (ui_state.monitored_vars[var_ref] or 0) + 1
   dap.session():request(
-    "variables",
-    {variablesReference = var_ref},
-    function()
-    end
+    "variables", {variablesReference = var_ref}, function() end
   )
 end
 
@@ -134,28 +117,39 @@ function M.stop_monitor(var_ref)
   end
 end
 
-function M.scopes()
-  return ui_state.scopes or {}
+function M.scopes() return ui_state.scopes or {} end
+
+function M.variables(ref) return ui_state.variables[ref] or {} end
+
+function M.threads() return ui_state.threads or {} end
+
+function M.stopped_thread() return M.threads()[ui_state.stopped_thread_id or -1] end
+
+function M.frames(thread_id) return ui_state.frames[thread_id] or {} end
+
+function M.current_frame() return ui_state.current_frame end
+
+function M.breakpoints()
+  local breakpoints = require("dap.breakpoints").get() or {}
+  for buffer, buf_points in pairs(breakpoints) do
+    if not vim.tbl_isempty(buf_points) then
+      local buf_name = vim.fn.bufname(buffer)
+      for _, bp in pairs(buf_points) do bp.file = buf_name end
+    end
+  end
+  return breakpoints
 end
 
-function M.variables(ref)
-  return ui_state.variables[ref] or {}
+function M.buffer_breakpoints(buffer) return M.breakpoints()[buffer] or {} end
+
+local function add_listener(event, callback)
+  ui_state.listeners[event][#ui_state.listeners[event] + 1] = callback
 end
 
-function M.threads()
-  return ui_state.threads or {}
-end
+function M.on_refresh(callback) add_listener(events.REFRESH, callback) end
 
-function M.frames(thread_id)
-  return ui_state.frames[thread_id] or {}
-end
+function M.on_clear(callback) add_listener(events.CLEAR, callback) end
 
-function M.on_refresh(callback)
-  ui_state.listeners[#ui_state.listeners + 1] = callback
-end
-
-function M.refresh()
-  ui_state:refresh(dap.session())
-end
+function M.refresh() ui_state:refresh(dap.session()) end
 
 return M

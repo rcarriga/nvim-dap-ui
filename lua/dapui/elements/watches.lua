@@ -199,7 +199,7 @@ function Element:render(session)
   if not self:should_render(session) then
     return
   end
-  local render_state = require("dapui.render").init_state()
+  local render_state = require("dapui.render").new()
   self:fill_render_state(render_state)
   for _, reciever in pairs(self.render_receivers) do
     reciever(render_state)

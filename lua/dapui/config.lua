@@ -23,9 +23,6 @@ local default_config = {
     open_on_start = true,
     elements = {
       M.elements.SCOPES,
-      M.elements.BREAKPOINTS,
-      M.elements.STACKS,
-      M.elements.WATCHES
     },
     width = 40,
     position = "left"
@@ -33,7 +30,6 @@ local default_config = {
   tray = {
     open_on_start = true,
     elements = {
-      M.elements.REPL
     },
     height = 10,
     position = "bottom"

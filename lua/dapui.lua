@@ -6,6 +6,7 @@ local sidebar_open = true
 local tray_open = true
 
 local config = require("dapui.config")
+local state = require("dapui.state")
 
 local function element(name)
   return require("dapui.elements." .. name)
@@ -65,6 +66,7 @@ end
 
 function M.setup(user_config)
   config.setup(user_config)
+  state.setup()
 
   require("dapui.highlights").setup()
 
@@ -106,7 +108,7 @@ function M.open(component)
   if not component or component == "tray" then
     tray_open = true
     local tray_elems = {}
-    for _, module in pairs(config().tray.elements) do
+    for _, module in pairs(config.tray().elements) do
       tray_elems[#tray_elems + 1] = element(module)
     end
     require("dapui.windows").open_tray(tray_elems)

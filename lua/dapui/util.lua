@@ -103,4 +103,13 @@ function M.pretty_name(path)
   return vim.fn.fnamemodify(path, ":t")
 end
 
+function M.pop(tbl, key, default)
+  local val = default
+  if tbl[key] then
+    val = tbl[key]
+    tbl[key] = nil
+  end
+  return val
+end
+
 return M

@@ -12,12 +12,6 @@ M.float_defaults = {
 
 local win = nil
 
-local false_render = {
-  render_buffer = function()
-    return true
-  end
-}
-
 function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_option(buf, "filetype", "dapui_repl")
   win = vim.fn.bufwinid(buf)
@@ -28,7 +22,7 @@ function M.on_open(buf, render_receiver)
   vim.api.nvim_set_current_win(win)
   vim.fn.winrestview({leftcol = 0})
   vim.api.nvim_set_current_win(cur_win)
-  render_receiver(false_render)
+  render_receiver(nil)
 end
 
 function M.on_close()
