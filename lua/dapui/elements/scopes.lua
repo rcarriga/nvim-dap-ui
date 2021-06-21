@@ -1,12 +1,9 @@
 local M = {}
 
 local state = require("dapui.state")
-local config = require("dapui.config")
 local render = require("dapui.render")
-local util = require("dapui.util")
 
-local variables = require("dapui.components.variables").new()
-local scopes = require("dapui.components.scopes").new(variables)
+local scopes = require("dapui.components.scopes")()
 
 local render_receivers = {}
 
@@ -23,23 +20,11 @@ local render_element = function()
   end
 end
 
-function M.toggle_reference()
-  local cur_line = vim.fn.line(".")
-  local mark_id = render.mark_at_line(cur_line)
-  if not mark_id then return end
-  variables:toggle_reference(mark_id)
-  render_element()
-end
-
 function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_option(buf, "filetype", "dapui_scopes")
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
   render_receivers[buf] = render_receiver
-  util.apply_mapping(
-    config.mappings().expand,
-    "<Cmd>lua require('dapui.elements.scopes').toggle_reference()<CR>", buf
-  )
   render_element()
 end
 

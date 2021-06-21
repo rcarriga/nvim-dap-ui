@@ -1,5 +1,3 @@
-local M = {}
-
 local config = require("dapui.config")
 local state = require("dapui.state")
 local util = require("dapui.util")
@@ -15,6 +13,14 @@ function StackFrames:new()
   return elem
 end
 
+local function open_frame_callback(frame)
+  return function()
+    local session = require("dap").session()
+    util.jump_to_frame(frame, session)
+  end
+end
+
+---@param render_state RenderState
 function StackFrames:render(render_state, thread_id, indent)
   indent = indent or config.windows().indent
   local frames = state.frames(thread_id)
@@ -46,20 +52,9 @@ function StackFrames:render(render_state, thread_id, indent)
     end
 
     render_state:add_line(new_line)
-    self.mark_frame_map[render_state:add_mark()] = frame
+    render_state:add_mapping(config.actions.OPEN, open_frame_callback(frame))
   end
 end
 
-function StackFrames:open_frame(mark_id)
-  local current_frame = self.mark_frame_map[mark_id]
-  if not current_frame then return end
-  local session = require("dap").session()
-  util.jump_to_frame(current_frame, session)
-end
-
 ---@return StackFrames
-function M.new()
-  return StackFrames:new()
-end
-
-return M
+return function() return StackFrames:new() end

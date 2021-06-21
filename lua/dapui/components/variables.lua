@@ -1,5 +1,3 @@
-local M = {}
-
 local state = require("dapui.state")
 local config = require("dapui.config")
 
@@ -16,11 +14,25 @@ function Variables:new()
   return elem
 end
 
+local function toggle_reference_callback(vars, ref, ref_path)
+  return function()
+    if vars.expanded_references[ref_path] then
+      vars.expanded_references[ref_path] = nil
+      state.stop_monitor(ref)
+    else
+      vars.expanded_references[ref_path] = true
+      state.monitor(ref)
+    end
+
+  end
+end
+
 function Variables:render(render_state, ref_path, indent, expanded)
   expanded = expanded or {}
   indent = indent or config.windows().indent
   expanded[ref_path] = true
-  local var_ref = self:_var_ref_from_path(ref_path)
+  local var_path_elems = vim.split(ref_path, "/")
+  local var_ref = tonumber(var_path_elems[#var_path_elems])
   for _, variable in pairs(state.variables(var_ref)) do
     local line_no = render_state:length() + 1
     local var_reference_path = ref_path .. "/" .. variable.variablesReference
@@ -41,6 +53,17 @@ function Variables:render(render_state, ref_path, indent, expanded)
       new_line = new_line .. variable.type
     end
 
+    local function add_var_line(line)
+      render_state:add_line(line)
+      if variable.variablesReference > 0 then
+        render_state:add_mapping(
+          config.actions.EXPAND, toggle_reference_callback(
+            self, variable.variablesReference, var_reference_path
+          )
+        )
+      end
+    end
+
     if #(variable.value or "") > 0 then
       new_line = new_line .. " = "
       local value_start = #new_line
@@ -48,12 +71,10 @@ function Variables:render(render_state, ref_path, indent, expanded)
 
       for i, line in pairs(vim.split(new_line, "\n")) do
         if i > 1 then line = string.rep(" ", value_start - 2) .. line end
-        render_state:add_line(line)
-        self.mark_variable_map[render_state:add_mark()] = var_reference_path
+        add_var_line(line)
       end
     else
-      render_state:add_line(new_line)
-      self.mark_variable_map[render_state:add_mark()] = var_reference_path
+      add_var_line(new_line)
     end
 
     if self.expanded_references[var_reference_path] and
@@ -66,38 +87,11 @@ function Variables:render(render_state, ref_path, indent, expanded)
   end
 end
 
-function Variables:toggle_reference(mark_id)
-  local current_ref_path = self.mark_variable_map[mark_id]
-  if not current_ref_path then return end
-
-  local session = require("dap").session()
-  if not session then
-    print("No active session to query")
-    return
-  end
-
-  local current_ref = self:_var_ref_from_path(current_ref_path)
-
-  if self.expanded_references[current_ref_path] then
-    self.expanded_references[current_ref_path] = nil
-    state.stop_monitor(current_ref)
-  else
-    self.expanded_references[current_ref_path] = true
-    state.monitor(current_ref)
-  end
-end
-
-function Variables:_var_ref_from_path(ref_path)
-  local var_path_elems = vim.split(ref_path, "/")
-  return tonumber(var_path_elems[#var_path_elems])
-end
-
 function Variables:_reference_prefix(ref_path)
   if vim.endswith(ref_path, "/0") then return " " end
   return config.icons()[self.expanded_references[ref_path] and "expanded" or
            "collapsed"]
 end
 
-function M.new() return Variables:new() end
-
-return M
+---@return Variables
+return function() return Variables:new() end

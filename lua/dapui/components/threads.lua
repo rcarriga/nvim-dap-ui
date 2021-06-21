@@ -1,14 +1,12 @@
-local M = {}
-
 local state = require("dapui.state")
+local Frames = require("dapui.components.frames")
 
 --- @class Threads
 --- @field frames StackFrames
 local Threads = {}
 
---- @param frames StackFrames
-function Threads:new(frames)
-  local elem = {frames = frames}
+function Threads:new()
+  local elem = {frames = Frames()}
   setmetatable(elem, self)
   self.__index = self
   return elem
@@ -34,8 +32,5 @@ function Threads:render(render_state)
   render_state:remove_line()
 end
 
----@param frames StackFrames
-function M.new(frames) return Threads:new(frames) end
-
-return M
-
+---@return Threads
+return function() return Threads:new() end

@@ -5,8 +5,10 @@ M.elements = {
   REPL = "repl",
   SCOPES = "scopes",
   STACKS = "stacks",
-  WATCHES = "watches"
+  WATCHES = "watches",
 }
+
+M.actions = {EXPAND = "expand", OPEN = "open", REMOVE = "remove", EDIT = "edit"}
 
 local default_config = {
   icons = {
@@ -14,33 +16,28 @@ local default_config = {
     collapsed = "▸"
   },
   mappings = {
-    expand = {"<CR>", "<2-LeftMouse>"},
-    open = "o",
-    remove = "d",
-    edit = "e"
+    [M.actions.EXPAND] = {"<CR>", "<2-LeftMouse>"},
+    [M.actions.OPEN] = "o",
+    [M.actions.REMOVE] = "d",
+    [M.actions.EDIT] = "e",
   },
   sidebar = {
     open_on_start = true,
     elements = {
-      M.elements.SCOPES,
+      M.elements.SCOPES, M.elements.BREAKPOINTS, M.elements.STACKS,
+      M.elements.WATCHES,
     },
     width = 40,
-    position = "left"
+    position = "left",
   },
   tray = {
     open_on_start = true,
-    elements = {
-    },
+    elements = {M.elements.REPL},
     height = 10,
-    position = "bottom"
+    position = "bottom",
   },
-  floating = {
-    max_height = nil,
-    max_width = nil
-  },
-  windows = {
-    indent = 1
-  }
+  floating = {max_height = nil, max_width = nil},
+  windows = {indent = 1},
 }
 
 local user_config = {}
@@ -55,28 +52,16 @@ function M.setup(config)
   user_config = filled
 end
 
-function M.mappings()
-  return user_config.mappings
-end
+function M.mappings() return user_config.mappings end
 
-function M.icons()
-  return user_config.icons
-end
+function M.icons() return user_config.icons end
 
-function M.sidebar()
-  return user_config.sidebar
-end
+function M.sidebar() return user_config.sidebar end
 
-function M.tray()
-  return user_config.tray
-end
+function M.tray() return user_config.tray end
 
-function M.floating()
-  return user_config.floating
-end
+function M.floating() return user_config.floating end
 
-function M.windows()
-  return user_config.windows
-end
+function M.windows() return user_config.windows end
 
 return M

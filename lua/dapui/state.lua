@@ -114,6 +114,7 @@ function M.stop_monitor(var_ref)
   ui_state.monitored_vars[var_ref] = ui_state.monitored_vars[var_ref] - 1
   if ui_state.monitored_vars[var_ref] then
     ui_state.monitored_vars[var_ref] = nil
+    ui_state:emit_refreshed(dap.session())
   end
 end
 

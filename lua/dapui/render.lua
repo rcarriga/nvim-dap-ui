@@ -1,17 +1,26 @@
 local M = {}
 
+M._mappings = {}
+
 local util = require("dapui.util")
+local config = require("dapui.config")
 M.namespace = vim.api.nvim_create_namespace("dapui")
 
 ---@class RenderState
 ---@field lines table
 ---@field matches table
 ---@field marks table
+---@field mappings table
 local RenderState = {}
 
 ---@return RenderState
 function RenderState:new()
-  local render_state = {lines = {}, matches = {}, marks = {}}
+  local render_state = {
+    lines = {},
+    matches = {},
+    marks = {},
+    mappings = {open = {}, expand = {}, remove = {}, edit = {}},
+  }
   setmetatable(render_state, self)
   self.__index = self
   return render_state
@@ -34,6 +43,19 @@ function RenderState:add_match(group, line, start_col, length)
   if start_col ~= nil then pos[#pos + 1] = start_col end
   if length ~= nil then pos[#pos + 1] = length end
   self.matches[#self.matches + 1] = {group, pos}
+end
+
+---Add a mapping for a specific line
+---@param action string Name of mapping action to use key for
+---@param callback function Callback for when mapping is used
+---@param opts table Optional extra arguments
+-- Extra arguments currently accepts:
+--   `line` Line to map to, defaults to last in state
+function RenderState:add_mapping(action, callback, opts)
+  opts = opts or {}
+  local line = opts["line"] or self:length()
+  self.mappings[action][line] = self.mappings[action][line] or {}
+  self.mappings[action][line][#self.mappings[action][line] + 1] = callback
 end
 
 function RenderState:add_mark(opts)
@@ -59,6 +81,17 @@ end
 ---@param state RenderState
 ---@param buffer number
 function M.render_buffer(state, buffer)
+  if not state then
+    return
+  end
+  M._mappings[buffer] = state.mappings
+  for action, _ in pairs(state.mappings) do
+    util.apply_mapping(
+      config.mappings()[action],
+      "<cmd>lua require('dapui.render')._mapping('" .. action .. "')<CR>",
+      buffer
+    )
+  end
   if not state then return end
   if buffer < 0 then return false end
   local win = vim.fn.bufwinnr(buffer)
@@ -98,4 +131,14 @@ end
 --- @return RenderState
 function M.new() return RenderState:new() end
 
+function M._mapping(action)
+  local buffer = vim.api.nvim_get_current_buf()
+  local line = vim.fn.line(".")
+  local callbacks = M._mappings[buffer][action][line]
+  if not callbacks then
+    print("No " .. action .. " for current line")
+    return
+  end
+  for _, callback in pairs(callbacks) do callback() end
+end
 return M
