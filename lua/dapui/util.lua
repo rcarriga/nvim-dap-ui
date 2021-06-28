@@ -37,24 +37,21 @@ function M.jump_to_frame(frame, session)
   local line = frame.line
   local column = frame.column
   local source = frame.source
-  if not source then
-    return
-  end
+  if not source then return end
 
   if (source.sourceReference or 0) > 0 then
     local buf = vim.api.nvim_create_buf(false, true)
     session:request(
-      "source",
-      {sourceReference = source.sourceReference},
+      "source", {sourceReference = source.sourceReference},
       function(response, err)
-        if err then
-          return
-        end
+        if err then return end
         if not response.body.content then
           print("No source available for frame")
           return
         end
-        vim.api.nvim_buf_set_lines(buf, 0, 0, true, vim.split(response.body.content, "\n"))
+        vim.api.nvim_buf_set_lines(
+          buf, 0, 0, true, vim.split(response.body.content, "\n")
+        )
         open_buf(buf, line, column)
         vim.api.nvim_buf_set_option(buf, "bufhidden", "delete")
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
@@ -63,17 +60,15 @@ function M.jump_to_frame(frame, session)
     return
   end
 
-  if not source.path then
-    print("No source available for frame")
-  end
+  if not source.path then print("No source available for frame") end
 
   local path = source.path
 
-  if not column or column == 0 then
-    column = 1
-  end
+  if not column or column == 0 then column = 1 end
 
-  local bufnr = vim.uri_to_bufnr(M.is_uri(path) and path or vim.uri_from_fname(path))
+  local bufnr = vim.uri_to_bufnr(
+                  M.is_uri(path) and path or vim.uri_from_fname(path)
+                )
   vim.fn.bufload(bufnr)
   open_buf(bufnr, line, column)
 end
@@ -82,9 +77,7 @@ function M.get_selection(start, finish)
   local start_line, start_col = start[2], start[3]
   local finish_line, finish_col = finish[2], finish[3]
   local lines = vim.fn.getline(start_line, finish_line)
-  if #lines == 0 then
-    return
-  end
+  if #lines == 0 then return end
   lines[#lines] = string.sub(lines[#lines], 1, finish_col)
   lines[1] = string.sub(lines[1], start_col)
   return lines
@@ -97,9 +90,7 @@ function M.apply_mapping(mappings, func, buffer)
 end
 
 function M.pretty_name(path)
-  if M.is_uri(path) then
-    path = vim.uri_to_fname(path)
-  end
+  if M.is_uri(path) then path = vim.uri_to_fname(path) end
   return vim.fn.fnamemodify(path, ":t")
 end
 
@@ -110,6 +101,22 @@ function M.pop(tbl, key, default)
     tbl[key] = nil
   end
   return val
+end
+
+function M.format_error(error)
+  if vim.tbl_isempty(error.body or {}) then return error.message end
+  local formatted = error.body.error.format
+  for name, val in pairs(error.body.error.variables) do
+    formatted = string.gsub(formatted, "{" .. name .. "}", val)
+  end
+  return formatted
+end
+
+function M.curry(func)
+  return function(...)
+    local args = ...
+    return function() return func(args) end
+  end
 end
 
 return M

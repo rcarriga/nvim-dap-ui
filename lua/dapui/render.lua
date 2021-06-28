@@ -11,6 +11,7 @@ M.namespace = vim.api.nvim_create_namespace("dapui")
 ---@field matches table
 ---@field marks table
 ---@field mappings table
+---@field prompt table
 local RenderState = {}
 
 ---@return RenderState
@@ -20,6 +21,7 @@ function RenderState:new()
     matches = {},
     marks = {},
     mappings = {open = {}, expand = {}, remove = {}, edit = {}},
+    prompt = nil,
   }
   setmetatable(render_state, self)
   self.__index = self
@@ -67,6 +69,10 @@ function RenderState:add_mark(opts)
   return opts["id"]
 end
 
+function RenderState:set_prompt(text, callback)
+  self.prompt = {text = text, callback = callback}
+end
+
 ---Get the number of lines in state
 function RenderState:length() return #self.lines end
 
@@ -81,9 +87,11 @@ end
 ---@param state RenderState
 ---@param buffer number
 function M.render_buffer(state, buffer)
-  if not state then
-    return
-  end
+  if not state then return end
+  if buffer < 0 then return false end
+  local win = vim.fn.bufwinnr(buffer)
+  if win == -1 then return false end
+
   M._mappings[buffer] = state.mappings
   for action, _ in pairs(state.mappings) do
     util.apply_mapping(
@@ -92,10 +100,7 @@ function M.render_buffer(state, buffer)
       buffer
     )
   end
-  if not state then return end
-  if buffer < 0 then return false end
-  local win = vim.fn.bufwinnr(buffer)
-  if win == -1 then return false end
+
   local lines = state.lines
   local matches = state.matches
   local marks = state.marks
@@ -113,6 +118,10 @@ function M.render_buffer(state, buffer)
     vim.api.nvim_buf_set_extmark(
       buffer, M.namespace, mark.line, mark.col, mark.opts
     )
+  end
+  if state.prompt then
+    vim.fn.prompt_setprompt(buffer, state.prompt.text)
+    vim.fn.prompt_setcallback(buffer, state.prompt.callback)
   end
   return true
 end

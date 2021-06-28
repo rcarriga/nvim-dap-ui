@@ -8,16 +8,12 @@ local tray_open = true
 local config = require("dapui.config")
 local state = require("dapui.state")
 
-local function element(name)
-  return require("dapui.elements." .. name)
-end
+local function element(name) return require("dapui.elements." .. name) end
 
 local open_float = nil
 
 local function query_elem_name()
-  if open_float then
-    return open_float
-  end
+  if open_float then return open_float end
   local entries = {"Select an element:"}
   local elems = {}
   for _, name in ipairs(config.elements) do
@@ -34,23 +30,22 @@ function M.float_element(elem_name)
       local col_no = vim.fn.screencol()
       local position = {line = line_no, col = col_no}
       elem_name = elem_name or query_elem_name()
-      if not elem_name then
-        return
-      end
+      if not elem_name then return end
       open_float = elem_name
       local elem = element(elem_name)
-      local win = require("dapui.windows").open_float(elem, position, elem.float_defaults or {})
-      win:listen(
-        "close",
-        function()
-          open_float = nil
-        end
-      )
+      local win = require("dapui.windows").open_float(
+                    elem, position, elem.float_defaults or {}
+                  )
+      win:listen("close", function() open_float = nil end)
     end
   )
 end
 
 function M.eval(expr)
+  if open_float then
+    open_float:jump_to()
+    return
+  end
   if not expr then
     if vim.fn.mode() == "v" then
       local start = vim.fn.getpos("v")
@@ -61,36 +56,32 @@ function M.eval(expr)
       expr = expr or vim.fn.expand("<cexpr>")
     end
   end
-  require("dapui.hover").eval(expr)
+  local elem = require("dapui.hover").new(expr)
+  local line_no = vim.fn.screenrow()
+  local col_no = vim.fn.screencol()
+  local position = {line = line_no, col = col_no}
+  open_float = require("dapui.windows").open_float(elem, position, {})
+  open_float:listen("close", function() open_float = nil end)
 end
 
 function M.setup(user_config)
   config.setup(user_config)
   state.setup()
+  require("dapui.hover").setup()
 
   require("dapui.highlights").setup()
 
-  for _, module in pairs(config.elements) do
-    element(module).setup()
-  end
+  for _, module in pairs(config.elements) do element(module).setup() end
 
   local dap = require("dap")
   dap.listeners.after.event_initialized[listener_id] = function()
-    if config.tray().open_on_start then
-      M.open("tray")
-    end
-    if config.sidebar().open_on_start then
-      M.open("sidebar")
-    end
+    if config.tray().open_on_start then M.open("tray") end
+    if config.sidebar().open_on_start then M.open("sidebar") end
   end
 
-  dap.listeners.before.event_terminated[listener_id] = function()
-    M.close()
-  end
+  dap.listeners.before.event_terminated[listener_id] = function() M.close() end
 
-  dap.listeners.before.event_exited[listener_id] = function()
-    M.close()
-  end
+  dap.listeners.before.event_exited[listener_id] = function() M.close() end
 end
 
 function M.close(component)

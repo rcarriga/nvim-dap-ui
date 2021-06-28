@@ -15,6 +15,14 @@ function BufferBreakPoints:new()
   return elem
 end
 
+local function open_frame_callback(current_bp)
+  return function()
+    util.jump_to_frame(
+      {line = current_bp.line, column = 0, source = {path = current_bp.file}}
+    )
+  end
+end
+
 function BufferBreakPoints:render(render_state, buffer, breakpoints,
                                   current_line, current_file, indent)
   indent = indent or config.windows().indent
@@ -33,7 +41,7 @@ function BufferBreakPoints:render(render_state, buffer, breakpoints,
 
       new_line = new_line .. " " .. vim.trim(text[1])
       render_state:add_line(new_line)
-      self.mark_breakpoint_map[render_state:add_mark()] = bp
+      render_state:add_mapping(config.actions.OPEN, open_frame_callback(bp))
 
       local info_indent = indent + #tostring(bp.line) + 1
       local whitespace = string.rep(" ", info_indent)
@@ -44,21 +52,13 @@ function BufferBreakPoints:render(render_state, buffer, breakpoints,
         render_state:add_match(
           "DapUIBreakpointsInfo", render_state:length(), info_indent, #message
         )
-        self.mark_breakpoint_map[render_state:add_mark()] = bp
+        render_state:add_mapping(config.actions.OPEN, open_frame_callback(bp))
       end
       if bp.logMessage then add_info("Log Message:", bp.logMessage) end
       if bp.condition then add_info("Condition:", bp.condition) end
       if bp.hitCondition then add_info("Hit Condition:", bp.hitCondition) end
     end
   end
-end
-
-function BufferBreakPoints:open_frame(mark_id)
-  local current_bp = self.mark_breakpoint_map[mark_id]
-  if not current_bp then return end
-  util.jump_to_frame(
-    {line = current_bp.line, column = 0, source = {path = current_bp.file}}
-  )
 end
 
 ---@return BufferBreakPoints

@@ -1,0 +1,144 @@
+local config = require("dapui.config")
+local variables = require("dapui.components.variables")
+local state = require("dapui.state")
+local util = require("dapui.util")
+local api = vim.api
+
+---@class Watches
+---@field expressions table
+---@field expanded table
+---@field var_components table
+local Watches = {}
+
+---@return Watches
+function Watches:new()
+  local watches = {expressions = {}, var_components = {}, expanded = {}}
+  setmetatable(watches, self)
+  self.__index = self
+  return watches
+end
+
+local function add_watch_callback(watches)
+  return function(value)
+    vim.cmd("stopinsert")
+    if value == "" then
+      state.refresh()
+      return
+    end
+    watches.expressions[#watches.expressions + 1] = value
+    watches.var_components[#watches.var_components + 1] = variables()
+    state.add_watch(value)
+  end
+end
+
+local function edit_expr_callback(watches, expr_i)
+  return function()
+    local buf = api.nvim_win_get_buf(0)
+    local old = watches.expressions[expr_i]
+    vim.fn.prompt_setcallback(
+      buf, function(new)
+        vim.cmd("stopinsert")
+        if new ~= "" then
+          watches.expressions[expr_i] = new
+          state.remove_watch(old)
+          state.add_watch(new)
+        else
+          state.refresh()
+        end
+      end
+    )
+    vim.cmd("normal i" .. old)
+    vim.api.nvim_input("A")
+  end
+end
+
+local function remove_expr_callback(watches, expr_i)
+  return function()
+    local expression = util.pop(watches.expressions, expr_i)
+    watches.var_components[expr_i] = nil
+    state.remove_watch(expression)
+  end
+end
+
+local function toggle_expression_callback(watches, expr_i)
+  return function()
+    local expanded = watches.expanded[expr_i]
+    if expanded then
+      watches.expanded[expr_i] = nil
+    else
+      watches.expanded[expr_i] = true
+    end
+    state.refresh()
+  end
+
+end
+function Watches:render(render_state)
+  render_state:set_prompt("> ", add_watch_callback(self))
+  if vim.tbl_count(self.expressions) == 0 then
+    render_state:add_line("No Expressions")
+    render_state:add_match("DapUIWatchesEmpty", render_state:length())
+    render_state:add_line()
+    return
+  end
+  local watches = state.watches()
+  for i, expr in pairs(self.expressions) do
+    local line_no = render_state:length() + 1
+
+    local watch = watches[expr]
+    if not vim.tbl_isempty(watch or {}) then
+      local var_ref = watch.evaluated and watch.evaluated.variablesReference
+      local prefix = config.icons()[self.expanded[i] and "expanded" or
+                       "collapsed"]
+
+      local indent = config.windows().indent
+      local new_line = string.rep(" ", indent)
+      render_state:add_match(
+        watch.error and "DapUIWatchesError" or "DapUIWatchesValue", line_no,
+        indent, 3
+      )
+
+      new_line = new_line .. prefix .. " " .. expr
+
+      local val_indent = 0
+      if watch.error then
+        new_line = new_line .. ": " .. watch.error
+      elseif watch.evaluated then
+        local evaluated = watch.evaluated
+        if #(evaluated.type or "") > 0 then
+          new_line = new_line .. " "
+          render_state:add_match(
+            "DapUIType", line_no, #new_line + 1, #evaluated.type
+          )
+          new_line = new_line .. evaluated.type
+        end
+        new_line = new_line .. " = "
+        val_indent = string.rep(" ", #new_line - 2)
+        new_line = new_line .. evaluated.result
+      end
+      for j, line in pairs(vim.split(new_line, "\n")) do
+        if j > 1 then line = val_indent .. line end
+        render_state:add_line(line)
+        render_state:add_mapping(
+          config.actions.REMOVE, remove_expr_callback(self, i)
+        )
+        render_state:add_mapping(
+          config.actions.EDIT, edit_expr_callback(self, i)
+        )
+        render_state:add_mapping(
+          config.actions.EXPAND, toggle_expression_callback(self, i)
+        )
+      end
+
+      if self.var_components[i] and self.expanded[i] then
+        local Var = self.var_components[i]
+        Var:render(render_state, tostring(var_ref), config.windows().indent * 2)
+      end
+    end
+  end
+  render_state:add_line()
+end
+
+---@return Watches
+local function new() return Watches:new() end
+
+return new

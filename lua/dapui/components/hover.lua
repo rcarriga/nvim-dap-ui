@@ -1,0 +1,87 @@
+local config = require("dapui.config")
+local variables = require("dapui.components.variables")()
+local state = require("dapui.state")
+local util = require("dapui.util")
+local api = vim.api
+
+---@class Hover
+---@field expression string
+---@field expanded boolean
+local Hover = {}
+
+---@return Hover
+function Hover:new(expression)
+  local hover = {expression = expression, expanded = false}
+  setmetatable(hover, self)
+  self.__index = self
+  return hover
+end
+
+local function toggle_expanded_callback(hover)
+  return function()
+    hover.expanded = not hover.expanded
+    print(hover.expanded)
+    state.refresh()
+  end
+end
+
+function Hover:render(render_state)
+  local hover_expr = state.watch(self.expression)
+  if not hover_expr then
+    render_state:add_line(" ")
+    return
+  end
+  local line_no = render_state:length() + 1
+  local var_ref = hover_expr.evaluated and
+                    hover_expr.evaluated.variablesReference
+  local prefix = config.icons()[self.expanded and "expanded" or "collapsed"]
+  local indent = config.windows().indent
+  local new_line = string.rep(" ", indent)
+  render_state:add_match(
+    hover_expr.error and "DapUIWatchesError" or "DapUIDecoration", line_no,
+    indent, 3
+  )
+
+  new_line = new_line .. prefix .. " " .. self.expression
+
+  local val_indent = 0
+  if hover_expr.error then
+    new_line = new_line .. ": " .. hover_expr.error
+  elseif hover_expr.evaluated then
+    local evaluated = hover_expr.evaluated
+    if #(evaluated.type or "") > 0 then
+      new_line = new_line .. " "
+      render_state:add_match(
+        "DapUIType", line_no, #new_line + 1, #evaluated.type
+      )
+      new_line = new_line .. evaluated.type
+    end
+    new_line = new_line .. " = "
+    val_indent = string.rep(" ", #new_line - 2)
+    new_line = new_line .. evaluated.result
+  end
+  for j, line in pairs(vim.split(new_line, "\n")) do
+    if j > 1 then line = val_indent .. line end
+    render_state:add_line(line)
+    render_state:add_mapping(
+      config.actions.EXPAND, function()
+        self.expanded = not self.expanded
+        print(self.expanded)
+        state.refresh()
+      end
+    )
+  end
+
+  if self.expanded then
+    variables:render(
+      render_state, tostring(var_ref), config.windows().indent * 2
+    )
+  end
+end
+
+---@param expression string
+---@return Hover
+local function new(expression) return Hover:new(expression) end
+
+return new
+

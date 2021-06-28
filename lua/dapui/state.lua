@@ -1,5 +1,7 @@
 local dap = require("dap")
 
+local util = require("dapui.util")
+
 local M = {}
 
 local UIState = {}
@@ -16,8 +18,9 @@ function UIState:new()
     frames = {},
     threads = {},
     current_frame = {},
+    watches = {},
     stopped_thread_id = nil,
-    listeners = {[events.CLEAR] = {}, [events.REFRESH] = {}}
+    listeners = {[events.CLEAR] = {}, [events.REFRESH] = {}},
   }
   setmetatable(state, self)
   self.__index = self
@@ -47,6 +50,7 @@ function UIState:attach(listener_id)
             "variables", {variablesReference = ref}, function() end
           )
         end
+        self:refresh_watches(session)
       end
     end
 
@@ -84,6 +88,28 @@ function UIState:refresh(session)
     session:request("variables", {variablesReference = ref}, function() end)
   end
   session:request("threads", nil, function() end)
+end
+
+function UIState:refresh_watches(session)
+  for expression, expr_data in pairs(self.watches) do
+    session:request(
+      "evaluate", {
+        expression = expression,
+        frameId = session.current_frame.id,
+        context = expr_data.context,
+      }, function(err, response)
+        expr_data.evaluated = response
+        expr_data.error = err and util.format_error(err)
+        if not err and response.variablesReference then
+          session:request(
+            "variables", {variablesReference = response.variablesReference},
+            function() end
+          )
+        end
+        self:emit_refreshed(session)
+      end
+    )
+  end
 end
 
 function UIState:emit_refreshed(session)
@@ -140,6 +166,28 @@ function M.breakpoints()
   end
   return breakpoints
 end
+
+function M.add_watch(expression, context)
+  ui_state.watches[expression] = ui_state.watches[expression] or
+                                   {watchers = 0, context = context or "watch"}
+  ui_state.watches[expression].watchers =
+    ui_state.watches[expression].watchers + 1
+  ui_state:refresh_watches(dap.session())
+end
+
+function M.remove_watch(expression)
+  if not ui_state.watches[expression] then return end
+  ui_state.watches[expression].watchers =
+    ui_state.watches[expression].watchers - 1
+  if ui_state.watches[expression].watchers == 0 then
+    ui_state.watches[expression] = nil
+  end
+  ui_state:refresh_watches(dap.session())
+end
+
+function M.watches() return ui_state.watches end
+
+function M.watch(expression) return ui_state.watches[expression] end
 
 function M.buffer_breakpoints(buffer) return M.breakpoints()[buffer] or {} end
 

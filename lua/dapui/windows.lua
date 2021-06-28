@@ -14,7 +14,7 @@ local function init_win_settings(win)
     relativenumber = false,
     number = false,
     winfixwidth = true,
-    wrap = false
+    wrap = false,
   }
   for key, val in pairs(win_settings) do
     vim.api.nvim_win_set_option(win, key, val)
@@ -35,9 +35,7 @@ local function open_wins(elements, open, saved)
     local bufnr = vim.api.nvim_win_get_buf(win_id)
     element.on_open(
       bufnr,
-      function(render_state)
-        render.render_buffer(render_state, bufnr)
-      end
+      function(render_state) render.render_buffer(render_state, bufnr) end
     )
     init_win_settings(win_id)
   end
@@ -95,33 +93,39 @@ function M.open_float(element, position, settings)
     float_windows[element.name]:jump_to()
     return float_windows[element.name]
   end
-  local float_win = require("dapui.windows.float").open_float({height = 1, width = 1, position = position})
+  local float_win = require("dapui.windows.float").open_float(
+                      {height = 1, width = 1, position = position}
+                    )
   local buf = float_win:get_buf()
   element.on_open(
-    buf,
-    function(render_state)
+    buf, function(render_state)
       local rendered = render.render_buffer(render_state, float_win:get_buf())
       if rendered then
-        float_win:resize(settings.width or render_state:width(), settings.height or render_state:length())
+        float_win:resize(
+          settings.width or render_state:width(),
+          settings.height or render_state:length()
+        )
       end
     end
   )
-  vim.cmd("au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('" .. element.name .. "')")
+  vim.cmd(
+    "au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('" ..
+      element.name .. "')"
+  )
   float_win:listen("close", element.on_close)
   float_windows[element.name] = float_win
-  if settings.enter then
-    float_win:jump_to()
-  end
+  if settings.enter then float_win:jump_to() end
   return float_win
 end
 
 function M.close_float(element_name)
-  if float_windows[element_name] == nil then
-    return
-  end
+  if float_windows[element_name] == nil then return end
   local closed = float_windows[element_name]:close(false)
   if not closed then
-    vim.cmd("au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('" .. element_name .. "')")
+    vim.cmd(
+      "au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('" ..
+        element_name .. "')"
+    )
   else
     float_windows[element_name] = nil
   end

@@ -6,10 +6,10 @@ local Variables = require("dapui.components.variables")
 local Scopes = {}
 
 function Scopes:new()
-  local elem = {variables = Variables()}
-  setmetatable(elem, self)
+  local scopes = {variables = Variables()}
+  setmetatable(scopes, self)
   self.__index = self
-  return elem
+  return scopes
 end
 
 function Scopes:render(render_state)

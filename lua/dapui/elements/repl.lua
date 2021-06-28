@@ -4,11 +4,7 @@ local listener_id = "dapui_repl"
 
 M.name = "DAP REPL"
 
-M.float_defaults = {
-  width = 80,
-  height = 20,
-  enter = true
-}
+M.float_defaults = {width = 80, height = 20, enter = true}
 
 local win = nil
 
@@ -25,15 +21,12 @@ function M.on_open(buf, render_receiver)
   render_receiver(nil)
 end
 
-function M.on_close()
-end
+function M.on_close() end
 
 function M.setup()
   local dap = require("dap")
   dap.listeners.before.event_initialized[listener_id] = function()
-    if win then
-      require("dap").repl.close()
-    end
+    if win then require("dap").repl.close() end
   end
 end
 

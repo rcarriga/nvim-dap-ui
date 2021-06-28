@@ -1,71 +1,53 @@
 local M = {}
-local listener_id = "dapui_hover"
 local render = require("dapui.render")
-local Hover = {
-  eval = {win = nil},
-  stack_frames = {}
-}
+local hover = require("dapui.components.hover")
+local state = require("dapui.state")
+local HoverElement = {}
 
-function M.eval(expr)
-  if Hover.eval.win ~= nil then
-    Hover.eval.win:jump_to()
-    return
+local hover_elements = {}
+
+function HoverElement:new(expression)
+  local hover_elem = {
+    hover_component = hover(expression),
+    name = expression,
+    render_receivers = {},
+  }
+  setmetatable(hover_elem, self)
+  self.__index = self
+  function hover_elem.on_open(buf, render_receiver)
+    vim.api.nvim_buf_set_option(buf, "filetype", "dapui_hover")
+    vim.api.nvim_buf_set_option(buf, "modifiable", false)
+    pcall(vim.api.nvim_buf_set_name, buf, M.name)
+    hover_elem.render_receivers[buf] = render_receiver
+    state.add_watch(expression, "hover")
   end
-  local dap = require("dap")
-  local session = dap.session()
-  if not session then
-    print("No active session to query")
-    return
+  function hover_elem.on_close()
+    hover_elements[expression] = nil
+    state.remove_watch(expression)
   end
-  local filetype = (vim.fn.getbufvar(vim.fn.expand("%"), "&filetype"))
-  local hover_win = require("dapui.windows.float").open_float({height = 1, width = 1})
-  Hover.eval.win = hover_win
-  vim.cmd("au CursorMoved * ++once lua require('dapui.hover').close_eval()")
-  session:request(
-    "evaluate",
-    {
-      expression = expr,
-      frameId = session.current_frame.id,
-      context = "hover"
-    },
-    function(_, response)
-      if not response then
-        print("Couldn't evaluate expression '" .. expr .. "' in current frame.")
-        return
-      end
-      local render_state = render.new()
-      for _, line in ipairs(vim.split(response.result, "\n")) do
-        render_state:add_line(" " .. line .. " ")
-      end
-      local buf = hover_win:get_buf()
-      hover_win:resize(render_state:width(), render_state:length())
-      render.render_buffer(render_state, buf)
-      vim.fn.setbufvar(buf, "&filetype", filetype)
-      vim.api.nvim_buf_set_option(buf, "modifiable", false)
-    end
-  )
+  return hover_elem
 end
 
-function M.close_eval()
-  if Hover.eval.win == nil then
-    return
-  end
-  local closed = Hover.eval.win:close(false)
-  if not closed then
-    vim.cmd("au CursorMoved * ++once lua require('dapui.hover').close_eval()")
-  else
-    Hover.eval.win = nil
+function HoverElement:render()
+  local render_state = render.new()
+  self.hover_component:render(render_state)
+  for buf, reciever in pairs(self.render_receivers) do
+    vim.api.nvim_buf_set_option(buf, "modifiable", true)
+    reciever(render_state)
+    vim.api.nvim_buf_set_option(buf, "modifiable", false)
   end
 end
 
-function M.setup(user_config)
-  local dap = require("dap")
-
-  dap.listeners.stackTrace[listener_id] = function(_, err, response)
-    if not err then
-      Hover.stack_frames = response.stackFrames
-    end
-  end
+local function render_elements()
+  for _, element in pairs(hover_elements) do element:render() end
 end
+
+function M.new(expression)
+  local elem = HoverElement:new(expression)
+  hover_elements[expression] = elem
+  return elem
+end
+
+function M.setup() state.on_refresh(render_elements) end
 
 return M
