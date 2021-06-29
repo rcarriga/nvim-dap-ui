@@ -53,8 +53,8 @@ Default settings:
 ```lua
 require("dapui").setup({
   icons = {
-    expanded = "⯆",
-    collapsed = "⯈"
+    expanded = "▾",
+    collapsed = "▸"
   },
   mappings = {
     -- Use a table to apply multiple mappings
