@@ -12,8 +12,8 @@ local elements = {
 
 local default_config = {
   icons = {
-    expanded = "▼",
-    collapsed = "▶"
+    expanded = "▾",
+    collapsed = "▸"
   },
   mappings = {
     expand = {"<CR>", "<2-LeftMouse>"},
