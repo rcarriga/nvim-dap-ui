@@ -112,10 +112,11 @@ function M.format_error(error)
   return formatted
 end
 
-function M.curry(func)
+function M.partial(func, ...)
+  local args = {...}
   return function(...)
-    local args = ...
-    return function() return func(args) end
+    local final = vim.list_extend(args, {...})
+    return func(unpack(final))
   end
 end
 

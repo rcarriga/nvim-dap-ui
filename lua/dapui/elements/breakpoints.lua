@@ -1,13 +1,7 @@
 local M = {}
 local listener_id = "dapui_breakpoints"
 
-local config = require("dapui.config")
-local render = require("dapui.render")
-
-local buffer_breakpoints = require("dapui.components.breakpoint").new()
-local breakpoints = require("dapui.components.breakpoints").new(
-                      buffer_breakpoints
-                    )
+local breakpoints = require("dapui.components.breakpoints")()
 
 local render_receivers = {}
 
@@ -23,22 +17,11 @@ end
 
 M.name = "DAP Breakpoints"
 
-function M.open_breakpoint()
-  local line = vim.fn.line(".")
-  local mark_id = render.mark_at_line(line)
-  if not mark_id then return end
-  buffer_breakpoints:open_frame(mark_id)
-end
-
 function M.on_open(buf, render_receiver)
   vim.api.nvim_buf_set_option(buf, "filetype", "dapui_breakpoints")
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
   pcall(vim.api.nvim_buf_set_name, buf, M.name)
   render_receivers[buf] = render_receiver
-  require("dapui.util").apply_mapping(
-    config.mappings().open,
-    "<Cmd>lua require('dapui.elements.breakpoints').open_breakpoint()<CR>", buf
-  )
   render_breakpoints()
 end
 

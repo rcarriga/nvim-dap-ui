@@ -1,35 +1,31 @@
 local state = require("dapui.state")
 local config = require("dapui.config")
+local partial = require("dapui.util").partial
 
 --- @class Variables
---- @field mark_variable_map table
 --- @field expanded_references table
 local Variables = {}
 
 function Variables:new()
-  local elem = {mark_variable_map = {}, expanded_references = {}}
+  local elem = {expanded_references = {}}
   setmetatable(elem, self)
   self.__index = self
   state.on_clear(function() elem.expanded_references = {} end)
   return elem
 end
 
-local function toggle_reference_callback(vars, ref, ref_path)
-  return function()
-    if vars.expanded_references[ref_path] then
-      vars.expanded_references[ref_path] = nil
-      state.stop_monitor(ref)
-    else
-      vars.expanded_references[ref_path] = true
-      state.monitor(ref)
-    end
-
+function Variables:toggle_reference(ref, ref_path)
+  self.expanded_references[ref_path] = not self.expanded_references[ref_path]
+  if not self.expanded_references[ref_path] then
+    state.stop_monitor(ref)
+  else
+    state.monitor(ref)
   end
 end
 
 function Variables:render(render_state, ref_path, indent, expanded)
   expanded = expanded or {}
-  indent = indent or config.windows().indent
+  indent = indent or 0
   expanded[ref_path] = true
   local var_path_elems = vim.split(ref_path, "/")
   local var_ref = tonumber(var_path_elems[#var_path_elems])
@@ -57,8 +53,9 @@ function Variables:render(render_state, ref_path, indent, expanded)
       render_state:add_line(line)
       if variable.variablesReference > 0 then
         render_state:add_mapping(
-          config.actions.EXPAND, toggle_reference_callback(
-            self, variable.variablesReference, var_reference_path
+          config.actions.EXPAND, partial(
+            Variables.toggle_reference, self, variable.variablesReference,
+            var_reference_path
           )
         )
       end
@@ -94,4 +91,4 @@ function Variables:_reference_prefix(ref_path)
 end
 
 ---@return Variables
-return function() return Variables:new() end
+return partial(Variables.new, Variables)

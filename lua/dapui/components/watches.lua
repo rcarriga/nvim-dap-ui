@@ -2,6 +2,7 @@ local config = require("dapui.config")
 local variables = require("dapui.components.variables")
 local state = require("dapui.state")
 local util = require("dapui.util")
+local partial = util.partial
 local api = vim.api
 
 ---@class Watches
@@ -18,62 +19,54 @@ function Watches:new()
   return watches
 end
 
-local function add_watch_callback(watches)
-  return function(value)
-    vim.cmd("stopinsert")
-    if value == "" then
-      state.refresh()
-      return
-    end
-    watches.expressions[#watches.expressions + 1] = value
-    watches.var_components[#watches.var_components + 1] = variables()
-    state.add_watch(value)
-  end
-end
-
-local function edit_expr_callback(watches, expr_i)
-  return function()
-    local buf = api.nvim_win_get_buf(0)
-    local old = watches.expressions[expr_i]
-    vim.fn.prompt_setcallback(
-      buf, function(new)
-        vim.cmd("stopinsert")
-        if new ~= "" then
-          watches.expressions[expr_i] = new
-          state.remove_watch(old)
-          state.add_watch(new)
-        else
-          state.refresh()
-        end
-      end
-    )
-    vim.cmd("normal i" .. old)
-    vim.api.nvim_input("A")
-  end
-end
-
-local function remove_expr_callback(watches, expr_i)
-  return function()
-    local expression = util.pop(watches.expressions, expr_i)
-    watches.var_components[expr_i] = nil
-    state.remove_watch(expression)
-  end
-end
-
-local function toggle_expression_callback(watches, expr_i)
-  return function()
-    local expanded = watches.expanded[expr_i]
-    if expanded then
-      watches.expanded[expr_i] = nil
-    else
-      watches.expanded[expr_i] = true
-    end
+function Watches:add_watch(value)
+  vim.cmd("stopinsert")
+  if value == "" then
     state.refresh()
+    return
   end
-
+  self.expressions[#self.expressions + 1] = value
+  self.var_components[#self.var_components + 1] = variables()
+  state.add_watch(value)
 end
+
+function Watches:edit_expr(expr_i)
+  local buf = api.nvim_win_get_buf(0)
+  local old = self.expressions[expr_i]
+  vim.fn.prompt_setcallback(
+    buf, function(new)
+      vim.cmd("stopinsert")
+      if new ~= "" then
+        self.expressions[expr_i] = new
+        state.remove_watch(old)
+        state.add_watch(new)
+      else
+        state.refresh()
+      end
+    end
+  )
+  vim.cmd("normal i" .. old)
+  vim.api.nvim_input("A")
+end
+
+function Watches:remove_expr(expr_i)
+  local expression = util.pop(self.expressions, expr_i)
+  self.var_components[expr_i] = nil
+  state.remove_watch(expression)
+end
+
+function Watches:toggle_expression(expr_i)
+  local expanded = self.expanded[expr_i]
+  if expanded then
+    self.expanded[expr_i] = nil
+  else
+    self.expanded[expr_i] = true
+  end
+  state.refresh()
+end
+
 function Watches:render(render_state)
-  render_state:set_prompt("> ", add_watch_callback(self))
+  render_state:set_prompt("> ", partial(self.add_watch, self))
   if vim.tbl_count(self.expressions) == 0 then
     render_state:add_line("No Expressions")
     render_state:add_match("DapUIWatchesEmpty", render_state:length())
@@ -119,13 +112,13 @@ function Watches:render(render_state)
         if j > 1 then line = val_indent .. line end
         render_state:add_line(line)
         render_state:add_mapping(
-          config.actions.REMOVE, remove_expr_callback(self, i)
+          config.actions.REMOVE, partial(self.remove_expr, self, i)
         )
         render_state:add_mapping(
-          config.actions.EDIT, edit_expr_callback(self, i)
+          config.actions.EDIT, partial(self.edit_expr, self, i)
         )
         render_state:add_mapping(
-          config.actions.EXPAND, toggle_expression_callback(self, i)
+          config.actions.EXPAND, partial(self.toggle_expression, self, i)
         )
       end
 
@@ -138,7 +131,7 @@ function Watches:render(render_state)
   render_state:add_line()
 end
 
----@return Watches
-local function new() return Watches:new() end
+---@type fun():Variables
+local new = partial(Watches.new, Watches)
 
 return new

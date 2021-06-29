@@ -1,8 +1,6 @@
 local config = require("dapui.config")
 local variables = require("dapui.components.variables")()
 local state = require("dapui.state")
-local util = require("dapui.util")
-local api = vim.api
 
 ---@class Hover
 ---@field expression string
@@ -17,14 +15,6 @@ function Hover:new(expression)
   return hover
 end
 
-local function toggle_expanded_callback(hover)
-  return function()
-    hover.expanded = not hover.expanded
-    print(hover.expanded)
-    state.refresh()
-  end
-end
-
 function Hover:render(render_state)
   local hover_expr = state.watch(self.expression)
   if not hover_expr then
@@ -34,15 +24,17 @@ function Hover:render(render_state)
   local line_no = render_state:length() + 1
   local var_ref = hover_expr.evaluated and
                     hover_expr.evaluated.variablesReference
-  local prefix = config.icons()[self.expanded and "expanded" or "collapsed"]
-  local indent = config.windows().indent
-  local new_line = string.rep(" ", indent)
-  render_state:add_match(
-    hover_expr.error and "DapUIWatchesError" or "DapUIDecoration", line_no,
-    indent, 3
-  )
-
-  new_line = new_line .. prefix .. " " .. self.expression
+  local prefix
+  if hover_expr.error or hover_expr.evaluated.variablesReference > 0 then
+    prefix = config.icons()[self.expanded and "expanded" or "collapsed"] .. " "
+    render_state:add_match(
+      hover_expr.error and "DapUIWatchesError" or "DapUIDecoration", line_no, 1,
+      3
+    )
+  else
+    prefix = ""
+  end
+  local new_line = prefix .. self.expression
 
   local val_indent = 0
   if hover_expr.error then
@@ -66,7 +58,6 @@ function Hover:render(render_state)
     render_state:add_mapping(
       config.actions.EXPAND, function()
         self.expanded = not self.expanded
-        print(self.expanded)
         state.refresh()
       end
     )

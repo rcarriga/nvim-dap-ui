@@ -1,5 +1,3 @@
-local M = {}
-
 local config = require("dapui.config")
 local util = require("dapui.util")
 
@@ -62,6 +60,6 @@ function BufferBreakPoints:render(render_state, buffer, breakpoints,
 end
 
 ---@return BufferBreakPoints
-function M.new() return BufferBreakPoints:new() end
+local function new() return BufferBreakPoints:new() end
 
-return M
+return new
