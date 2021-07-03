@@ -2,39 +2,35 @@ local state = require("dapui.state")
 local config = require("dapui.config")
 local partial = require("dapui.util").partial
 
---- @class Variables
---- @field expanded_references table
+---@class Variables
+---@field expanded_children table
+---@field child_components table<number, Variables>
 local Variables = {}
 
 function Variables:new()
-  local elem = {expanded_references = {}}
+  local elem = {expanded_children = {}, child_components = {}}
   setmetatable(elem, self)
   self.__index = self
   state.on_clear(function() elem.expanded_references = {} end)
   return elem
 end
 
-function Variables:toggle_reference(ref, ref_path)
-  self.expanded_references[ref_path] = not self.expanded_references[ref_path]
-  if not self.expanded_references[ref_path] then
+function Variables:toggle_reference(ref, index)
+  self.expanded_children[index] = not self.expanded_children[index]
+  if not self.expanded_children[index] then
     state.stop_monitor(ref)
   else
     state.monitor(ref)
   end
 end
 
-function Variables:render(render_state, ref_path, indent, expanded)
-  expanded = expanded or {}
+function Variables:render(render_state, variables, indent)
   indent = indent or 0
-  expanded[ref_path] = true
-  local var_path_elems = vim.split(ref_path, "/")
-  local var_ref = tonumber(var_path_elems[#var_path_elems])
-  for _, variable in pairs(state.variables(var_ref)) do
+  for index, variable in pairs(variables) do
     local line_no = render_state:length() + 1
-    local var_reference_path = ref_path .. "/" .. variable.variablesReference
 
     local new_line = string.rep(" ", indent)
-    local prefix = self:_reference_prefix(var_reference_path)
+    local prefix = self:_reference_prefix(index, variable)
     render_state:add_match("DapUIDecoration", line_no, #new_line + 1, 1)
     new_line = new_line .. prefix .. " "
 
@@ -54,8 +50,7 @@ function Variables:render(render_state, ref_path, indent, expanded)
       if variable.variablesReference > 0 then
         render_state:add_mapping(
           config.actions.EXPAND, partial(
-            Variables.toggle_reference, self, variable.variablesReference,
-            var_reference_path
+            Variables.toggle_reference, self, variable.variablesReference, index
           )
         )
       end
@@ -74,19 +69,29 @@ function Variables:render(render_state, ref_path, indent, expanded)
       add_var_line(new_line)
     end
 
-    if self.expanded_references[var_reference_path] and
-      not expanded[var_reference_path] then
-      self:render(
-        render_state, var_reference_path, indent + config.windows().indent,
-        expanded
-      )
+    if self.expanded_children[index] then
+      local child_vars = state.variables(variable.variablesReference)
+      if not child_vars then
+        state.monitor(variable.variablesReference)
+      else
+        self:_get_child_component(index):render(
+          render_state, child_vars, indent + config.windows().indent
+        )
+      end
     end
   end
 end
 
-function Variables:_reference_prefix(ref_path)
-  if vim.endswith(ref_path, "/0") then return " " end
-  return config.icons()[self.expanded_references[ref_path] and "expanded" or
+function Variables:_get_child_component(index)
+  if not self.child_components[index] then
+    self.child_components[index] = Variables:new()
+  end
+  return self.child_components[index]
+end
+
+function Variables:_reference_prefix(index, variable)
+  if variable.variablesReference == 0 then return " " end
+  return config.icons()[self.expanded_children[index] and "expanded" or
            "collapsed"]
 end
 

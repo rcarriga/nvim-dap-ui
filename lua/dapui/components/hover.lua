@@ -1,15 +1,21 @@
 local config = require("dapui.config")
-local variables = require("dapui.components.variables")()
+local variables = require("dapui.components.variables")
 local state = require("dapui.state")
+local loop = require("dapui.render.loop")
 
 ---@class Hover
 ---@field expression string
 ---@field expanded boolean
+---@field var_component Variables
 local Hover = {}
 
 ---@return Hover
 function Hover:new(expression)
-  local hover = {expression = expression, expanded = false}
+  local hover = {
+    expression = expression,
+    expanded = false,
+    var_component = variables(),
+  }
   setmetatable(hover, self)
   self.__index = self
   return hover
@@ -17,7 +23,7 @@ end
 
 function Hover:render(render_state)
   local hover_expr = state.watch(self.expression)
-  if not hover_expr then
+  if not hover_expr or (not hover_expr.evaluated and not hover_expr.error) then
     render_state:add_line(" ")
     return
   end
@@ -58,15 +64,20 @@ function Hover:render(render_state)
     render_state:add_mapping(
       config.actions.EXPAND, function()
         self.expanded = not self.expanded
-        state.refresh()
+        loop.run()
       end
     )
   end
 
   if self.expanded then
-    variables:render(
-      render_state, tostring(var_ref), config.windows().indent * 2
-    )
+    local child_vars = state.variables(var_ref)
+    if not child_vars then
+      state.monitor(var_ref)
+    else
+      self.var_component:render(
+        render_state, child_vars, config.windows().indent
+      )
+    end
   end
 end
 

@@ -1,6 +1,6 @@
 local M = {}
 
-M._mappings = {}
+local _mappings = {}
 
 local util = require("dapui.util")
 local config = require("dapui.config")
@@ -34,6 +34,13 @@ function RenderState:add_line(line) self.lines[#self.lines + 1] = line or "" end
 
 --- Remove the last line from state
 function RenderState:remove_line() self.lines[#self.lines] = nil end
+
+function RenderState:reset()
+  self.lines = {}
+  self.matches = {}
+  self.marks = {}
+  self.mappings = {open = {}, expand = {}, remove = {}, edit = {}}
+end
 
 ---Add a new highlight match to pass to matchaddpos
 ---@param group string Highlight group
@@ -87,16 +94,16 @@ end
 ---@param state RenderState
 ---@param buffer number
 function M.render_buffer(state, buffer)
-  if not state then return end
+  if state:length() == 0 then return end
   if buffer < 0 then return false end
   local win = vim.fn.bufwinnr(buffer)
   if win == -1 then return false end
 
-  M._mappings[buffer] = state.mappings
+  _mappings[buffer] = state.mappings
   for action, _ in pairs(state.mappings) do
     util.apply_mapping(
       config.mappings()[action],
-      "<cmd>lua require('dapui.render')._mapping('" .. action .. "')<CR>",
+      "<cmd>lua require('dapui.render.state')._mapping('" .. action .. "')<CR>",
       buffer
     )
   end
@@ -128,8 +135,8 @@ end
 
 function M.mark_at_line(cur_line, buffer)
   local marks = vim.api.nvim_buf_get_extmarks(
-                  buffer or 0, M.namespace, 0, -1, {}
-                )
+    buffer or 0, M.namespace, 0, -1, {}
+  )
   for _, mark in pairs(marks) do
     local id, line = mark[1], mark[2]
     if cur_line == line then return id end
@@ -143,11 +150,13 @@ function M.new() return RenderState:new() end
 function M._mapping(action)
   local buffer = vim.api.nvim_get_current_buf()
   local line = vim.fn.line(".")
-  local callbacks = M._mappings[buffer][action][line]
+  local callbacks = _mappings[buffer][action][line]
   if not callbacks then
-    print("No " .. action .. " for current line")
+    print("No " .. action .. " action for current line")
     return
   end
   for _, callback in pairs(callbacks) do callback() end
 end
+
 return M
+

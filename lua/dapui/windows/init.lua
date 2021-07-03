@@ -33,10 +33,7 @@ local function open_wins(elements, open, saved)
       saved[win_id] = element
     end
     local bufnr = vim.api.nvim_win_get_buf(win_id)
-    element.on_open(
-      bufnr,
-      function(render_state) render.render_buffer(render_state, bufnr) end
-    )
+    render.loop.register_buffer(element.name, bufnr)
     init_win_settings(win_id)
   end
   vim.api.nvim_set_current_win(cur_win)
@@ -44,14 +41,13 @@ end
 
 local function close_wins(saved)
   local current_win = vim.api.nvim_get_current_win()
-  for win, element in pairs(saved) do
+  for win, _ in pairs(saved) do
     local win_exists, buf = pcall(vim.api.nvim_win_get_buf, win)
     if win_exists then
       if win == current_win then
         vim.cmd("stopinsert") -- Prompt buffers act poorly when closed in insert mode, see #33
       end
       pcall(vim.api.nvim_win_close, win, true)
-      element.on_close({buffer = buf})
       vim.api.nvim_buf_delete(buf, {force = true, unload = false})
     end
   end
@@ -94,17 +90,26 @@ function M.open_float(element, position, settings)
     return float_windows[element.name]
   end
   local float_win = require("dapui.windows.float").open_float(
-                      {height = 1, width = 1, position = position}
-                    )
+    {height = 1, width = 1, position = position}
+  )
   local buf = float_win:get_buf()
-  element.on_open(
-    buf, function(render_state)
-      local rendered = render.render_buffer(render_state, float_win:get_buf())
-      if rendered then
+  render.loop.register_buffer(element.name, buf)
+  local listener_id = element.name .. buf .. "float"
+  render.loop.register_listener(
+    listener_id, element.name, "render", function(rendered_buf, render_state)
+      if rendered_buf == buf then
         float_win:resize(
           settings.width or render_state:width(),
           settings.height or render_state:length()
         )
+      end
+    end
+  )
+  render.loop.register_listener(
+    listener_id, element.name, "close", function(closed_buf)
+      if closed_buf == buf then
+        render.loop.unregister_listener(listener_id, element.name, "render")
+        render.loop.unregister_listener(listener_id, element.name, "close")
       end
     end
   )

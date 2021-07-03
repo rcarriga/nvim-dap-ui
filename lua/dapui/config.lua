@@ -6,15 +6,13 @@ M.elements = {
   SCOPES = "scopes",
   STACKS = "stacks",
   WATCHES = "watches",
+  HOVER = "hover",
 }
 
 M.actions = {EXPAND = "expand", OPEN = "open", REMOVE = "remove", EDIT = "edit"}
 
 local default_config = {
-  icons = {
-    expanded = "▾",
-    collapsed = "▸"
-  },
+  icons = {expanded = "▾", collapsed = "▸"},
   mappings = {
     [M.actions.EXPAND] = {"<CR>", "<2-LeftMouse>"},
     [M.actions.OPEN] = "o",

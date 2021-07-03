@@ -4,6 +4,7 @@ local state = require("dapui.state")
 local util = require("dapui.util")
 local partial = util.partial
 local api = vim.api
+local loop = require("dapui.render.loop")
 
 ---@class Watches
 ---@field expressions table
@@ -22,7 +23,7 @@ end
 function Watches:add_watch(value)
   vim.cmd("stopinsert")
   if value == "" then
-    state.refresh()
+    loop.run()
     return
   end
   self.expressions[#self.expressions + 1] = value
@@ -41,7 +42,7 @@ function Watches:edit_expr(expr_i)
         state.remove_watch(old)
         state.add_watch(new)
       else
-        state.refresh()
+        loop.run()
       end
     end
   )
@@ -62,7 +63,7 @@ function Watches:toggle_expression(expr_i)
   else
     self.expanded[expr_i] = true
   end
-  state.refresh()
+  loop.run()
 end
 
 function Watches:render(render_state)
@@ -94,6 +95,7 @@ function Watches:render(render_state)
 
       local val_indent = 0
       if watch.error then
+        self.expanded[i] = false
         new_line = new_line .. ": " .. watch.error
       elseif watch.evaluated then
         local evaluated = watch.evaluated
@@ -117,14 +119,24 @@ function Watches:render(render_state)
         render_state:add_mapping(
           config.actions.EDIT, partial(self.edit_expr, self, i)
         )
-        render_state:add_mapping(
-          config.actions.EXPAND, partial(self.toggle_expression, self, i)
-        )
+        if not watch.error then
+          render_state:add_mapping(
+            config.actions.EXPAND, partial(self.toggle_expression, self, i)
+          )
+        end
       end
 
       if self.var_components[i] and self.expanded[i] then
-        local Var = self.var_components[i]
-        Var:render(render_state, tostring(var_ref), config.windows().indent * 2)
+        local child_vars = state.variables(var_ref)
+        if not child_vars then
+          state.monitor(var_ref)
+          render_state:reset()
+          return
+        else
+          self.var_components[i]:render(
+            render_state, child_vars, config.windows().indent * 2
+          )
+        end
       end
     end
   end

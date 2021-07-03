@@ -67,8 +67,8 @@ function M.jump_to_frame(frame, session)
   if not column or column == 0 then column = 1 end
 
   local bufnr = vim.uri_to_bufnr(
-                  M.is_uri(path) and path or vim.uri_from_fname(path)
-                )
+    M.is_uri(path) and path or vim.uri_from_fname(path)
+  )
   vim.fn.bufload(bufnr)
   open_buf(bufnr, line, column)
 end

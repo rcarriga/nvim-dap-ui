@@ -25,9 +25,8 @@ function StackFrames:render(render_state, thread_id, indent)
   indent = indent or config.windows().indent
   local frames = state.frames(thread_id)
   local visible = vim.tbl_filter(
-                    function(frame) return frame.presentationHint ~= "subtle" end,
-                    frames
-                  )
+    function(frame) return frame.presentationHint ~= "subtle" end, frames
+  )
   for _, frame in pairs(visible) do
     local line_no = render_state:length() + 1
 

@@ -5,9 +5,11 @@ local listener_id = "dapui"
 local sidebar_open = true
 local tray_open = true
 
+local render = require("dapui.render")
 local config = require("dapui.config")
 local state = require("dapui.state")
 
+---@return Element
 local function element(name) return require("dapui.elements." .. name) end
 
 local open_float = nil
@@ -34,8 +36,8 @@ function M.float_element(elem_name)
       open_float = elem_name
       local elem = element(elem_name)
       local win = require("dapui.windows").open_float(
-                    elem, position, elem.float_defaults or {}
-                  )
+        elem, position, elem.float_defaults or {}
+      )
       win:listen("close", function() open_float = nil end)
     end
   )
@@ -56,7 +58,8 @@ function M.eval(expr)
       expr = expr or vim.fn.expand("<cexpr>")
     end
   end
-  local elem = require("dapui.hover").new(expr)
+  local elem = require("dapui.elements.hover")
+  elem.set_expression(expr)
   local line_no = vim.fn.screenrow()
   local col_no = vim.fn.screencol()
   local position = {line = line_no, col = col_no}
@@ -67,11 +70,14 @@ end
 function M.setup(user_config)
   config.setup(user_config)
   state.setup()
-  require("dapui.hover").setup()
 
   require("dapui.highlights").setup()
 
-  for _, module in pairs(config.elements) do element(module).setup() end
+  for _, module in pairs(config.elements) do
+    render.loop.register_element(element(module))
+  end
+
+  state.on_refresh(function() render.loop.run() end)
 
   local dap = require("dap")
   dap.listeners.after.event_initialized[listener_id] = function()

@@ -22,7 +22,7 @@ local function open_frame_callback(current_bp)
 end
 
 function BufferBreakPoints:render(render_state, buffer, breakpoints,
-                                  current_line, current_file, indent)
+  current_line, current_file, indent)
   indent = indent or config.windows().indent
   local function is_current_line(bp)
     return bp.line == current_line and bp.file == current_file
@@ -30,7 +30,7 @@ function BufferBreakPoints:render(render_state, buffer, breakpoints,
   for _, bp in pairs(breakpoints) do
     local line_no = render_state:length() + 1
     local text = vim.api.nvim_buf_get_lines(buffer, bp.line - 1, bp.line, false)
-    if text ~= 0 then
+    if vim.tbl_count(text) ~= 0 then
       local new_line = string.rep(" ", indent) .. bp.line
       render_state:add_match(
         is_current_line(bp) and "DapUIBreakpointsCurrentLine" or

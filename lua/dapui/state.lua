@@ -131,13 +131,13 @@ end
 
 function M.monitor(var_ref)
   ui_state.monitored_vars[var_ref] = (ui_state.monitored_vars[var_ref] or 0) + 1
-  dap.session():request(
-    "variables", {variablesReference = var_ref}, function() end
-  )
+  local session = dap.session()
+  if not session then return end
+  session:request("variables", {variablesReference = var_ref}, function() end)
 end
 
 function M.stop_monitor(var_ref)
-  ui_state.monitored_vars[var_ref] = ui_state.monitored_vars[var_ref] - 1
+  ui_state.monitored_vars[var_ref] = (ui_state.monitored_vars[var_ref] or 1) - 1
   if ui_state.monitored_vars[var_ref] then
     ui_state.monitored_vars[var_ref] = nil
     ui_state:emit_refreshed(dap.session())
@@ -146,7 +146,7 @@ end
 
 function M.scopes() return ui_state.scopes or {} end
 
-function M.variables(ref) return ui_state.variables[ref] or {} end
+function M.variables(ref) return ui_state.variables[ref] end
 
 function M.threads() return ui_state.threads or {} end
 
