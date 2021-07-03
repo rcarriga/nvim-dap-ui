@@ -73,6 +73,8 @@ function Hover:render(render_state)
     local child_vars = state.variables(var_ref)
     if not child_vars then
       state.monitor(var_ref)
+      loop.ignore_current_render()
+      return
     else
       self.var_component:render(
         render_state, child_vars, config.windows().indent

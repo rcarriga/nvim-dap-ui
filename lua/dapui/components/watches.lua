@@ -130,7 +130,7 @@ function Watches:render(render_state)
         local child_vars = state.variables(var_ref)
         if not child_vars then
           state.monitor(var_ref)
-          render_state:reset()
+          loop.ignore_current_render()
           return
         else
           self.var_components[i]:render(

@@ -1,6 +1,7 @@
 local state = require("dapui.state")
 local config = require("dapui.config")
 local partial = require("dapui.util").partial
+local loop = require("dapui.render.loop")
 
 ---@class Variables
 ---@field expanded_children table
@@ -73,6 +74,8 @@ function Variables:render(render_state, variables, indent)
       local child_vars = state.variables(variable.variablesReference)
       if not child_vars then
         state.monitor(variable.variablesReference)
+        loop.ignore_current_render()
+        return
       else
         self:_get_child_component(index):render(
           render_state, child_vars, indent + config.windows().indent

@@ -113,6 +113,7 @@ function M.open_float(element, position, settings)
       end
     end
   )
+  render.loop.run(element.name)
   vim.cmd(
     "au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('" ..
       element.name .. "')"

@@ -131,16 +131,20 @@ end
 
 function M.monitor(var_ref)
   ui_state.monitored_vars[var_ref] = (ui_state.monitored_vars[var_ref] or 0) + 1
-  local session = dap.session()
-  if not session then return end
-  session:request("variables", {variablesReference = var_ref}, function() end)
+  util.with_session(
+    function(session)
+      session:request(
+        "variables", {variablesReference = var_ref}, function() end
+      )
+    end
+  )
 end
 
 function M.stop_monitor(var_ref)
   ui_state.monitored_vars[var_ref] = (ui_state.monitored_vars[var_ref] or 1) - 1
   if ui_state.monitored_vars[var_ref] then
     ui_state.monitored_vars[var_ref] = nil
-    ui_state:emit_refreshed(dap.session())
+    util.with_session(function(session) ui_state:emit_refreshed(session) end)
   end
 end
 
@@ -172,7 +176,7 @@ function M.add_watch(expression, context)
                                    {watchers = 0, context = context or "watch"}
   ui_state.watches[expression].watchers =
     ui_state.watches[expression].watchers + 1
-  ui_state:refresh_watches(dap.session())
+  util.with_session(function(session) ui_state:refresh_watches(session) end)
 end
 
 function M.remove_watch(expression)
@@ -182,7 +186,7 @@ function M.remove_watch(expression)
   if ui_state.watches[expression].watchers == 0 then
     ui_state.watches[expression] = nil
   end
-  ui_state:refresh_watches(dap.session())
+  ui_state:refresh_watches()
 end
 
 function M.watches() return ui_state.watches end
@@ -199,6 +203,8 @@ function M.on_refresh(callback) add_listener(events.REFRESH, callback) end
 
 function M.on_clear(callback) add_listener(events.CLEAR, callback) end
 
-function M.refresh() ui_state:refresh(dap.session()) end
+function M.refresh()
+  util.with_session(function(session) ui_state:refresh(session) end)
+end
 
 return M

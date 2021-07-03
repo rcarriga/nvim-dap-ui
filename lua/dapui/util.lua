@@ -11,6 +11,12 @@ function M.is_uri(path)
   end
 end
 
+---@param cb fun(session: table)
+function M.with_session(cb)
+  local session = require("dap").session()
+  if session then cb(session) end
+end
+
 local function open_buf(bufnr, line, column)
   for _, win in pairs(api.nvim_tabpage_list_wins(0)) do
     if api.nvim_win_get_buf(win) == bufnr then
