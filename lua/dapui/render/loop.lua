@@ -1,7 +1,6 @@
 local M = {}
 
 local render_state = require("dapui.render.state")
-local dap = require("dap")
 
 local ignore_render = false
 
@@ -50,21 +49,13 @@ function M.register_buffer(element_name, buf)
   if element.setup_buffer then element.setup_buffer(buf) end
   vim.cmd(
     "autocmd BufDelete * ++once lua require('dapui.render.loop').remove_buffer('" ..
-      element_name .. "', " .. buf .. ")"
-  )
-  for _, event in pairs(element.dap_after_listeners or {}) do
-    dap.listeners.after[event]["DapUI " .. element.name] = function()
-      M.run(element.name)
-    end
-  end
-  M.run(element_name)
+      element_name .. "', " .. buf .. ")")
 end
 
 function M.remove_buffer(element_name, buf_to_remove)
   local canvas = canvasses[element_name]
-  canvas.buffers = vim.tbl_filter(
-    function(buf) return buf_to_remove ~= buf end, canvas.buffers
-  )
+  canvas.buffers = vim.tbl_filter(function(buf) return buf_to_remove ~= buf end,
+                                  canvas.buffers)
   for _, listener in pairs(canvas.listeners[M.EVENTS.CLOSE] or {}) do
     listener(buf_to_remove)
   end
@@ -100,9 +91,8 @@ function M.run(element_names)
       canvas.element.render(state)
       if not ignore_render then
         for _, buf in pairs(canvas.buffers) do
-          local success, _ = pcall(
-            vim.api.nvim_buf_set_option, buf, "modifiable", true
-          )
+          local success, _ = pcall(vim.api.nvim_buf_set_option, buf,
+                                   "modifiable", true)
           if success then
             local rendered = render_state.render_buffer(state, buf)
             vim.api.nvim_buf_set_option(buf, "modifiable", false)

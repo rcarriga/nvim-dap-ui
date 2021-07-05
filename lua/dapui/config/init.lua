@@ -22,7 +22,9 @@ local default_config = {
   sidebar = {
     open_on_start = true,
     elements = {
-      M.elements.SCOPES, M.elements.BREAKPOINTS, M.elements.STACKS,
+      M.elements.SCOPES,
+      M.elements.BREAKPOINTS,
+      M.elements.STACKS,
       M.elements.WATCHES,
     },
     width = 40,
@@ -48,6 +50,7 @@ function M.setup(config)
   end
   filled.mappings = mappings
   user_config = filled
+  require("dapui.config.highlights").setup()
 end
 
 function M.mappings() return user_config.mappings end

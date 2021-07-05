@@ -33,10 +33,8 @@ function Hover:render(render_state)
   local prefix
   if hover_expr.error or hover_expr.evaluated.variablesReference > 0 then
     prefix = config.icons()[self.expanded and "expanded" or "collapsed"] .. " "
-    render_state:add_match(
-      hover_expr.error and "DapUIWatchesError" or "DapUIDecoration", line_no, 1,
-      3
-    )
+    render_state:add_match(hover_expr.error and "DapUIWatchesError" or
+                             "DapUIDecoration", line_no, 1, 3)
   else
     prefix = ""
   end
@@ -49,9 +47,8 @@ function Hover:render(render_state)
     local evaluated = hover_expr.evaluated
     if #(evaluated.type or "") > 0 then
       new_line = new_line .. " "
-      render_state:add_match(
-        "DapUIType", line_no, #new_line + 1, #evaluated.type
-      )
+      render_state:add_match("DapUIType", line_no, #new_line + 1,
+                             #evaluated.type)
       new_line = new_line .. evaluated.type
     end
     new_line = new_line .. " = "
@@ -61,12 +58,10 @@ function Hover:render(render_state)
   for j, line in pairs(vim.split(new_line, "\n")) do
     if j > 1 then line = val_indent .. line end
     render_state:add_line(line)
-    render_state:add_mapping(
-      config.actions.EXPAND, function()
-        self.expanded = not self.expanded
-        loop.run()
-      end
-    )
+    render_state:add_mapping(config.actions.EXPAND, function()
+      self.expanded = not self.expanded
+      loop.run()
+    end)
   end
 
   if self.expanded then
@@ -76,9 +71,8 @@ function Hover:render(render_state)
       loop.ignore_current_render()
       return
     else
-      self.var_component:render(
-        render_state, child_vars, config.windows().indent
-      )
+      self.var_component:render(render_state, child_vars,
+                                config.windows().indent)
     end
   end
 end

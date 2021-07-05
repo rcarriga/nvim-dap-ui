@@ -18,29 +18,28 @@ local function query_elem_name()
   if open_float then return open_float end
   local entries = {"Select an element:"}
   local elems = {}
-  for _, name in ipairs(config.elements) do
-    entries[#entries + 1] = tostring(#entries) .. ": " .. name
-    elems[#elems + 1] = name
+  for _, name in pairs(config.elements) do
+    if name ~= config.elements.HOVER then
+      entries[#entries + 1] = tostring(#entries) .. ": " .. name
+      elems[#elems + 1] = name
+    end
   end
   return elems[vim.fn.inputlist(entries)]
 end
 
 function M.float_element(elem_name)
-  vim.schedule(
-    function()
-      local line_no = vim.fn.screenrow()
-      local col_no = vim.fn.screencol()
-      local position = {line = line_no, col = col_no}
-      elem_name = elem_name or query_elem_name()
-      if not elem_name then return end
-      open_float = elem_name
-      local elem = element(elem_name)
-      local win = require("dapui.windows").open_float(
-        elem, position, elem.float_defaults or {}
-      )
-      win:listen("close", function() open_float = nil end)
-    end
-  )
+  vim.schedule(function()
+    local line_no = vim.fn.screenrow()
+    local col_no = vim.fn.screencol()
+    local position = {line = line_no, col = col_no}
+    elem_name = elem_name or query_elem_name()
+    if not elem_name then return end
+    open_float = elem_name
+    local elem = element(elem_name)
+    local win = require("dapui.windows").open_float(elem, position,
+                                                    elem.float_defaults or {})
+    win:listen("close", function() open_float = nil end)
+  end)
 end
 
 function M.eval(expr)
@@ -68,18 +67,23 @@ function M.eval(expr)
 end
 
 function M.setup(user_config)
-  config.setup(user_config)
-  state.setup()
+  local dap = require("dap")
 
-  require("dapui.highlights").setup()
+  config.setup(user_config)
+  state.setup(dap)
 
   for _, module in pairs(config.elements) do
-    render.loop.register_element(element(module))
+    local elem = element(module)
+    render.loop.register_element(elem)
+    for _, event in pairs(elem.dap_after_listeners or {}) do
+      dap.listeners.after[event]["DapUI " .. elem.name] = function()
+        render.loop.run(elem.name)
+      end
+    end
   end
 
   state.on_refresh(function() render.loop.run() end)
 
-  local dap = require("dap")
   dap.listeners.after.event_initialized[listener_id] = function()
     if config.tray().open_on_start then M.open("tray") end
     if config.sidebar().open_on_start then M.open("sidebar") end

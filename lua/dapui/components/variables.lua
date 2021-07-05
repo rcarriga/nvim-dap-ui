@@ -35,9 +35,8 @@ function Variables:render(render_state, variables, indent)
     render_state:add_match("DapUIDecoration", line_no, #new_line + 1, 1)
     new_line = new_line .. prefix .. " "
 
-    render_state:add_match(
-      "DapUIVariable", line_no, #new_line + 1, #variable.name
-    )
+    render_state:add_match("DapUIVariable", line_no, #new_line + 1,
+                           #variable.name)
     new_line = new_line .. variable.name
 
     if #(variable.type or "") > 0 then
@@ -49,11 +48,8 @@ function Variables:render(render_state, variables, indent)
     local function add_var_line(line)
       render_state:add_line(line)
       if variable.variablesReference > 0 then
-        render_state:add_mapping(
-          config.actions.EXPAND, partial(
-            Variables.toggle_reference, self, variable.variablesReference, index
-          )
-        )
+        render_state:add_mapping(config.actions.EXPAND, partial(
+          Variables.toggle_reference, self, variable.variablesReference, index))
       end
     end
 
@@ -77,9 +73,8 @@ function Variables:render(render_state, variables, indent)
         loop.ignore_current_render()
         return
       else
-        self:_get_child_component(index):render(
-          render_state, child_vars, indent + config.windows().indent
-        )
+        self:_get_child_component(index):render(render_state, child_vars,
+                                                indent + config.windows().indent)
       end
     end
   end

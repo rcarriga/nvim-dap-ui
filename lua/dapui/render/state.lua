@@ -101,11 +101,9 @@ function M.render_buffer(state, buffer)
 
   _mappings[buffer] = state.mappings
   for action, _ in pairs(state.mappings) do
-    util.apply_mapping(
-      config.mappings()[action],
-      "<cmd>lua require('dapui.render.state')._mapping('" .. action .. "')<CR>",
-      buffer
-    )
+    util.apply_mapping(config.mappings()[action],
+                       "<cmd>lua require('dapui.render.state')._mapping('" ..
+                         action .. "')<CR>", buffer)
   end
 
   local lines = state.lines
@@ -122,9 +120,8 @@ function M.render_buffer(state, buffer)
     vim.fn["matchaddpos"](match[1], {match[2]}, 10, -1, {window = win})
   end
   for _, mark in pairs(marks) do
-    vim.api.nvim_buf_set_extmark(
-      buffer, M.namespace, mark.line, mark.col, mark.opts
-    )
+    vim.api.nvim_buf_set_extmark(buffer, M.namespace, mark.line, mark.col,
+                                 mark.opts)
   end
   if state.prompt then
     vim.fn.prompt_setprompt(buffer, state.prompt.text)
@@ -134,9 +131,8 @@ function M.render_buffer(state, buffer)
 end
 
 function M.mark_at_line(cur_line, buffer)
-  local marks = vim.api.nvim_buf_get_extmarks(
-    buffer or 0, M.namespace, 0, -1, {}
-  )
+  local marks = vim.api.nvim_buf_get_extmarks(buffer or 0, M.namespace, 0, -1,
+                                              {})
   for _, mark in pairs(marks) do
     local id, line = mark[1], mark[2]
     if cur_line == line then return id end

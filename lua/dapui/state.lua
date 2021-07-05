@@ -1,5 +1,3 @@
-local dap = require("dap")
-
 local util = require("dapui.util")
 
 local M = {}
@@ -39,16 +37,15 @@ function UIState:clear()
   for _, receiver in pairs(self.listeners[events.CLEAR]) do receiver() end
 end
 
-function UIState:attach(listener_id)
+function UIState:attach(listener_id, dap)
   self.listener_id = listener_id
   dap.listeners.after.scopes[listener_id] =
     function(session, err, response)
       if not err then
         self.scopes = response.scopes
         for ref, _ in pairs(self.monitored_vars) do
-          session:request(
-            "variables", {variablesReference = ref}, function() end
-          )
+          session:request("variables", {variablesReference = ref},
+                          function() end)
         end
         self:refresh_watches(session)
       end
@@ -92,23 +89,20 @@ end
 
 function UIState:refresh_watches(session)
   for expression, expr_data in pairs(self.watches) do
-    session:request(
-      "evaluate", {
-        expression = expression,
-        frameId = session.current_frame.id,
-        context = expr_data.context,
-      }, function(err, response)
-        expr_data.evaluated = response
-        expr_data.error = err and util.format_error(err)
-        if not err and response.variablesReference then
-          session:request(
-            "variables", {variablesReference = response.variablesReference},
-            function() end
-          )
-        end
-        self:emit_refreshed(session)
+    session:request("evaluate", {
+      expression = expression,
+      frameId = session.current_frame.id,
+      context = expr_data.context,
+    }, function(err, response)
+      expr_data.evaluated = response
+      expr_data.error = err and util.format_error(err)
+      if not err and response.variablesReference then
+        session:request("variables",
+                        {variablesReference = response.variablesReference},
+                        function() end)
       end
-    )
+      self:emit_refreshed(session)
+    end)
   end
 end
 
@@ -120,10 +114,10 @@ end
 
 local ui_state
 
-function M.setup()
+function M.setup(dap)
   local listener_id = "dapui_state"
   ui_state = UIState:new()
-  ui_state:attach(listener_id)
+  ui_state:attach(listener_id, dap)
   dap.listeners.after.event_terminated[listener_id] = function()
     ui_state:clear()
   end
@@ -131,13 +125,9 @@ end
 
 function M.monitor(var_ref)
   ui_state.monitored_vars[var_ref] = (ui_state.monitored_vars[var_ref] or 0) + 1
-  util.with_session(
-    function(session)
-      session:request(
-        "variables", {variablesReference = var_ref}, function() end
-      )
-    end
-  )
+  util.with_session(function(session)
+    session:request("variables", {variablesReference = var_ref}, function() end)
+  end)
 end
 
 function M.stop_monitor(var_ref)

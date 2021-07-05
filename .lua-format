@@ -1,6 +1,6 @@
 column_limit: 80
 align_parameter: false
-break_after_functioncall_lp: true
+break_after_functioncall_lp: false
 break_before_functioncall_rp: true
 single_quote_to_double_quote: true
 indent_width: 2
@@ -8,3 +8,4 @@ use_tab: false
 tab_width: 2
 continuation_indent_width: 2
 extra_sep_at_table_end: true
+chop_down_table: true

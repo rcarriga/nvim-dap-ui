@@ -1,14 +1,14 @@
 local state = require("dapui.state")
 local util = require("dapui.util")
 
-local BufferBreakpoints = require("dapui.components.breakpoint")
+local BufBreakpoints = require("dapui.components.breakpoint")
 
 ---@class BreakPoints
----@field buffer_breakpoints BufferBreakPoints
+---@field buffer_breakpoints BufBreakpoints
 local BreakPoints = {}
 
 function BreakPoints:new()
-  local elem = {buffer_breakpoints = BufferBreakpoints()}
+  local elem = {buffer_breakpoints = BufBreakpoints()}
   setmetatable(elem, self)
   self.__index = self
   return elem
@@ -24,13 +24,11 @@ function BreakPoints:render(render_state)
   end
   for buffer, breakpoints in pairs(state.breakpoints()) do
     local name = util.pretty_name(vim.fn.bufname(buffer))
-    render_state:add_match(
-      "DapUIBreakpointsPath", render_state:length() + 1, 1, #name
-    )
+    render_state:add_match("DapUIBreakpointsPath", render_state:length() + 1, 1,
+                           #name)
     render_state:add_line(name .. ":")
-    self.buffer_breakpoints:render(
-      render_state, buffer, breakpoints, current_line, current_file
-    )
+    self.buffer_breakpoints:render(render_state, buffer, breakpoints,
+                                   current_line, current_file)
 
     render_state:add_line()
   end

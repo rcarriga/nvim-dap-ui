@@ -47,22 +47,19 @@ function M.jump_to_frame(frame, session)
 
   if (source.sourceReference or 0) > 0 then
     local buf = vim.api.nvim_create_buf(false, true)
-    session:request(
-      "source", {sourceReference = source.sourceReference},
-      function(response, err)
-        if err then return end
-        if not response.body.content then
-          print("No source available for frame")
-          return
-        end
-        vim.api.nvim_buf_set_lines(
-          buf, 0, 0, true, vim.split(response.body.content, "\n")
-        )
-        open_buf(buf, line, column)
-        vim.api.nvim_buf_set_option(buf, "bufhidden", "delete")
-        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+    session:request("source", {sourceReference = source.sourceReference},
+                    function(response, err)
+      if err then return end
+      if not response.body.content then
+        print("No source available for frame")
+        return
       end
-    )
+      vim.api.nvim_buf_set_lines(buf, 0, 0, true,
+                                 vim.split(response.body.content, "\n"))
+      open_buf(buf, line, column)
+      vim.api.nvim_buf_set_option(buf, "bufhidden", "delete")
+      vim.api.nvim_buf_set_option(buf, "modifiable", false)
+    end)
     return
   end
 
@@ -72,9 +69,8 @@ function M.jump_to_frame(frame, session)
 
   if not column or column == 0 then column = 1 end
 
-  local bufnr = vim.uri_to_bufnr(
-    M.is_uri(path) and path or vim.uri_from_fname(path)
-  )
+  local bufnr = vim.uri_to_bufnr(M.is_uri(path) and path or
+                                   vim.uri_from_fname(path))
   vim.fn.bufload(bufnr)
   open_buf(bufnr, line, column)
 end

@@ -17,9 +17,8 @@ function Threads:render(render_state)
   local stopped = state.stopped_thread() or {}
 
   local function render_thread(thread, match_group)
-    render_state:add_match(
-      match_group, render_state:length() + 1, 1, #thread.name
-    )
+    render_state:add_match(match_group, render_state:length() + 1, 1,
+                           #thread.name)
     render_state:add_line(thread.name .. ":")
     self.frames:render(render_state, thread.id)
     render_state:add_line()

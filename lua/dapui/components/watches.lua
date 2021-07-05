@@ -34,18 +34,16 @@ end
 function Watches:edit_expr(expr_i)
   local buf = api.nvim_win_get_buf(0)
   local old = self.expressions[expr_i]
-  vim.fn.prompt_setcallback(
-    buf, function(new)
-      vim.cmd("stopinsert")
-      if new ~= "" then
-        self.expressions[expr_i] = new
-        state.remove_watch(old)
-        state.add_watch(new)
-      else
-        loop.run()
-      end
+  vim.fn.prompt_setcallback(buf, function(new)
+    vim.cmd("stopinsert")
+    if new ~= "" then
+      self.expressions[expr_i] = new
+      state.remove_watch(old)
+      state.add_watch(new)
+    else
+      loop.run()
     end
-  )
+  end)
   vim.cmd("normal i" .. old)
   vim.api.nvim_input("A")
 end
@@ -86,10 +84,8 @@ function Watches:render(render_state)
 
       local indent = config.windows().indent
       local new_line = string.rep(" ", indent)
-      render_state:add_match(
-        watch.error and "DapUIWatchesError" or "DapUIWatchesValue", line_no,
-        indent, 3
-      )
+      render_state:add_match(watch.error and "DapUIWatchesError" or
+                               "DapUIWatchesValue", line_no, indent, 3)
 
       new_line = new_line .. prefix .. " " .. expr
 
@@ -101,9 +97,8 @@ function Watches:render(render_state)
         local evaluated = watch.evaluated
         if #(evaluated.type or "") > 0 then
           new_line = new_line .. " "
-          render_state:add_match(
-            "DapUIType", line_no, #new_line + 1, #evaluated.type
-          )
+          render_state:add_match("DapUIType", line_no, #new_line + 1,
+                                 #evaluated.type)
           new_line = new_line .. evaluated.type
         end
         new_line = new_line .. " = "
@@ -113,16 +108,13 @@ function Watches:render(render_state)
       for j, line in pairs(vim.split(new_line, "\n")) do
         if j > 1 then line = val_indent .. line end
         render_state:add_line(line)
-        render_state:add_mapping(
-          config.actions.REMOVE, partial(self.remove_expr, self, i)
-        )
-        render_state:add_mapping(
-          config.actions.EDIT, partial(self.edit_expr, self, i)
-        )
+        render_state:add_mapping(config.actions.REMOVE,
+                                 partial(self.remove_expr, self, i))
+        render_state:add_mapping(config.actions.EDIT,
+                                 partial(self.edit_expr, self, i))
         if not watch.error then
-          render_state:add_mapping(
-            config.actions.EXPAND, partial(self.toggle_expression, self, i)
-          )
+          render_state:add_mapping(config.actions.EXPAND,
+                                   partial(self.toggle_expression, self, i))
         end
       end
 
@@ -133,9 +125,8 @@ function Watches:render(render_state)
           loop.ignore_current_render()
           return
         else
-          self.var_components[i]:render(
-            render_state, child_vars, config.windows().indent * 2
-          )
+          self.var_components[i]:render(render_state, child_vars,
+                                        config.windows().indent * 2)
         end
       end
     end

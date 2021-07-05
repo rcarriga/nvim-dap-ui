@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [[ -n $1 ]]; then
+	nvim --headless --noplugin -u tests/init.vim -c "PlenaryBustedFile $1"
+else
+	nvim --headless --noplugin -u tests/init.vim -c "PlenaryBustedDirectory tests/ {minimal_init = 'tests/init.vim'}"
+fi
+

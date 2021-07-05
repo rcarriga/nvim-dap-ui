@@ -24,9 +24,8 @@ function Scopes:render(render_state)
     self.var_components = {}
   end
   for i, scope in pairs(state.scopes()) do
-    render_state:add_match(
-      "DapUIScope", render_state:length() + 1, 1, #scope.name
-    )
+    render_state:add_match("DapUIScope", render_state:length() + 1, 1,
+                           #scope.name)
     render_state:add_line(scope.name .. ":")
     local variables = state.variables(scope.variablesReference)
     if not variables then
@@ -34,9 +33,8 @@ function Scopes:render(render_state)
       loop.ignore_current_render()
       return
     else
-      self:_get_var_component(i):render(
-        render_state, variables, config.windows().indent
-      )
+      self:_get_var_component(i):render(render_state, variables,
+                                        config.windows().indent)
     end
     if i < #state.scopes() then render_state:add_line() end
   end
