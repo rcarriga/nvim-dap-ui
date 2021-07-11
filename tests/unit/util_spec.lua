@@ -1,5 +1,3 @@
-local mock = require("luassert.mock")
-
 local util = require("dapui.util")
 
 describe("checking with_session", function()

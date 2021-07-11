@@ -1,20 +1,25 @@
 local config = require("dapui.config")
-local variables = require("dapui.components.variables")
-local state = require("dapui.state")
+local Variables = require("dapui.components.variables")
 local util = require("dapui.util")
+local loop = require("dapui.render.loop")
+
 local partial = util.partial
 local api = vim.api
-local loop = require("dapui.render.loop")
 
 ---@class Watches
 ---@field expressions table
 ---@field expanded table
 ---@field var_components table
+---@field state UIState
 local Watches = {}
 
----@return Watches
-function Watches:new()
-  local watches = {expressions = {}, var_components = {}, expanded = {}}
+function Watches:new(state)
+  local watches = {
+    expressions = {},
+    var_components = {},
+    expanded = {},
+    state = state,
+  }
   setmetatable(watches, self)
   self.__index = self
   return watches
@@ -27,8 +32,8 @@ function Watches:add_watch(value)
     return
   end
   self.expressions[#self.expressions + 1] = value
-  self.var_components[#self.var_components + 1] = variables()
-  state.add_watch(value)
+  self.var_components[#self.var_components + 1] = Variables(self.state)
+  self.state:add_watch(value)
 end
 
 function Watches:edit_expr(expr_i)
@@ -38,8 +43,8 @@ function Watches:edit_expr(expr_i)
     vim.cmd("stopinsert")
     if new ~= "" then
       self.expressions[expr_i] = new
-      state.remove_watch(old)
-      state.add_watch(new)
+      self.state:remove_watch(old)
+      self.state:add_watch(new)
     else
       loop.run()
     end
@@ -51,7 +56,7 @@ end
 function Watches:remove_expr(expr_i)
   local expression = util.pop(self.expressions, expr_i)
   self.var_components[expr_i] = nil
-  state.remove_watch(expression)
+  self.state:remove_watch(expression)
 end
 
 function Watches:toggle_expression(expr_i)
@@ -72,7 +77,7 @@ function Watches:render(render_state)
     render_state:add_line()
     return
   end
-  local watches = state.watches()
+  local watches = self.state:watches()
   for i, expr in pairs(self.expressions) do
     local line_no = render_state:length() + 1
 
@@ -119,10 +124,10 @@ function Watches:render(render_state)
       end
 
       if self.var_components[i] and self.expanded[i] then
-        local child_vars = state.variables(var_ref)
+        local child_vars = self.state:variables(var_ref)
         if not child_vars then
-          state.monitor(var_ref)
-          loop.ignore_current_render()
+          self.state:monitor(var_ref)
+          render_state:invalidate()
           return
         else
           self.var_components[i]:render(render_state, child_vars,
@@ -134,7 +139,6 @@ function Watches:render(render_state)
   render_state:add_line()
 end
 
----@type fun():Variables
-local new = partial(Watches.new, Watches)
-
-return new
+---@param state UIState
+---@return Watches
+return function(state) return Watches:new(state) end

@@ -7,6 +7,7 @@ return {
   name = "DAP REPL",
   buf_options = {filetype = "dapui_repl"},
   float_defaults = {width = 80, height = 20, enter = true},
+  setup = function() end,
   setup_buffer = function(buf)
     dap.repl.close()
     win = vim.fn.bufwinid(buf)

@@ -7,7 +7,8 @@ local tray_open = true
 
 local render = require("dapui.render")
 local config = require("dapui.config")
-local state = require("dapui.state")
+local UIState = require("dapui.state")
+local ui_state
 
 ---@return Element
 local function element(name) return require("dapui.elements." .. name) end
@@ -70,10 +71,12 @@ function M.setup(user_config)
   local dap = require("dap")
 
   config.setup(user_config)
-  state.setup(dap)
+  ui_state = UIState()
+  ui_state:attach(dap)
 
   for _, module in pairs(config.elements) do
     local elem = element(module)
+    elem.setup(ui_state)
     render.loop.register_element(elem)
     for _, event in pairs(elem.dap_after_listeners or {}) do
       dap.listeners.after[event]["DapUI " .. elem.name] = function()
@@ -82,7 +85,7 @@ function M.setup(user_config)
     end
   end
 
-  state.on_refresh(function() render.loop.run() end)
+  ui_state:on_refresh(function() render.loop.run() end)
 
   dap.listeners.after.event_initialized[listener_id] = function()
     if config.tray().open_on_start then M.open("tray") end

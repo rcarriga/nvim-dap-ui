@@ -1,27 +1,26 @@
-local state = require("dapui.state")
 local config = require("dapui.config")
 local partial = require("dapui.util").partial
-local loop = require("dapui.render.loop")
 
 ---@class Variables
 ---@field expanded_children table
 ---@field child_components table<number, Variables>
+---@field state UIState
 local Variables = {}
 
-function Variables:new()
-  local elem = {expanded_children = {}, child_components = {}}
+function Variables:new(state)
+  local elem = {expanded_children = {}, child_components = {}, state = state}
   setmetatable(elem, self)
   self.__index = self
-  state.on_clear(function() elem.expanded_references = {} end)
+  state:on_clear(function() elem.expanded_references = {} end)
   return elem
 end
 
 function Variables:toggle_reference(ref, index)
   self.expanded_children[index] = not self.expanded_children[index]
   if not self.expanded_children[index] then
-    state.stop_monitor(ref)
+    self.state:stop_monitor(ref)
   else
-    state.monitor(ref)
+    self.state:monitor(ref)
   end
 end
 
@@ -67,10 +66,10 @@ function Variables:render(render_state, variables, indent)
     end
 
     if self.expanded_children[index] then
-      local child_vars = state.variables(variable.variablesReference)
+      local child_vars = self.state:variables(variable.variablesReference)
       if not child_vars then
-        state.monitor(variable.variablesReference)
-        loop.ignore_current_render()
+        self.state:monitor(variable.variablesReference)
+        render_state:invalidate()
         return
       else
         self:_get_child_component(index):render(render_state, child_vars,
@@ -82,7 +81,7 @@ end
 
 function Variables:_get_child_component(index)
   if not self.child_components[index] then
-    self.child_components[index] = Variables:new()
+    self.child_components[index] = Variables:new(self.state)
   end
   return self.child_components[index]
 end
@@ -93,5 +92,6 @@ function Variables:_reference_prefix(index, variable)
            "collapsed"]
 end
 
+---@param state UIState
 ---@return Variables
-return partial(Variables.new, Variables)
+return function(state) return Variables:new(state) end

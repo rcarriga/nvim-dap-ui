@@ -12,6 +12,7 @@ M.namespace = vim.api.nvim_create_namespace("dapui")
 ---@field marks table
 ---@field mappings table
 ---@field prompt table
+---@field valid boolean
 local RenderState = {}
 
 ---@return RenderState
@@ -22,11 +23,16 @@ function RenderState:new()
     marks = {},
     mappings = {open = {}, expand = {}, remove = {}, edit = {}},
     prompt = nil,
+    valid = true,
   }
   setmetatable(render_state, self)
   self.__index = self
   return render_state
 end
+
+-- Used by components waiting on state update to render.
+-- This is to avoid flickering updates as information is updated.
+function RenderState:invalidate() self.valid = false end
 
 ---Add a new line to state
 ---@param line string

@@ -1,7 +1,7 @@
 local mock = require("luassert.mock")
 local stub = require("luassert.stub")
 
-local BufBreakpoint = require("dapui.components.breakpoint")
+local BufBreakpoint = require("dapui.components.buf_breakpoints")
 local render = require("dapui.render")
 
 describe("checking simple breakpoints", function()

@@ -1,28 +1,28 @@
-local state = require("dapui.state")
 local util = require("dapui.util")
 
-local BufBreakpoints = require("dapui.components.breakpoint")
+local BufBreakpoints = require("dapui.components.buf_breakpoints")
 
----@class BreakPoints
+---@class Breakpoints
 ---@field buffer_breakpoints BufBreakpoints
+---@field state UIState
 local BreakPoints = {}
 
-function BreakPoints:new()
-  local elem = {buffer_breakpoints = BufBreakpoints()}
+function BreakPoints:new(state)
+  local elem = {buffer_breakpoints = BufBreakpoints(), state = state}
   setmetatable(elem, self)
   self.__index = self
   return elem
 end
 
 function BreakPoints:render(render_state)
-  local current_frame = state.current_frame()
+  local current_frame = self.state:current_frame()
   local current_line = 0
   local current_file = ""
-  if current_frame and current_frame.source then
-    current_file = util.pretty_name(current_frame.source.path)
+  if current_frame and current_frame.source and current_frame.source.path then
+    current_file = vim.fn.bufname(current_frame.source.path)
     current_line = current_frame.line
   end
-  for buffer, breakpoints in pairs(state.breakpoints()) do
+  for buffer, breakpoints in pairs(self.state:breakpoints()) do
     local name = util.pretty_name(vim.fn.bufname(buffer))
     render_state:add_match("DapUIBreakpointsPath", render_state:length() + 1, 1,
                            #name)
@@ -35,7 +35,8 @@ function BreakPoints:render(render_state)
   render_state:remove_line()
 end
 
----@return BreakPoints
-local function new() return BreakPoints:new() end
+---@param state UIState
+---@return Breakpoints
+local function new(state) return BreakPoints:new(state) end
 
 return new

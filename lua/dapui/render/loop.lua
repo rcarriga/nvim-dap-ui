@@ -2,12 +2,6 @@ local M = {}
 
 local render_state = require("dapui.render.state")
 
-local ignore_render = false
-
--- Used by components waiting on state update to render.
--- This is to avoid flickering updates as information is updated.
-function M.ignore_current_render() ignore_render = true end
-
 M.EVENTS = {RENDER = "render", CLOSE = "close"}
 
 ---@class Element
@@ -15,6 +9,7 @@ M.EVENTS = {RENDER = "render", CLOSE = "close"}
 ---@field name string
 ---@field buf_options string
 ---@field dap_after_listeners table<number, string>
+---@field setup fun(state: UIState)
 ---@field setup_buffer fun(buf: number)
 ---@field float_defaults table
 
@@ -89,7 +84,7 @@ function M.run(element_names)
     if not vim.tbl_isempty(canvas.buffers) then
       local state = render_state.new()
       canvas.element.render(state)
-      if not ignore_render then
+      if state.valid then
         for _, buf in pairs(canvas.buffers) do
           local success, _ = pcall(vim.api.nvim_buf_set_option, buf,
                                    "modifiable", true)
@@ -104,7 +99,6 @@ function M.run(element_names)
           end
         end
       else
-        ignore_render = false
       end
     end
   end

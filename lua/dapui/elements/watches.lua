@@ -1,5 +1,5 @@
 local api = vim.api
-local watches = require("dapui.components.watches")()
+local watches
 local name = "DAP Watches"
 
 ---@type Element
@@ -10,6 +10,7 @@ return {
     buftype = "prompt",
     omnifunc = "v:lua.require'dap'.omnifunc",
   },
+  setup = function(state) watches = require("dapui.components.watches")(state) end,
   setup_buffer = function(buf)
     require("dapui.render.loop").register_listener("watches_modifiable", name,
                                                    "render", function(b)

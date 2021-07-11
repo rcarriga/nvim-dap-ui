@@ -1,26 +1,29 @@
-local state = require("dapui.state")
+local config = require("dapui.config")
 local Frames = require("dapui.components.frames")
 
---- @class Threads
---- @field frames StackFrames
+---@class Threads
+---@field frames StackFrames
+---@field state UIState
 local Threads = {}
 
-function Threads:new()
-  local elem = {frames = Frames()}
+function Threads:new(state)
+  local elem = {frames = Frames(), state = state}
   setmetatable(elem, self)
   self.__index = self
   return elem
 end
 
-function Threads:render(render_state)
-  local threads = state.threads()
-  local stopped = state.stopped_thread() or {}
+function Threads:render(render_state, indent)
+  indent = indent or 0
+  local threads = self.state:threads()
+  local stopped = self.state:stopped_thread() or {}
 
   local function render_thread(thread, match_group)
     render_state:add_match(match_group, render_state:length() + 1, 1,
                            #thread.name)
     render_state:add_line(thread.name .. ":")
-    self.frames:render(render_state, thread.id)
+    local frames = self.state:frames(thread.id)
+    self.frames:render(render_state, frames, indent + config.windows().indent)
     render_state:add_line()
   end
 
@@ -31,5 +34,6 @@ function Threads:render(render_state)
   render_state:remove_line()
 end
 
+---@param state UIState
 ---@return Threads
-return function() return Threads:new() end
+return function(state) return Threads:new(state) end
