@@ -2,18 +2,16 @@ local M = {}
 local api = vim.api
 local config = require("dapui.config")
 
-local Float = {ids = {}, listeners = {close = {}}, position = {}}
+local Float = { ids = {}, listeners = { close = {} }, position = {} }
 
 local function create_border_lines(border_opts)
   local width = border_opts.width
   local height = border_opts.height
-  local border_lines = {"╭" .. string.rep("─", width - 2) .. "╮"}
+  local border_lines = { "╭" .. string.rep("─", width - 2) .. "╮" }
   for _ = 3, height, 1 do
-    border_lines[#border_lines + 1] = "│" .. string.rep(" ", width - 2) ..
-                                        "│"
+    border_lines[#border_lines + 1] = "│" .. string.rep(" ", width - 2) .. "│"
   end
-  border_lines[#border_lines + 1] = "╰" .. string.rep("─", width - 2) ..
-                                      "╯"
+  border_lines[#border_lines + 1] = "╰" .. string.rep("─", width - 2) .. "╯"
   return border_lines
 end
 
@@ -70,17 +68,27 @@ end
 
 function Float:get_buf()
   local pass, win = pcall(api.nvim_win_get_buf, self.ids[1])
-  if not pass then return -1 end
+  if not pass then
+    return -1
+  end
   return win
 end
 
-function Float:jump_to() api.nvim_set_current_win(self.ids[1]) end
+function Float:jump_to()
+  api.nvim_set_current_win(self.ids[1])
+end
 
 function Float:close(force)
-  if not force and api.nvim_get_current_win() == self.ids[1] then return false end
+  if not force and api.nvim_get_current_win() == self.ids[1] then
+    return false
+  end
   local buf = self:get_buf()
-  for _, win_id in pairs(self.ids) do pcall(api.nvim_win_close, win_id, true) end
-  for _, listener in pairs(self.listeners.close) do listener({buffer = buf}) end
+  for _, win_id in pairs(self.ids) do
+    pcall(api.nvim_win_close, win_id, true)
+  end
+  for _, listener in pairs(self.listeners.close) do
+    listener({ buffer = buf })
+  end
   return true
 end
 
@@ -94,17 +102,16 @@ end
 function M.open_float(settings)
   local line_no = vim.fn.screenrow()
   local col_no = vim.fn.screencol()
-  local position = settings.position or {line = line_no, col = col_no}
+  local position = settings.position or { line = line_no, col = col_no }
   local opts = create_opts(settings.width, settings.height, position)
   local content_buffer = settings.buffer or api.nvim_create_buf(false, true)
   local content_window = api.nvim_open_win(content_buffer, false, opts)
 
   local output_win_id = api.nvim_win_get_number(content_window)
-  vim.fn.setwinvar(output_win_id, "&winhl",
-                   "Normal:Normal,FloatBorder:DapUIFloatBorder")
+  vim.fn.setwinvar(output_win_id, "&winhl", "Normal:Normal,FloatBorder:DapUIFloatBorder")
   vim.api.nvim_win_set_option(content_window, "wrap", false)
 
-  return Float:new({content_window}, position)
+  return Float:new({ content_window }, position)
 end
 
 return M

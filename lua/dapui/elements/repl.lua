@@ -5,8 +5,8 @@ local win = nil
 ---@type Element
 return {
   name = "DAP REPL",
-  buf_options = {filetype = "dapui_repl"},
-  float_defaults = {width = 80, height = 20, enter = true},
+  buf_options = { filetype = "dapui_repl" },
+  float_defaults = { width = 80, height = 20, enter = true },
   setup = function() end,
   setup_buffer = function(buf)
     dap.repl.close()
@@ -16,8 +16,10 @@ return {
     vim.fn.setwinvar(win, "&winhl", "Normal:Normal")
     local cur_win = vim.api.nvim_get_current_win()
     vim.api.nvim_set_current_win(win)
-    vim.fn.winrestview({leftcol = 0})
+    vim.fn.winrestview({ leftcol = 0 })
     vim.api.nvim_set_current_win(cur_win)
   end,
-  render = function() return end,
+  render = function()
+    return
+  end,
 }

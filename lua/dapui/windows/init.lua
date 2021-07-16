@@ -49,7 +49,7 @@ local function close_wins(saved)
         vim.cmd("stopinsert") -- Prompt buffers act poorly when closed in insert mode, see #33
       end
       pcall(vim.api.nvim_win_close, win, true)
-      vim.api.nvim_buf_delete(buf, {force = true, unload = false})
+      vim.api.nvim_buf_delete(buf, { force = true, unload = false })
     end
   end
 end
@@ -98,15 +98,20 @@ function M.open_float(element, position, settings)
   local buf = float_win:get_buf()
   render.loop.register_buffer(element.name, buf)
   local listener_id = element.name .. buf .. "float"
-  render.loop.register_listener(listener_id, element.name, "render",
-                                function(rendered_buf, render_state)
-    if rendered_buf == buf then
-      float_win:resize(settings.width or render_state:width(),
-                       settings.height or render_state:length())
+  render.loop.register_listener(
+    listener_id,
+    element.name,
+    "render",
+    function(rendered_buf, render_state)
+      if rendered_buf == buf then
+        float_win:resize(
+          settings.width or render_state:width(),
+          settings.height or render_state:length()
+        )
+      end
     end
-  end)
-  render.loop.register_listener(listener_id, element.name, "close",
-                                function(closed_buf)
+  )
+  render.loop.register_listener(listener_id, element.name, "close", function(closed_buf)
     if closed_buf == buf then
       render.loop.unregister_listener(listener_id, element.name, "render")
       render.loop.unregister_listener(listener_id, element.name, "close")
@@ -114,21 +119,29 @@ function M.open_float(element, position, settings)
   end)
   render.loop.run(element.name)
   vim.cmd(
-    "au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('" ..
-      element.name .. "')")
+    "au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('"
+      .. element.name
+      .. "')"
+  )
   float_win:listen("close", element.on_close)
   float_windows[element.name] = float_win
-  if settings.enter then float_win:jump_to() end
+  if settings.enter then
+    float_win:jump_to()
+  end
   return float_win
 end
 
 function M.close_float(element_name)
-  if float_windows[element_name] == nil then return end
+  if float_windows[element_name] == nil then
+    return
+  end
   local closed = float_windows[element_name]:close(false)
   if not closed then
     vim.cmd(
-      "au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('" ..
-        element_name .. "')")
+      "au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('"
+        .. element_name
+        .. "')"
+    )
   else
     float_windows[element_name] = nil
   end

@@ -2,7 +2,7 @@ local M = {}
 
 local render_state = require("dapui.render.state")
 
-M.EVENTS = {RENDER = "render", CLOSE = "close"}
+M.EVENTS = { RENDER = "render", CLOSE = "close" }
 
 ---@class Element
 ---@field render fun(render: RenderState) Fill a given render state
@@ -26,7 +26,7 @@ function M.register_element(element)
   canvasses[element.name] = {
     element = element,
     buffers = {},
-    listeners = {[M.EVENTS.RENDER] = {}, [M.EVENTS.CLOSE] = {}},
+    listeners = { [M.EVENTS.RENDER] = {}, [M.EVENTS.CLOSE] = {} },
   }
 end
 
@@ -41,16 +41,23 @@ function M.register_buffer(element_name, buf)
     pcall(vim.api.nvim_buf_set_option, buf, opt, val)
   end
   pcall(vim.api.nvim_buf_set_name, buf, element.name)
-  if element.setup_buffer then element.setup_buffer(buf) end
+  if element.setup_buffer then
+    element.setup_buffer(buf)
+  end
   vim.cmd(
-    "autocmd BufDelete * ++once lua require('dapui.render.loop').remove_buffer('" ..
-      element_name .. "', " .. buf .. ")")
+    "autocmd BufDelete * ++once lua require('dapui.render.loop').remove_buffer('"
+      .. element_name
+      .. "', "
+      .. buf
+      .. ")"
+  )
 end
 
 function M.remove_buffer(element_name, buf_to_remove)
   local canvas = canvasses[element_name]
-  canvas.buffers = vim.tbl_filter(function(buf) return buf_to_remove ~= buf end,
-                                  canvas.buffers)
+  canvas.buffers = vim.tbl_filter(function(buf)
+    return buf_to_remove ~= buf
+  end, canvas.buffers)
   for _, listener in pairs(canvas.listeners[M.EVENTS.CLOSE] or {}) do
     listener(buf_to_remove)
   end
@@ -70,7 +77,7 @@ end
 
 local function get_elements(names)
   if type(names) == "string" then
-    return {names}
+    return { names }
   elseif names == nil then
     return vim.tbl_keys(canvasses)
   end
@@ -86,8 +93,7 @@ function M.run(element_names)
       canvas.element.render(state)
       if state.valid then
         for _, buf in pairs(canvas.buffers) do
-          local success, _ = pcall(vim.api.nvim_buf_set_option, buf,
-                                   "modifiable", true)
+          local success, _ = pcall(vim.api.nvim_buf_set_option, buf, "modifiable", true)
           if success then
             local rendered = render_state.render_buffer(state, buf)
             vim.api.nvim_buf_set_option(buf, "modifiable", false)

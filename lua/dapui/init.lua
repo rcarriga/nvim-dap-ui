@@ -11,13 +11,17 @@ local UIState = require("dapui.state")
 local ui_state
 
 ---@return Element
-local function element(name) return require("dapui.elements." .. name) end
+local function element(name)
+  return require("dapui.elements." .. name)
+end
 
 local open_float = nil
 
 local function query_elem_name()
-  if open_float then return open_float end
-  local entries = {"Select an element:"}
+  if open_float then
+    return open_float
+  end
+  local entries = { "Select an element:" }
   local elems = {}
   for _, name in pairs(config.elements) do
     if name ~= config.elements.HOVER then
@@ -32,14 +36,17 @@ function M.float_element(elem_name)
   vim.schedule(function()
     local line_no = vim.fn.screenrow()
     local col_no = vim.fn.screencol()
-    local position = {line = line_no, col = col_no}
+    local position = { line = line_no, col = col_no }
     elem_name = elem_name or query_elem_name()
-    if not elem_name then return end
+    if not elem_name then
+      return
+    end
     open_float = elem_name
     local elem = element(elem_name)
-    local win = require("dapui.windows").open_float(elem, position,
-                                                    elem.float_defaults or {})
-    win:listen("close", function() open_float = nil end)
+    local win = require("dapui.windows").open_float(elem, position, elem.float_defaults or {})
+    win:listen("close", function()
+      open_float = nil
+    end)
   end)
 end
 
@@ -62,9 +69,11 @@ function M.eval(expr)
   elem.set_expression(expr)
   local line_no = vim.fn.screenrow()
   local col_no = vim.fn.screencol()
-  local position = {line = line_no, col = col_no}
+  local position = { line = line_no, col = col_no }
   open_float = require("dapui.windows").open_float(elem, position, {})
-  open_float:listen("close", function() open_float = nil end)
+  open_float:listen("close", function()
+    open_float = nil
+  end)
 end
 
 function M.setup(user_config)
@@ -85,16 +94,26 @@ function M.setup(user_config)
     end
   end
 
-  ui_state:on_refresh(function() render.loop.run() end)
+  ui_state:on_refresh(function()
+    render.loop.run()
+  end)
 
   dap.listeners.after.event_initialized[listener_id] = function()
-    if config.tray().open_on_start then M.open("tray") end
-    if config.sidebar().open_on_start then M.open("sidebar") end
+    if config.tray().open_on_start then
+      M.open("tray")
+    end
+    if config.sidebar().open_on_start then
+      M.open("sidebar")
+    end
   end
 
-  dap.listeners.before.event_terminated[listener_id] = function() M.close() end
+  dap.listeners.before.event_terminated[listener_id] = function()
+    M.close()
+  end
 
-  dap.listeners.before.event_exited[listener_id] = function() M.close() end
+  dap.listeners.before.event_exited[listener_id] = function()
+    M.close()
+  end
 end
 
 function M.close(component)

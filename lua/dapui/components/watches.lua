@@ -84,13 +84,16 @@ function Watches:render(render_state)
     local watch = watches[expr]
     if not vim.tbl_isempty(watch or {}) then
       local var_ref = watch.evaluated and watch.evaluated.variablesReference
-      local prefix = config.icons()[self.expanded[i] and "expanded" or
-                       "collapsed"]
+      local prefix = config.icons()[self.expanded[i] and "expanded" or "collapsed"]
 
       local indent = config.windows().indent
       local new_line = string.rep(" ", indent)
-      render_state:add_match(watch.error and "DapUIWatchesError" or
-                               "DapUIWatchesValue", line_no, indent, 3)
+      render_state:add_match(
+        watch.error and "DapUIWatchesError" or "DapUIWatchesValue",
+        line_no,
+        indent,
+        3
+      )
 
       new_line = new_line .. prefix .. " " .. expr
 
@@ -102,8 +105,7 @@ function Watches:render(render_state)
         local evaluated = watch.evaluated
         if #(evaluated.type or "") > 0 then
           new_line = new_line .. " "
-          render_state:add_match("DapUIType", line_no, #new_line + 1,
-                                 #evaluated.type)
+          render_state:add_match("DapUIType", line_no, #new_line + 1, #evaluated.type)
           new_line = new_line .. evaluated.type
         end
         new_line = new_line .. " = "
@@ -111,15 +113,14 @@ function Watches:render(render_state)
         new_line = new_line .. evaluated.result
       end
       for j, line in pairs(vim.split(new_line, "\n")) do
-        if j > 1 then line = val_indent .. line end
+        if j > 1 then
+          line = val_indent .. line
+        end
         render_state:add_line(line)
-        render_state:add_mapping(config.actions.REMOVE,
-                                 partial(self.remove_expr, self, i))
-        render_state:add_mapping(config.actions.EDIT,
-                                 partial(self.edit_expr, self, i))
+        render_state:add_mapping(config.actions.REMOVE, partial(self.remove_expr, self, i))
+        render_state:add_mapping(config.actions.EDIT, partial(self.edit_expr, self, i))
         if not watch.error then
-          render_state:add_mapping(config.actions.EXPAND,
-                                   partial(self.toggle_expression, self, i))
+          render_state:add_mapping(config.actions.EXPAND, partial(self.toggle_expression, self, i))
         end
       end
 
@@ -130,8 +131,7 @@ function Watches:render(render_state)
           render_state:invalidate()
           return
         else
-          self.var_components[i]:render(render_state, child_vars,
-                                        config.windows().indent * 2)
+          self.var_components[i]:render(render_state, child_vars, config.windows().indent * 2)
         end
       end
     end
@@ -141,4 +141,6 @@ end
 
 ---@param state UIState
 ---@return Watches
-return function(state) return Watches:new(state) end
+return function(state)
+  return Watches:new(state)
+end

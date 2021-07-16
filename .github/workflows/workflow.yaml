@@ -1,11 +1,20 @@
 name: nvim-dap-ui Workflow
-on:
-  push:
-    branches: [ master ]
+on: [push]
 jobs:
+  style:
+    name: style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JohnnyMorganz/stylua-action@1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --check lua/
   release:
     name: release
-    runs-on: ubuntu-18.04
+    if: ${{ github.ref == 'refs/heads/master' }}
+    needs: style
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2

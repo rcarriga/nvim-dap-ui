@@ -29,13 +29,16 @@ function Hover:render(render_state)
     return
   end
   local line_no = render_state:length() + 1
-  local var_ref = hover_expr.evaluated and
-                    hover_expr.evaluated.variablesReference
+  local var_ref = hover_expr.evaluated and hover_expr.evaluated.variablesReference
   local prefix
   if hover_expr.error or hover_expr.evaluated.variablesReference > 0 then
     prefix = config.icons()[self.expanded and "expanded" or "collapsed"] .. " "
-    render_state:add_match(hover_expr.error and "DapUIWatchesError" or
-                             "DapUIDecoration", line_no, 1, 3)
+    render_state:add_match(
+      hover_expr.error and "DapUIWatchesError" or "DapUIDecoration",
+      line_no,
+      1,
+      3
+    )
   else
     prefix = ""
   end
@@ -48,8 +51,7 @@ function Hover:render(render_state)
     local evaluated = hover_expr.evaluated
     if #(evaluated.type or "") > 0 then
       new_line = new_line .. " "
-      render_state:add_match("DapUIType", line_no, #new_line + 1,
-                             #evaluated.type)
+      render_state:add_match("DapUIType", line_no, #new_line + 1, #evaluated.type)
       new_line = new_line .. evaluated.type
     end
     new_line = new_line .. " = "
@@ -57,7 +59,9 @@ function Hover:render(render_state)
     new_line = new_line .. evaluated.result
   end
   for j, line in pairs(vim.split(new_line, "\n")) do
-    if j > 1 then line = val_indent .. line end
+    if j > 1 then
+      line = val_indent .. line
+    end
     render_state:add_line(line)
     render_state:add_mapping(config.actions.EXPAND, function()
       self.expanded = not self.expanded
@@ -72,8 +76,7 @@ function Hover:render(render_state)
       render_state:invalidate()
       return
     else
-      self.var_component:render(render_state, child_vars,
-                                config.windows().indent)
+      self.var_component:render(render_state, child_vars, config.windows().indent)
     end
   end
 end
@@ -81,7 +84,8 @@ end
 ---@param expression string
 ---@param state UIState
 ---@return Hover
-local function new(expression, state) return Hover:new(expression, state) end
+local function new(expression, state)
+  return Hover:new(expression, state)
+end
 
 return new
-

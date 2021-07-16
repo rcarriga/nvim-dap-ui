@@ -6,7 +6,7 @@ local util = require("dapui.util")
 local StackFrames = {}
 
 function StackFrames:new()
-  local elem = {mark_frame_map = {}}
+  local elem = { mark_frame_map = {} }
   setmetatable(elem, self)
   self.__index = self
   return elem
@@ -39,16 +39,16 @@ function StackFrames:render(render_state, frames, indent)
 
     if frame.line ~= nil then
       new_line = new_line .. ":"
-      render_state:add_match("DapUILineNumber", line_no, #new_line + 1,
-                             #tostring(frame.line))
+      render_state:add_match("DapUILineNumber", line_no, #new_line + 1, #tostring(frame.line))
       new_line = new_line .. frame.line
     end
 
     render_state:add_line(new_line)
-    render_state:add_mapping(config.actions.OPEN,
-                             util.partial(open_frame, frame))
+    render_state:add_mapping(config.actions.OPEN, util.partial(open_frame, frame))
   end
 end
 
 ---@return StackFrames
-return function() return StackFrames:new() end
+return function()
+  return StackFrames:new()
+end

@@ -8,10 +8,12 @@ local partial = require("dapui.util").partial
 local Variables = {}
 
 function Variables:new(state)
-  local elem = {expanded_children = {}, child_components = {}, state = state}
+  local elem = { expanded_children = {}, child_components = {}, state = state }
   setmetatable(elem, self)
   self.__index = self
-  state:on_clear(function() elem.expanded_references = {} end)
+  state:on_clear(function()
+    elem.expanded_references = {}
+  end)
   return elem
 end
 
@@ -34,8 +36,7 @@ function Variables:render(render_state, variables, indent)
     render_state:add_match("DapUIDecoration", line_no, #new_line + 1, 1)
     new_line = new_line .. prefix .. " "
 
-    render_state:add_match("DapUIVariable", line_no, #new_line + 1,
-                           #variable.name)
+    render_state:add_match("DapUIVariable", line_no, #new_line + 1, #variable.name)
     new_line = new_line .. variable.name
 
     if #(variable.type or "") > 0 then
@@ -47,8 +48,10 @@ function Variables:render(render_state, variables, indent)
     local function add_var_line(line)
       render_state:add_line(line)
       if variable.variablesReference > 0 then
-        render_state:add_mapping(config.actions.EXPAND, partial(
-          Variables.toggle_reference, self, variable.variablesReference, index))
+        render_state:add_mapping(
+          config.actions.EXPAND,
+          partial(Variables.toggle_reference, self, variable.variablesReference, index)
+        )
       end
     end
 
@@ -58,7 +61,9 @@ function Variables:render(render_state, variables, indent)
       new_line = new_line .. variable.value
 
       for i, line in pairs(vim.split(new_line, "\n")) do
-        if i > 1 then line = string.rep(" ", value_start - 2) .. line end
+        if i > 1 then
+          line = string.rep(" ", value_start - 2) .. line
+        end
         add_var_line(line)
       end
     else
@@ -72,8 +77,9 @@ function Variables:render(render_state, variables, indent)
         render_state:invalidate()
         return
       else
-        self:_get_child_component(index):render(render_state, child_vars,
-                                                indent + config.windows().indent)
+        self
+          :_get_child_component(index)
+          :render(render_state, child_vars, indent + config.windows().indent)
       end
     end
   end
@@ -87,11 +93,14 @@ function Variables:_get_child_component(index)
 end
 
 function Variables:_reference_prefix(index, variable)
-  if variable.variablesReference == 0 then return " " end
-  return config.icons()[self.expanded_children[index] and "expanded" or
-           "collapsed"]
+  if variable.variablesReference == 0 then
+    return " "
+  end
+  return config.icons()[self.expanded_children[index] and "expanded" or "collapsed"]
 end
 
 ---@param state UIState
 ---@return Variables
-return function(state) return Variables:new(state) end
+return function(state)
+  return Variables:new(state)
+end

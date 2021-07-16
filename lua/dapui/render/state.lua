@@ -21,7 +21,7 @@ function RenderState:new()
     lines = {},
     matches = {},
     marks = {},
-    mappings = {open = {}, expand = {}, remove = {}, edit = {}},
+    mappings = { open = {}, expand = {}, remove = {}, edit = {} },
     prompt = nil,
     valid = true,
   }
@@ -32,20 +32,26 @@ end
 
 -- Used by components waiting on state update to render.
 -- This is to avoid flickering updates as information is updated.
-function RenderState:invalidate() self.valid = false end
+function RenderState:invalidate()
+  self.valid = false
+end
 
 ---Add a new line to state
 ---@param line string
-function RenderState:add_line(line) self.lines[#self.lines + 1] = line or "" end
+function RenderState:add_line(line)
+  self.lines[#self.lines + 1] = line or ""
+end
 
 --- Remove the last line from state
-function RenderState:remove_line() self.lines[#self.lines] = nil end
+function RenderState:remove_line()
+  self.lines[#self.lines] = nil
+end
 
 function RenderState:reset()
   self.lines = {}
   self.matches = {}
   self.marks = {}
-  self.mappings = {open = {}, expand = {}, remove = {}, edit = {}}
+  self.mappings = { open = {}, expand = {}, remove = {}, edit = {} }
 end
 
 ---Add a new highlight match to pass to matchaddpos
@@ -54,10 +60,14 @@ end
 ---@param start_col number First column to start match
 ---@param length number Length of match
 function RenderState:add_match(group, line, start_col, length)
-  local pos = {line}
-  if start_col ~= nil then pos[#pos + 1] = start_col end
-  if length ~= nil then pos[#pos + 1] = length end
-  self.matches[#self.matches + 1] = {group, pos}
+  local pos = { line }
+  if start_col ~= nil then
+    pos[#pos + 1] = start_col
+  end
+  if length ~= nil then
+    pos[#pos + 1] = length
+  end
+  self.matches[#self.matches + 1] = { group, pos }
 end
 
 ---Add a mapping for a specific line
@@ -78,21 +88,25 @@ function RenderState:add_mark(opts)
   opts["id"] = #self.marks + 1
   local line = util.pop(opts, "line", self:length())
   local col = util.pop(opts, "col", 0)
-  self.marks[#self.marks + 1] = {line = line, col = col, opts = opts}
+  self.marks[#self.marks + 1] = { line = line, col = col, opts = opts }
   return opts["id"]
 end
 
 function RenderState:set_prompt(text, callback)
-  self.prompt = {text = text, callback = callback}
+  self.prompt = { text = text, callback = callback }
 end
 
 ---Get the number of lines in state
-function RenderState:length() return #self.lines end
+function RenderState:length()
+  return #self.lines
+end
 
 ---Get the length of the longest line in state
 function RenderState:width()
   local width = 0
-  for _, line in pairs(self.lines) do width = width < #line and #line or width end
+  for _, line in pairs(self.lines) do
+    width = width < #line and #line or width
+  end
   return width
 end
 
@@ -100,16 +114,24 @@ end
 ---@param state RenderState
 ---@param buffer number
 function M.render_buffer(state, buffer)
-  if state:length() == 0 then return end
-  if buffer < 0 then return false end
+  if state:length() == 0 then
+    return
+  end
+  if buffer < 0 then
+    return false
+  end
   local win = vim.fn.bufwinnr(buffer)
-  if win == -1 then return false end
+  if win == -1 then
+    return false
+  end
 
   _mappings[buffer] = state.mappings
   for action, _ in pairs(state.mappings) do
-    util.apply_mapping(config.mappings()[action],
-                       "<cmd>lua require('dapui.render.state')._mapping('" ..
-                         action .. "')<CR>", buffer)
+    util.apply_mapping(
+      config.mappings()[action],
+      "<cmd>lua require('dapui.render.state')._mapping('" .. action .. "')<CR>",
+      buffer
+    )
   end
 
   local lines = state.lines
@@ -123,11 +145,10 @@ function M.render_buffer(state, buffer)
     vim.api.nvim_buf_set_lines(buffer, #lines, last_line, false, {})
   end
   for _, match in pairs(matches) do
-    vim.fn["matchaddpos"](match[1], {match[2]}, 10, -1, {window = win})
+    vim.fn["matchaddpos"](match[1], { match[2] }, 10, -1, { window = win })
   end
   for _, mark in pairs(marks) do
-    vim.api.nvim_buf_set_extmark(buffer, M.namespace, mark.line, mark.col,
-                                 mark.opts)
+    vim.api.nvim_buf_set_extmark(buffer, M.namespace, mark.line, mark.col, mark.opts)
   end
   if state.prompt then
     vim.fn.prompt_setprompt(buffer, state.prompt.text)
@@ -137,17 +158,20 @@ function M.render_buffer(state, buffer)
 end
 
 function M.mark_at_line(cur_line, buffer)
-  local marks = vim.api.nvim_buf_get_extmarks(buffer or 0, M.namespace, 0, -1,
-                                              {})
+  local marks = vim.api.nvim_buf_get_extmarks(buffer or 0, M.namespace, 0, -1, {})
   for _, mark in pairs(marks) do
     local id, line = mark[1], mark[2]
-    if cur_line == line then return id end
+    if cur_line == line then
+      return id
+    end
   end
   return nil
 end
 
 --- @return RenderState
-function M.new() return RenderState:new() end
+function M.new()
+  return RenderState:new()
+end
 
 function M._mapping(action)
   local buffer = vim.api.nvim_get_current_buf()
@@ -157,8 +181,9 @@ function M._mapping(action)
     print("No " .. action .. " action for current line")
     return
   end
-  for _, callback in pairs(callbacks) do callback() end
+  for _, callback in pairs(callbacks) do
+    callback()
+  end
 end
 
 return M
-
