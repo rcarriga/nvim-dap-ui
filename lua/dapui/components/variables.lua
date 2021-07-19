@@ -73,7 +73,6 @@ function Variables:render(render_state, variables, indent)
     if self.expanded_children[index] then
       local child_vars = self.state:variables(variable.variablesReference)
       if not child_vars then
-        self.state:monitor(variable.variablesReference)
         render_state:invalidate()
         return
       else

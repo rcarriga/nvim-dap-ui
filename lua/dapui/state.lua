@@ -118,6 +118,9 @@ function UIState:_refresh_watches(session)
 end
 
 function UIState:_emit_refreshed(session)
+  if self:current_frame().id ~= session.current_frame.id then
+    self._monitored_vars = {}
+  end
   self._current_frame = session.current_frame
   self._stopped_thread_id = session.stopped_thread_id
   for _, receiver in pairs(self._listeners[events.REFRESH]) do
@@ -196,7 +199,9 @@ function UIState:remove_watch(expression)
   if self._watches[expression].watchers == 0 then
     self._watches[expression] = nil
   end
-  self:_refresh_watches()
+  util.with_session(function(session)
+    self:_refresh_watches(session)
+  end)
 end
 
 function UIState:watches()

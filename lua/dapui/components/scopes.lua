@@ -17,6 +17,7 @@ end
 function Scopes:render(render_state)
   local frame = self.state:current_frame()
   if not frame then
+    render_state:invalidate()
     return
   end
   if frame.id ~= self.frame_id then
@@ -30,7 +31,6 @@ function Scopes:render(render_state)
     if not variables then
       self.state:monitor(scope.variablesReference)
       render_state:invalidate()
-      return
     else
       self:_get_var_component(i):render(render_state, variables, config.windows().indent)
     end

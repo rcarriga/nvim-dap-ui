@@ -63,10 +63,12 @@ function Hover:render(render_state)
       line = val_indent .. line
     end
     render_state:add_line(line)
-    render_state:add_mapping(config.actions.EXPAND, function()
-      self.expanded = not self.expanded
-      loop.run()
-    end)
+    if not hover_expr.error then
+      render_state:add_mapping(config.actions.EXPAND, function()
+        self.expanded = not self.expanded
+        loop.run()
+      end)
+    end
   end
 
   if self.expanded then

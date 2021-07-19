@@ -9,7 +9,6 @@ M.namespace = vim.api.nvim_create_namespace("dapui")
 ---@class RenderState
 ---@field lines table
 ---@field matches table
----@field marks table
 ---@field mappings table
 ---@field prompt table
 ---@field valid boolean
@@ -20,7 +19,6 @@ function RenderState:new()
   local render_state = {
     lines = {},
     matches = {},
-    marks = {},
     mappings = { open = {}, expand = {}, remove = {}, edit = {} },
     prompt = nil,
     valid = true,
@@ -50,7 +48,6 @@ end
 function RenderState:reset()
   self.lines = {}
   self.matches = {}
-  self.marks = {}
   self.mappings = { open = {}, expand = {}, remove = {}, edit = {} }
 end
 
@@ -83,17 +80,9 @@ function RenderState:add_mapping(action, callback, opts)
   self.mappings[action][line][#self.mappings[action][line] + 1] = callback
 end
 
-function RenderState:add_mark(opts)
+function RenderState:set_prompt(text, callback, opts)
   opts = opts or {}
-  opts["id"] = #self.marks + 1
-  local line = util.pop(opts, "line", self:length())
-  local col = util.pop(opts, "col", 0)
-  self.marks[#self.marks + 1] = { line = line, col = col, opts = opts }
-  return opts["id"]
-end
-
-function RenderState:set_prompt(text, callback)
-  self.prompt = { text = text, callback = callback }
+  self.prompt = { text = text, callback = callback, fill = opts.fill, enter = opts.enter or false }
 end
 
 ---Get the number of lines in state
@@ -136,7 +125,6 @@ function M.render_buffer(state, buffer)
 
   local lines = state.lines
   local matches = state.matches
-  local marks = state.marks
   vim.fn["clearmatches"](win)
   vim.api.nvim_buf_clear_namespace(buffer, M.namespace, 0, -1)
   vim.api.nvim_buf_set_lines(buffer, 0, #lines, false, lines)
@@ -147,25 +135,18 @@ function M.render_buffer(state, buffer)
   for _, match in pairs(matches) do
     vim.fn["matchaddpos"](match[1], { match[2] }, 10, -1, { window = win })
   end
-  for _, mark in pairs(marks) do
-    vim.api.nvim_buf_set_extmark(buffer, M.namespace, mark.line, mark.col, mark.opts)
-  end
   if state.prompt then
     vim.fn.prompt_setprompt(buffer, state.prompt.text)
-    vim.fn.prompt_setcallback(buffer, state.prompt.callback)
-  end
-  return true
-end
-
-function M.mark_at_line(cur_line, buffer)
-  local marks = vim.api.nvim_buf_get_extmarks(buffer or 0, M.namespace, 0, -1, {})
-  for _, mark in pairs(marks) do
-    local id, line = mark[1], mark[2]
-    if cur_line == line then
-      return id
+    vim.fn.prompt_setcallback(buffer, function(value)
+      vim.cmd("stopinsert")
+      state.prompt.callback(value)
+    end)
+    if state.prompt.fill then
+      vim.cmd("normal i" .. state.prompt.fill)
+      vim.api.nvim_input("A")
     end
   end
-  return nil
+  return true
 end
 
 --- @return RenderState

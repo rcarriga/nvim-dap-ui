@@ -2,14 +2,15 @@ local Threads = require("dapui.components.threads")
 local render = require("dapui.render")
 
 describe("checking threads", function()
-
   require("dapui.config").setup({})
 
   local mock_state = {
     threads = function()
-      return {{id = 1, name = "Thread 1"}, {id = 2, name = "Thread 2"}}
+      return { { id = 1, name = "Thread 1" }, { id = 2, name = "Thread 2" } }
     end,
-    stopped_thread = function() return {id = 1, name = "Thread 1"} end,
+    stopped_thread = function()
+      return { id = 1, name = "Thread 1" }
+    end,
     frames = function(_, id)
       if id == 1 then
         return {
@@ -78,17 +79,17 @@ describe("checking threads", function()
 
     component:render(render_state)
     local expected = {
-      {"DapUIStoppedThread", {1, 1, 8}},
-      {"DapUIFrameName", {2, 2, 6}},
-      {"DapUISource", {2, 9, 9}},
-      {"DapUILineNumber", {2, 19, 1}},
-      {"DapUIFrameName", {3, 2, 6}},
-      {"DapUISource", {3, 9, 9}},
-      {"DapUILineNumber", {3, 19, 4}},
-      {"DapUIThread", {5, 1, 8}},
-      {"DapUIFrameName", {6, 2, 6}},
-      {"DapUISource", {6, 9, 9}},
-      {"DapUILineNumber", {6, 19, 4}},
+      { "DapUIStoppedThread", { 1, 1, 8 } },
+      { "DapUIFrameName", { 2, 2, 6 } },
+      { "DapUISource", { 2, 9, 9 } },
+      { "DapUILineNumber", { 2, 19, 1 } },
+      { "DapUIFrameName", { 3, 2, 6 } },
+      { "DapUISource", { 3, 9, 9 } },
+      { "DapUILineNumber", { 3, 19, 4 } },
+      { "DapUIThread", { 5, 1, 8 } },
+      { "DapUIFrameName", { 6, 2, 6 } },
+      { "DapUISource", { 6, 9, 9 } },
+      { "DapUILineNumber", { 6, 19, 4 } },
     }
     assert.are.same(expected, render_state.matches)
   end)
@@ -100,5 +101,4 @@ describe("checking threads", function()
     component:render(render_state)
     assert.equal(3, #render_state.mappings["open"])
   end)
-
 end)

@@ -4,13 +4,14 @@ local util = require("dapui.util")
 local loop = require("dapui.render.loop")
 
 local partial = util.partial
-local api = vim.api
 
 ---@class Watches
 ---@field expressions table
 ---@field expanded table
 ---@field var_components table
 ---@field state UIState
+---@field mode "new"|"edit"
+---@field edit_index integer
 local Watches = {}
 
 function Watches:new(state)
@@ -19,6 +20,8 @@ function Watches:new(state)
     var_components = {},
     expanded = {},
     state = state,
+    mode = "new",
+    edit_index = nil,
   }
   setmetatable(watches, self)
   self.__index = self
@@ -26,7 +29,6 @@ function Watches:new(state)
 end
 
 function Watches:add_watch(value)
-  vim.cmd("stopinsert")
   if value == "" then
     loop.run()
     return
@@ -36,27 +38,25 @@ function Watches:add_watch(value)
   self.state:add_watch(value)
 end
 
-function Watches:edit_expr(expr_i)
-  local buf = api.nvim_win_get_buf(0)
-  local old = self.expressions[expr_i]
-  vim.fn.prompt_setcallback(buf, function(new)
-    vim.cmd("stopinsert")
-    if new ~= "" then
-      self.expressions[expr_i] = new
-      self.state:remove_watch(old)
-      self.state:add_watch(new)
-    else
-      loop.run()
-    end
-  end)
-  vim.cmd("normal i" .. old)
-  vim.api.nvim_input("A")
+function Watches:edit_expr(new_value)
+  self.mode = "new"
+  local index = self.edit_index
+  self.edit_index = nil
+  local old = self.expressions[index]
+  if new_value == "" then
+    loop.run()
+    return
+  end
+  self.expressions[index] = new_value
+  self.state:remove_watch(old)
+  self.state:add_watch(new_value)
 end
 
 function Watches:remove_expr(expr_i)
   local expression = util.pop(self.expressions, expr_i)
   self.var_components[expr_i] = nil
   self.state:remove_watch(expression)
+  loop.run()
 end
 
 function Watches:toggle_expression(expr_i)
@@ -70,7 +70,12 @@ function Watches:toggle_expression(expr_i)
 end
 
 function Watches:render(render_state)
-  render_state:set_prompt("> ", partial(self.add_watch, self))
+  if self.mode == "new" then
+    render_state:set_prompt("> ", partial(self.add_watch, self))
+  else
+    local old_val = self.expressions[self.edit_index]
+    render_state:set_prompt("> ", partial(self.edit_expr, self), { fill = old_val })
+  end
   if vim.tbl_count(self.expressions) == 0 then
     render_state:add_line("No Expressions")
     render_state:add_match("DapUIWatchesEmpty", render_state:length())
@@ -118,7 +123,11 @@ function Watches:render(render_state)
         end
         render_state:add_line(line)
         render_state:add_mapping(config.actions.REMOVE, partial(self.remove_expr, self, i))
-        render_state:add_mapping(config.actions.EDIT, partial(self.edit_expr, self, i))
+        render_state:add_mapping(config.actions.EDIT, function()
+          self.edit_index = i
+          self.mode = "edit"
+          loop.run()
+        end)
         if not watch.error then
           render_state:add_mapping(config.actions.EXPAND, partial(self.toggle_expression, self, i))
         end
@@ -129,7 +138,6 @@ function Watches:render(render_state)
         if not child_vars then
           self.state:monitor(var_ref)
           render_state:invalidate()
-          return
         else
           self.var_components[i]:render(render_state, child_vars, config.windows().indent * 2)
         end

@@ -10,23 +10,24 @@ describe("checking multiple file breakpoints", function()
   local buf_b = vim.api.nvim_create_buf(true, true)
   vim.api.nvim_buf_set_name(buf_b, "test/file_b.py")
   local breakpoints = {
-    [buf_b] = {{line = 25, file = "test/file_b.py"}},
+    [buf_b] = { { line = 25, file = "test/file_b.py" } },
     [buf_a] = {
-      {line = 10, file = "test/file_a.py"},
-      {line = 20, file = "test/file_a.py"},
+      { line = 10, file = "test/file_a.py" },
+      { line = 20, file = "test/file_a.py" },
     },
   }
 
   local mock_state = {
-    breakpoints = function() return breakpoints end,
-    current_frame = function()
-      return {source = {path = "test/file_a.py"}, line = 20}
+    breakpoints = function()
+      return breakpoints
     end,
-
+    current_frame = function()
+      return { source = { path = "test/file_a.py" }, line = 20 }
+    end,
   }
 
   local api = mock(vim.api, true)
-  api.nvim_buf_get_lines.returns({"text"})
+  api.nvim_buf_get_lines.returns({ "text" })
 
   it("creates lines", function()
     local render_state = render.new_state()
@@ -51,11 +52,11 @@ describe("checking multiple file breakpoints", function()
     component:render(render_state)
 
     local expected = {
-      {"DapUIBreakpointsPath", {1, 1, 9}},
-      {"DapUIBreakpointsLine", {2, 2, 2}},
-      {"DapUIBreakpointsCurrentLine", {3, 2, 2}},
-      {"DapUIBreakpointsPath", {5, 1, 9}},
-      {"DapUIBreakpointsLine", {6, 2, 2}},
+      { "DapUIBreakpointsPath", { 1, 1, 9 } },
+      { "DapUIBreakpointsLine", { 2, 2, 2 } },
+      { "DapUIBreakpointsCurrentLine", { 3, 2, 2 } },
+      { "DapUIBreakpointsPath", { 5, 1, 9 } },
+      { "DapUIBreakpointsLine", { 6, 2, 2 } },
     }
     assert.are.same(expected, render_state.matches)
   end)

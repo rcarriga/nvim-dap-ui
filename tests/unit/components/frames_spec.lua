@@ -4,7 +4,6 @@ local StackFrames = require("dapui.components.frames")
 local render = require("dapui.render")
 
 describe("checking stack frames", function()
-
   local frames = {
     {
       column = 0,
@@ -60,15 +59,15 @@ describe("checking stack frames", function()
 
     component:render(render_state, frames, 1)
     local expected = {
-      {"DapUIFrameName", {1, 2, 6}},
-      {"DapUISource", {1, 9, 9}},
-      {"DapUILineNumber", {1, 19, 1}},
-      {"DapUIFrameName", {2, 2, 6}},
-      {"DapUISource", {2, 9, 9}},
-      {"DapUILineNumber", {2, 19, 4}},
-      {"DapUIFrameName", {3, 2, 6}},
-      {"DapUISource", {3, 9, 9}},
-      {"DapUILineNumber", {3, 19, 4}},
+      { "DapUIFrameName", { 1, 2, 6 } },
+      { "DapUISource", { 1, 9, 9 } },
+      { "DapUILineNumber", { 1, 19, 1 } },
+      { "DapUIFrameName", { 2, 2, 6 } },
+      { "DapUISource", { 2, 9, 9 } },
+      { "DapUILineNumber", { 2, 19, 4 } },
+      { "DapUIFrameName", { 3, 2, 6 } },
+      { "DapUISource", { 3, 9, 9 } },
+      { "DapUILineNumber", { 3, 19, 4 } },
     }
     assert.are.same(expected, render_state.matches)
   end)
@@ -83,7 +82,11 @@ describe("checking stack frames", function()
 
   it("mappings open frame", function()
     local util = require("dapui.util")
-    package.loaded["dap"] = {session = function() return {1} end}
+    package.loaded["dap"] = {
+      session = function()
+        return { 1 }
+      end,
+    }
     stub(util, "jump_to_frame")
     local render_state = render.new_state()
     local component = StackFrames()
@@ -102,7 +105,8 @@ describe("checking stack frames", function()
         path = "/test/test_a.py",
         sourceReference = 0,
       },
-    }, {1})
+    }, {
+      1,
+    })
   end)
-
 end)
