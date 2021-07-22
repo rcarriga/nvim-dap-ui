@@ -71,7 +71,7 @@ function Hover:render(render_state)
     end
   end
 
-  if self.expanded then
+  if self.expanded and var_ref then
     local child_vars = self.state:variables(var_ref)
     if not child_vars then
       self.state:monitor(var_ref)
