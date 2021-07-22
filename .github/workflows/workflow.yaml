@@ -23,9 +23,10 @@ jobs:
           path: _neovim
           key: ${{ runner.os }}-x64-${{ hashFiles('todays-date') }}
 
-      - name: Prepare plenary
+      - name: Prepare dependencies
         run: |
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
+          git clone --depth 1 https://github.com/mfussenegger/nvim-dap ~/.local/share/nvim/site/pack/vendor/start/nvim-dap
           ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
 
       - name: Run tests
