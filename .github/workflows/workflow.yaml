@@ -12,7 +12,7 @@ jobs:
           args: --check lua/ tests/
 
   tests:
-    name: Run tests
+    name: tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
