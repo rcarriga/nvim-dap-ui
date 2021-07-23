@@ -1,20 +1,13 @@
 local M = {}
 local api = vim.api
-local config = {
-  max_height = nil,
-  max_width = nil
-}
+local config = require("dapui.config")
 
-local Float = {ids = {}, listeners = {close = {}}, position = {}}
-
-function M.setup(float_config)
-  config = vim.tbl_deep_extend("keep", float_config, config)
-end
+local Float = { ids = {}, listeners = { close = {} }, position = {} }
 
 local function create_border_lines(border_opts)
   local width = border_opts.width
   local height = border_opts.height
-  local border_lines = {"╭" .. string.rep("─", width - 2) .. "╮"}
+  local border_lines = { "╭" .. string.rep("─", width - 2) .. "╮" }
   for _ = 3, height, 1 do
     border_lines[#border_lines + 1] = "│" .. string.rep(" ", width - 2) .. "│"
   end
@@ -29,8 +22,8 @@ local function create_opts(content_width, content_height, position)
   local vert_anchor = "N"
   local hor_anchor = "W"
 
-  local max_height = config.max_height or vim.o.lines
-  local max_width = config.max_width or vim.o.columns
+  local max_height = config.floating().max_height or vim.o.lines
+  local max_width = config.floating().max_width or vim.o.columns
   if 0 < max_height and max_height < 1 then
     max_height = math.floor(vim.o.lines * max_height)
   end
@@ -51,7 +44,7 @@ local function create_opts(content_width, content_height, position)
     width = width,
     height = height,
     style = "minimal",
-    border = "single"
+    border = "single",
   }
 end
 
@@ -94,7 +87,7 @@ function Float:close(force)
     pcall(api.nvim_win_close, win_id, true)
   end
   for _, listener in pairs(self.listeners.close) do
-    listener({buffer = buf})
+    listener({ buffer = buf })
   end
   return true
 end
@@ -109,7 +102,7 @@ end
 function M.open_float(settings)
   local line_no = vim.fn.screenrow()
   local col_no = vim.fn.screencol()
-  local position = settings.position or {line = line_no, col = col_no}
+  local position = settings.position or { line = line_no, col = col_no }
   local opts = create_opts(settings.width, settings.height, position)
   local content_buffer = settings.buffer or api.nvim_create_buf(false, true)
   local content_window = api.nvim_open_win(content_buffer, false, opts)
@@ -118,7 +111,7 @@ function M.open_float(settings)
   vim.fn.setwinvar(output_win_id, "&winhl", "Normal:Normal,FloatBorder:DapUIFloatBorder")
   vim.api.nvim_win_set_option(content_window, "wrap", false)
 
-  return Float:new({content_window}, position)
+  return Float:new({ content_window }, position)
 end
 
 return M

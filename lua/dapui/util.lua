@@ -11,10 +11,18 @@ function M.is_uri(path)
   end
 end
 
+---@param cb fun(session: table)
+function M.with_session(cb)
+  local session = require("dap").session()
+  if session then
+    cb(session)
+  end
+end
+
 local function open_buf(bufnr, line, column)
   for _, win in pairs(api.nvim_tabpage_list_wins(0)) do
     if api.nvim_win_get_buf(win) == bufnr then
-      api.nvim_win_set_cursor(win, {line, column - 1})
+      api.nvim_win_set_cursor(win, { line, column - 1 })
       api.nvim_set_current_win(win)
       return
     end
@@ -25,7 +33,7 @@ local function open_buf(bufnr, line, column)
     if api.nvim_buf_get_option(winbuf, "buftype") == "" then
       local bufchanged, _ = pcall(api.nvim_win_set_buf, win, bufnr)
       if bufchanged then
-        api.nvim_win_set_cursor(win, {line, column - 1})
+        api.nvim_win_set_cursor(win, { line, column - 1 })
         api.nvim_set_current_win(win)
         return
       end
@@ -43,23 +51,19 @@ function M.jump_to_frame(frame, session)
 
   if (source.sourceReference or 0) > 0 then
     local buf = vim.api.nvim_create_buf(false, true)
-    session:request(
-      "source",
-      {sourceReference = source.sourceReference},
-      function(response, err)
-        if err then
-          return
-        end
-        if not response.body.content then
-          print("No source available for frame")
-          return
-        end
-        vim.api.nvim_buf_set_lines(buf, 0, 0, true, vim.split(response.body.content, "\n"))
-        open_buf(buf, line, column)
-        vim.api.nvim_buf_set_option(buf, "bufhidden", "delete")
-        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+    session:request("source", { sourceReference = source.sourceReference }, function(response, err)
+      if err then
+        return
       end
-    )
+      if not response.body.content then
+        print("No source available for frame")
+        return
+      end
+      vim.api.nvim_buf_set_lines(buf, 0, 0, true, vim.split(response.body.content, "\n"))
+      open_buf(buf, line, column)
+      vim.api.nvim_buf_set_option(buf, "bufhidden", "delete")
+      vim.api.nvim_buf_set_option(buf, "modifiable", false)
+    end)
     return
   end
 
@@ -101,6 +105,34 @@ function M.pretty_name(path)
     path = vim.uri_to_fname(path)
   end
   return vim.fn.fnamemodify(path, ":t")
+end
+
+function M.pop(tbl, key, default)
+  local val = default
+  if tbl[key] then
+    val = tbl[key]
+    tbl[key] = nil
+  end
+  return val
+end
+
+function M.format_error(error)
+  if vim.tbl_isempty(error.body or {}) then
+    return error.message
+  end
+  local formatted = error.body.error.format
+  for name, val in pairs(error.body.error.variables) do
+    formatted = string.gsub(formatted, "{" .. name .. "}", val)
+  end
+  return formatted
+end
+
+function M.partial(func, ...)
+  local args = { ... }
+  return function(...)
+    local final = vim.list_extend(args, { ... })
+    return func(unpack(final))
+  end
 end
 
 return M

@@ -1,5 +1,8 @@
 local M = {}
 
+local config = require("dapui.config")
+local render = require("dapui.render")
+
 vim.cmd("hi default DapUIFloatBorder guifg=#00F1F5")
 local float_windows = {}
 local sidebar_windows = {}
@@ -11,7 +14,7 @@ local function init_win_settings(win)
     relativenumber = false,
     number = false,
     winfixwidth = true,
-    wrap = false
+    wrap = false,
   }
   for key, val in pairs(win_settings) do
     vim.api.nvim_win_set_option(win, key, val)
@@ -30,33 +33,30 @@ local function open_wins(elements, open, saved)
       saved[win_id] = element
     end
     local bufnr = vim.api.nvim_win_get_buf(win_id)
-    element.on_open(
-      bufnr,
-      function(render_state)
-        render_state:render_buffer(bufnr)
-      end
-    )
+    render.loop.register_buffer(element.name, bufnr)
     init_win_settings(win_id)
+    render.loop.run(element.name)
   end
   vim.api.nvim_set_current_win(cur_win)
 end
 
 local function close_wins(saved)
   local current_win = vim.api.nvim_get_current_win()
-  for win, element in pairs(saved) do
+  for win, _ in pairs(saved) do
     local win_exists, buf = pcall(vim.api.nvim_win_get_buf, win)
     if win_exists then
       if win == current_win then
         vim.cmd("stopinsert") -- Prompt buffers act poorly when closed in insert mode, see #33
       end
       pcall(vim.api.nvim_win_close, win, true)
-      element.on_close({buffer = buf})
-      vim.api.nvim_buf_delete(buf, {force = true, unload = false})
+      vim.api.nvim_buf_delete(buf, { force = true, unload = false })
     end
   end
 end
 
-function M.open_sidebar(elements, position, width)
+function M.open_sidebar(elements)
+  local position = config.sidebar().position
+  local width = config.sidebar().width
   local open_cmd = position == "left" and "topleft" or "botright"
   local function open_sidebar_win(index)
     vim.cmd(index == 1 and open_cmd .. " " .. width .. "vsplit" or "split")
@@ -65,7 +65,9 @@ function M.open_sidebar(elements, position, width)
   open_wins(elements, open_sidebar_win, sidebar_windows)
 end
 
-function M.open_tray(elements, position, height)
+function M.open_tray(elements)
+  local position = config.tray().position
+  local height = config.tray().height
   local open_cmd = position == "top" and "topleft" or "botright"
   local function open_tray_win(index)
     vim.cmd(index == 1 and open_cmd .. " " .. height .. " split" or "vsplit")
@@ -88,18 +90,39 @@ function M.open_float(element, position, settings)
     float_windows[element.name]:jump_to()
     return float_windows[element.name]
   end
-  local float_win = require("dapui.windows.float").open_float({height = 1, width = 1, position = position})
+  local float_win = require("dapui.windows.float").open_float({
+    height = 1,
+    width = 1,
+    position = position,
+  })
   local buf = float_win:get_buf()
-  element.on_open(
-    buf,
-    function(render_state)
-      local rendered = render_state:render_buffer(float_win:get_buf())
-      if rendered then
-        float_win:resize(settings.width or render_state:width(), settings.height or render_state:length())
+  render.loop.register_buffer(element.name, buf)
+  local listener_id = element.name .. buf .. "float"
+  render.loop.register_listener(
+    listener_id,
+    element.name,
+    "render",
+    function(rendered_buf, render_state)
+      if rendered_buf == buf then
+        float_win:resize(
+          settings.width or render_state:width(),
+          settings.height or render_state:length()
+        )
       end
     end
   )
-  vim.cmd("au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('" .. element.name .. "')")
+  render.loop.register_listener(listener_id, element.name, "close", function(closed_buf)
+    if closed_buf == buf then
+      render.loop.unregister_listener(listener_id, element.name, "render")
+      render.loop.unregister_listener(listener_id, element.name, "close")
+    end
+  end)
+  render.loop.run(element.name)
+  vim.cmd(
+    "au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('"
+      .. element.name
+      .. "')"
+  )
   float_win:listen("close", element.on_close)
   float_windows[element.name] = float_win
   if settings.enter then
@@ -112,10 +135,17 @@ function M.close_float(element_name)
   if float_windows[element_name] == nil then
     return
   end
-  local closed = float_windows[element_name]:close(false)
+  local win = float_windows[element_name]
+  local buf = win:get_buf()
+  local closed = win:close(false)
   if not closed then
-    vim.cmd("au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('" .. element_name .. "')")
+    vim.cmd(
+      "au CursorMoved,InsertEnter * ++once lua require('dapui.windows').close_float('"
+        .. element_name
+        .. "')"
+    )
   else
+    render.loop.remove_buffer(element_name, buf)
     float_windows[element_name] = nil
   end
 end

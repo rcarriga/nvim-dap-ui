@@ -8,7 +8,7 @@ changes!
 A UI for [nvim-dap](https://github.com/mfussenegger/nvim-dap) which provides a
 good out of the box configuration.
 
-![Preview](https://user-images.githubusercontent.com/24252670/114298796-f8db2d80-9aaf-11eb-95cd-2ea758d85b2b.png)
+![Preview](https://user-images.githubusercontent.com/24252670/126842672-de9c6b78-eec2-4187-b48e-977686ec4080.png)
 
 ## Installation
 
@@ -92,7 +92,7 @@ require("dapui").setup({
 
 ### Variable Scopes
 
-![image](https://user-images.githubusercontent.com/24252670/114298911-8cacf980-9ab0-11eb-9bc1-e0f1b23cd0a2.png)
+![image](https://user-images.githubusercontent.com/24252670/126842891-c5175f13-5eb7-4d0a-9dae-620c4d31448a.png)
 
 Element ID: `scopes`
 
@@ -104,7 +104,7 @@ Mappings:
 
 ### Threads and Stack Frames
 
-![image](https://user-images.githubusercontent.com/24252670/114298952-bbc36b00-9ab0-11eb-9f9b-347a9089edd9.png)
+![image](https://user-images.githubusercontent.com/24252670/126843106-5dce09dc-49d0-4aaa-ba98-fd8f17b31414.png)
 
 Element ID: `stacks`
 
@@ -116,7 +116,7 @@ Mappings:
 
 ### Watch Expressions
 
-![image](https://user-images.githubusercontent.com/24252670/114298997-fcbb7f80-9ab0-11eb-8cb8-a78f5a46e710.png)
+![image](https://user-images.githubusercontent.com/24252670/126843390-4e1575d8-9d7d-4f43-8680-094cfe9eae63.png)
 
 Element ID: `watches`
 
@@ -127,13 +127,13 @@ insert mode and you will see a prompt appear. Press enter to submit
 
 Mappings:
 
-- `expand`: Toggle the value and frame position of the expression.
+- `expand`: Toggle showing the children of an expression.
 - `remove`: Remove the watched expression.
-- `edit`: Edit an expression
+- `edit`: Edit an expression.
 
 ### Breakpoints
 
-![image](https://user-images.githubusercontent.com/24252670/119557290-e4b96a00-bd97-11eb-9c97-ebaa847b1b7c.png)
+![image](https://user-images.githubusercontent.com/24252670/126843577-361645e4-6265-40eb-86dc-d6607512a15e.png)
 
 Element ID: `breakpoints`
 
@@ -177,7 +177,7 @@ argument to only change the specified component.
 For elements that are not opened in the tray or sidebar, you can open them in a
 floating window.
 
-![image](https://user-images.githubusercontent.com/24252670/114299177-da763180-9ab1-11eb-8437-8ddf7d0f1577.png)
+![image](https://user-images.githubusercontent.com/24252670/126844102-8789effb-4276-4599-afe6-a074b019c38d.png)
 
 ```lua
 require("dapui").float_element(<element ID>)
@@ -193,7 +193,7 @@ window on open.
 
 For a one time expression evaluation, you can call a hover window to show a value
 
-![image](https://user-images.githubusercontent.com/24252670/114299131-a438b200-9ab1-11eb-86ad-9be1fc592e51.png)
+![image](https://user-images.githubusercontent.com/24252670/126844454-691d691c-4550-46fe-89dc-25e1e9681545.png)
 
 ```lua
 require("dapui").eval(<expression>)
@@ -208,3 +208,6 @@ vnoremap <M-k> <Cmd>lua require("dapui").eval()<CR>
 ```
 
 Call the same function again while the window is open to jump to the eval window.
+
+The same mappings as the variables element apply within the hover window.
+
