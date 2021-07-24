@@ -62,6 +62,7 @@ require("dapui").setup({
     open = "o",
     remove = "d",
     edit = "e",
+    repl = "r",
   },
   sidebar = {
     open_on_start = true,
@@ -101,6 +102,7 @@ Displays the available scopes and variables within them.
 Mappings:
 
 - `expand`: Toggle showing any children of variable.
+- `repl`: Send variable to REPL
 
 ### Threads and Stack Frames
 
@@ -130,6 +132,7 @@ Mappings:
 - `expand`: Toggle showing the children of an expression.
 - `remove`: Remove the watched expression.
 - `edit`: Edit an expression.
+- `repl`: Send expression to REPL
 
 ### Breakpoints
 

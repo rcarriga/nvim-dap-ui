@@ -135,4 +135,22 @@ function M.partial(func, ...)
   end
 end
 
+function M.send_to_repl(expression)
+  local repl_win = vim.fn.bufwinid("[dap-repl]")
+  if repl_win == -1 then
+    M.float_element("repl")
+    repl_win = vim.fn.bufwinid("[dap-repl]")
+  end
+  api.nvim_set_current_win(repl_win)
+  vim.cmd("normal i" .. expression)
+end
+
+function M.float_element(elem_name)
+  local line_no = vim.fn.screenrow()
+  local col_no = vim.fn.screencol()
+  local position = { line = line_no, col = col_no }
+  local elem = require("dapui.elements." .. elem_name)
+  return require("dapui.windows").open_float(elem, position, elem.float_defaults or {})
+end
+
 return M

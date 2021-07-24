@@ -14,6 +14,7 @@ M.actions = {
   OPEN = "open",
   REMOVE = "remove",
   EDIT = "edit",
+  REPL = "repl",
 }
 
 local default_config = {
@@ -23,6 +24,7 @@ local default_config = {
     [M.actions.OPEN] = "o",
     [M.actions.REMOVE] = "d",
     [M.actions.EDIT] = "e",
+    [M.actions.REPL] = "r",
   },
   sidebar = {
     open_on_start = true,

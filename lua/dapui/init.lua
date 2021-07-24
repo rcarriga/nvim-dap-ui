@@ -7,6 +7,7 @@ local tray_open = true
 
 local render = require("dapui.render")
 local config = require("dapui.config")
+local util = require("dapui.util")
 local UIState = require("dapui.state")
 local ui_state
 

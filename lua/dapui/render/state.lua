@@ -19,7 +19,7 @@ function RenderState:new()
   local render_state = {
     lines = {},
     matches = {},
-    mappings = { open = {}, expand = {}, remove = {}, edit = {} },
+    mappings = { open = {}, expand = {}, remove = {}, edit = {}, repl = {} },
     prompt = nil,
     valid = true,
   }

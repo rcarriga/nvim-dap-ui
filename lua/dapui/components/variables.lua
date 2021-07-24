@@ -1,5 +1,6 @@
 local config = require("dapui.config")
-local partial = require("dapui.util").partial
+local util = require("dapui.util")
+local partial = util.partial
 
 ---@class Variables
 ---@field expanded_children table
@@ -52,6 +53,12 @@ function Variables:render(render_state, variables, indent)
           config.actions.EXPAND,
           partial(Variables.toggle_reference, self, variable.variablesReference, index)
         )
+        if variable.evaluateName then
+          render_state:add_mapping(
+            config.actions.REPL,
+            partial(util.send_to_repl, variable.evaluateName)
+          )
+        end
       end
     end
 

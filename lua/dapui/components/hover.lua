@@ -1,5 +1,6 @@
 local config = require("dapui.config")
 local Variables = require("dapui.components.variables")
+local util = require("dapui.util")
 local loop = require("dapui.render.loop")
 
 ---@class Hover
@@ -68,13 +69,16 @@ function Hover:render(render_state)
         self.expanded = not self.expanded
         loop.run()
       end)
+      render_state:add_mapping(
+        config.actions.REPL,
+        util.partial(util.send_to_repl, self.expression)
+      )
     end
   end
 
   if self.expanded and var_ref then
     local child_vars = self.state:variables(var_ref)
     if not child_vars then
-      self.state:monitor(var_ref)
       render_state:invalidate()
       return
     else

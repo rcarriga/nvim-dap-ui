@@ -54,10 +54,16 @@ function UIState:attach(dap, listener_id)
   dap.listeners.after.scopes[listener_id] = function(session, err, response)
     if not err then
       self._scopes = response.scopes
+      for _, scope in pairs(self._scopes) do
+        session:request(
+          "variables",
+          { variablesReference = scope.variablesReference },
+          function() end
+        )
+      end
       for ref, _ in pairs(self._monitored_vars) do
         session:request("variables", { variablesReference = ref }, function() end)
       end
-      self:_refresh_watches(session)
     end
   end
 
@@ -83,16 +89,23 @@ function UIState:attach(dap, listener_id)
       self:_emit_refreshed(session)
     end
   end
+
+  dap.listeners.after.evaluate[listener_id] = function(session, _, _, request)
+    if request.context == "repl" then
+      session:request("scopes", { frameId = session.current_frame.id }, function() end)
+    end
+  end
+end
+
+function UIState:_refresh_scopes(session)
+  session:request("scopes", { frameId = session.current_frame.id }, function() end)
 end
 
 function UIState:_refresh(session)
   if not session.current_frame then
     return
   end
-  session:request("scopes", { frameId = session.current_frame.id }, function() end)
-  for ref, _ in pairs(self._monitored_vars) do
-    session:request("variables", { variablesReference = ref }, function() end)
-  end
+  self:_refresh_scopes(session)
   session:request("threads", nil, function() end)
 end
 

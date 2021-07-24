@@ -45,7 +45,9 @@ function M.register_buffer(element_name, buf)
     element.setup_buffer(buf)
   end
   vim.cmd(
-    "autocmd BufDelete * ++once lua require('dapui.render.loop').remove_buffer('"
+    "autocmd BufDelete <buffer="
+      .. buf
+      .. "> ++once lua require('dapui.render.loop').remove_buffer('"
       .. element_name
       .. "', "
       .. buf

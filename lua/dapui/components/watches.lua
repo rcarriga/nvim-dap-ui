@@ -130,13 +130,13 @@ function Watches:render(render_state)
         end)
         if not watch.error then
           render_state:add_mapping(config.actions.EXPAND, partial(self.toggle_expression, self, i))
+          render_state:add_mapping(config.actions.REPL, partial(util.send_to_repl, expr))
         end
       end
 
       if self.var_components[i] and self.expanded[i] then
         local child_vars = self.state:variables(var_ref)
         if not child_vars then
-          self.state:monitor(var_ref)
           render_state:invalidate()
         else
           self.var_components[i]:render(render_state, child_vars, config.windows().indent * 2)

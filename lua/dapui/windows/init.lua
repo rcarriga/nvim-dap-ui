@@ -91,8 +91,8 @@ function M.open_float(element, position, settings)
     return float_windows[element.name]
   end
   local float_win = require("dapui.windows.float").open_float({
-    height = 1,
-    width = 1,
+    height = settings.height or 1,
+    width = settings.width or 1,
     position = position,
   })
   local buf = float_win:get_buf()

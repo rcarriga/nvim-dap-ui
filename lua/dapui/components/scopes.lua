@@ -29,7 +29,6 @@ function Scopes:render(render_state)
     render_state:add_line(scope.name .. ":")
     local variables = self.state:variables(scope.variablesReference)
     if not variables then
-      self.state:monitor(scope.variablesReference)
       render_state:invalidate()
     else
       self:_get_var_component(i):render(render_state, variables, config.windows().indent)
