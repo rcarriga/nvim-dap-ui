@@ -118,7 +118,7 @@ function UIState:_refresh_watches(session)
 end
 
 function UIState:_emit_refreshed(session)
-  if self:current_frame().id ~= session.current_frame.id then
+  if not self:current_frame() or (self:current_frame().id ~= session.current_frame.id) then
     self._monitored_vars = {}
   end
   self._current_frame = session.current_frame
