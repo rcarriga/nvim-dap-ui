@@ -16,6 +16,7 @@ return {
   setup_buffer = function(buf)
     require("dapui.render.loop").register_listener("watches_modifiable", name, "render", function(b)
       vim.api.nvim_buf_set_option(b, "modifiable", true)
+      vim.api.nvim_buf_set_option(b, "modified", false)
     end)
     api.nvim_buf_set_keymap(buf, "i", "<BS>", "<ESC>xa", { noremap = true })
     vim.cmd(
