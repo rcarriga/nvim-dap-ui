@@ -50,7 +50,7 @@ local default_config = {
 local user_config = {}
 
 function M.setup(config)
-  local filled = vim.tbl_deep_extend("keep", config, default_config)
+  local filled = vim.tbl_deep_extend("keep", config or {}, default_config)
   local mappings = {}
   for action, keys in pairs(filled.mappings) do
     mappings[action] = type(keys) == "table" and keys or { keys }
