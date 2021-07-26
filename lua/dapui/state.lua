@@ -64,6 +64,7 @@ function UIState:attach(dap, listener_id)
       for ref, _ in pairs(self._monitored_vars) do
         session:request("variables", { variablesReference = ref }, function() end)
       end
+      self:_refresh_watches(session)
     end
   end
 
