@@ -31,7 +31,9 @@ function Scopes:render(render_state)
     if not variables then
       render_state:invalidate()
     else
-      self:_get_var_component(i):render(render_state, variables, config.windows().indent)
+      self
+        :_get_var_component(i)
+        :render(render_state, scope.variablesReference, variables, config.windows().indent)
     end
     if i < #self.state:scopes() then
       render_state:add_line()

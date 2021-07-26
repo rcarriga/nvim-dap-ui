@@ -2,12 +2,14 @@ local config = require("dapui.config")
 local Variables = require("dapui.components.variables")
 local util = require("dapui.util")
 local loop = require("dapui.render.loop")
+local partial = util.partial
 
 ---@class Hover
 ---@field expression string
 ---@field expanded boolean
 ---@field var_component Variables
 ---@field state UIState
+---@field mode "set" | nil
 local Hover = {}
 
 ---@return Hover
@@ -23,11 +25,25 @@ function Hover:new(expression, state)
   return hover
 end
 
+function Hover:set_var(hover_expr, value)
+  self.state:set_variable(nil, hover_expr.evaluated, value)
+  self.mode = nil
+  loop.run()
+end
+
 function Hover:render(render_state)
   local hover_expr = self.state:watch(self.expression)
   if not hover_expr or (not hover_expr.evaluated and not hover_expr.error) then
     render_state:add_line(" ")
     return
+  end
+  if hover_expr.evaluated and self.mode == "set" then
+    hover_expr.evaluated.evaluateName = self.expression
+    render_state:set_prompt(
+      "> ",
+      partial(self.set_var, self, hover_expr),
+      { fill = hover_expr.evaluated.result }
+    )
   end
   local line_no = render_state:length() + 1
   local var_ref = hover_expr.evaluated and hover_expr.evaluated.variablesReference
@@ -73,6 +89,10 @@ function Hover:render(render_state)
         config.actions.REPL,
         util.partial(util.send_to_repl, self.expression)
       )
+      render_state:add_mapping(config.actions.EDIT, function()
+        self.mode = "set"
+        loop.run()
+      end)
     end
   end
 
@@ -82,7 +102,7 @@ function Hover:render(render_state)
       render_state:invalidate()
       return
     else
-      self.var_component:render(render_state, child_vars, config.windows().indent)
+      self.var_component:render(render_state, var_ref, child_vars, config.windows().indent)
     end
   end
 end

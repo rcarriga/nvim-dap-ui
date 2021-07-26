@@ -91,9 +91,21 @@ function UIState:attach(dap, listener_id)
     end
   end
 
-  dap.listeners.after.evaluate[listener_id] = function(session, _, _, request)
-    if request.context == "repl" then
-      session:request("scopes", { frameId = session.current_frame.id }, function() end)
+  dap.listeners.after.evaluate[listener_id] = function(session, err, _, request)
+    if not err and request.context == "repl" then
+      self:_refresh_scopes(session)
+    end
+  end
+
+  dap.listeners.after.setExpression[listener_id] = function(session, err)
+    if not err then
+      self:_refresh_scopes(session)
+    end
+  end
+
+  dap.listeners.after.setVariable[listener_id] = function(session, err)
+    if not err then
+      self:_refresh_scopes(session)
     end
   end
 end
@@ -181,6 +193,37 @@ end
 
 function UIState:current_frame()
   return self._current_frame
+end
+
+function UIState:set_variable(container_ref, variable, value)
+  util.with_session(function(session)
+    if session.capabilities.supportsSetExpression and variable.evaluateName then
+      local frame_id = session.current_frame and session.current_frame.id
+      session:request(
+        "setExpression",
+        { expression = variable.evaluateName, value = value, frameId = frame_id },
+        function(err)
+          if err then
+            vim.notify(util.format_error(err))
+          end
+        end
+      )
+    elseif session.capabilities.supportsSetVariable and container_ref then
+      session:request(
+        "setVariable",
+        { variablesReference = container_ref, name = variable.name, value = value },
+        function(err)
+          if err then
+            vim.notify(util.format_error(err))
+          end
+        end
+      )
+    else
+      vim.notify(
+        "Debug server doesn't support setting " .. (variable.evaluateName or variable.name)
+      )
+    end
+  end)
 end
 
 function UIState:breakpoints()

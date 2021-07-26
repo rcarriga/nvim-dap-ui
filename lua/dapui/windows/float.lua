@@ -4,17 +4,6 @@ local config = require("dapui.config")
 
 local Float = { ids = {}, listeners = { close = {} }, position = {} }
 
-local function create_border_lines(border_opts)
-  local width = border_opts.width
-  local height = border_opts.height
-  local border_lines = { "╭" .. string.rep("─", width - 2) .. "╮" }
-  for _ = 3, height, 1 do
-    border_lines[#border_lines + 1] = "│" .. string.rep(" ", width - 2) .. "│"
-  end
-  border_lines[#border_lines + 1] = "╰" .. string.rep("─", width - 2) .. "╯"
-  return border_lines
-end
-
 local function create_opts(content_width, content_height, position)
   local line_no = position.line
   local col_no = position.col
