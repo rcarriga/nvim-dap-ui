@@ -139,7 +139,12 @@ function Watches:render(render_state)
         if not child_vars then
           render_state:invalidate()
         else
-          self.var_components[i]:render(render_state, child_vars, config.windows().indent * 2)
+          self.var_components[i]:render(
+            render_state,
+            var_ref,
+            child_vars,
+            config.windows().indent * 2
+          )
         end
       end
     end

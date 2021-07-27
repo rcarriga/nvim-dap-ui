@@ -95,14 +95,10 @@ function M.run(element_names)
       canvas.element.render(state)
       if state.valid then
         for _, buf in pairs(canvas.buffers) do
-          local success, _ = pcall(vim.api.nvim_buf_set_option, buf, "modifiable", true)
-          if success then
-            local rendered = render_state.render_buffer(state, buf)
-            vim.api.nvim_buf_set_option(buf, "modifiable", false)
-            if rendered then
-              for _, listener in pairs(canvas.listeners[M.EVENTS.RENDER] or {}) do
-                listener(buf, state)
-              end
+          local rendered = render_state.render_buffer(state, buf)
+          if rendered then
+            for _, listener in pairs(canvas.listeners[M.EVENTS.RENDER] or {}) do
+              listener(buf, state)
             end
           end
         end

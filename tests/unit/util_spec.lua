@@ -87,6 +87,12 @@ describe("checking format_error", function()
     local result = util.format_error(error)
     assert.equals(expected, result)
   end)
+  it("returns message within body", function()
+    local error = { body = { message = "Couldn't evaluate expression 'a'" } }
+    local expected = "Couldn't evaluate expression 'a'"
+    local result = util.format_error(error)
+    assert.equals(expected, result)
+  end)
 end)
 
 describe("checking partial", function()

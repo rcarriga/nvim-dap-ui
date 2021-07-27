@@ -1,10 +1,11 @@
 local M = {}
 
 local _mappings = {}
+local api = vim.api
 
 local util = require("dapui.util")
 local config = require("dapui.config")
-M.namespace = vim.api.nvim_create_namespace("dapui")
+M.namespace = api.nvim_create_namespace("dapui")
 
 ---@class RenderState
 ---@field lines table
@@ -16,10 +17,14 @@ local RenderState = {}
 
 ---@return RenderState
 function RenderState:new()
+  local mappings = {}
+  for _, action in pairs(config.actions) do
+    mappings[action] = {}
+  end
   local render_state = {
     lines = {},
     matches = {},
-    mappings = { open = {}, expand = {}, remove = {}, edit = {}, repl = {} },
+    mappings = mappings,
     prompt = nil,
     valid = true,
   }
@@ -103,6 +108,10 @@ end
 ---@param state RenderState
 ---@param buffer number
 function M.render_buffer(state, buffer)
+  local success, _ = pcall(api.nvim_buf_set_option, buffer, "modifiable", true)
+  if not success then
+    return false
+  end
   if state:length() == 0 then
     return
   end
@@ -126,16 +135,17 @@ function M.render_buffer(state, buffer)
   local lines = state.lines
   local matches = state.matches
   vim.fn["clearmatches"](win)
-  vim.api.nvim_buf_clear_namespace(buffer, M.namespace, 0, -1)
-  vim.api.nvim_buf_set_lines(buffer, 0, #lines, false, lines)
+  api.nvim_buf_clear_namespace(buffer, M.namespace, 0, -1)
+  api.nvim_buf_set_lines(buffer, 0, #lines, false, lines)
   local last_line = vim.fn.getbufinfo(buffer)[1].linecount
   if last_line > #lines then
-    vim.api.nvim_buf_set_lines(buffer, #lines, last_line, false, {})
+    api.nvim_buf_set_lines(buffer, #lines, last_line, false, {})
   end
   for _, match in pairs(matches) do
     vim.fn["matchaddpos"](match[1], { match[2] }, 10, -1, { window = win })
   end
   if state.prompt then
+    api.nvim_buf_set_option(buffer, "buftype", "prompt")
     vim.fn.prompt_setprompt(buffer, state.prompt.text)
     vim.fn.prompt_setcallback(buffer, function(value)
       vim.cmd("stopinsert")
@@ -143,8 +153,22 @@ function M.render_buffer(state, buffer)
     end)
     if state.prompt.fill then
       vim.cmd("normal i" .. state.prompt.fill)
-      vim.api.nvim_input("A")
+      api.nvim_input("A")
     end
+    api.nvim_buf_set_option(buffer, "modified", false)
+    api.nvim_buf_set_keymap(buffer, "i", "<BS>", "<ESC>xa", { noremap = true })
+    vim.cmd("augroup DAPUIPromptSetUnmodified" .. buffer)
+    vim.cmd(
+      "autocmd ExitPre <buffer="
+        .. buffer
+        .. "> call nvim_buf_set_option("
+        .. buffer
+        .. ", 'modified', v:false)"
+    )
+    vim.cmd("augroup END")
+  else
+    api.nvim_buf_set_option(buffer, "modifiable", false)
+    api.nvim_buf_set_option(buffer, "buftype", "nofile")
   end
   return true
 end
@@ -155,7 +179,7 @@ function M.new()
 end
 
 function M._mapping(action)
-  local buffer = vim.api.nvim_get_current_buf()
+  local buffer = api.nvim_get_current_buf()
   local line = vim.fn.line(".")
   local callbacks = _mappings[buffer][action][line]
   if not callbacks then

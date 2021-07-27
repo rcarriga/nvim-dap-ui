@@ -101,6 +101,7 @@ Displays the available scopes and variables within them.
 
 Mappings:
 
+- `edit`: Edit the value of a variable
 - `expand`: Toggle showing any children of variable.
 - `repl`: Send variable to REPL
 
@@ -131,7 +132,7 @@ Mappings:
 
 - `expand`: Toggle showing the children of an expression.
 - `remove`: Remove the watched expression.
-- `edit`: Edit an expression.
+- `edit`: Edit an expression or set the value of a child variable.
 - `repl`: Send expression to REPL
 
 ### Breakpoints

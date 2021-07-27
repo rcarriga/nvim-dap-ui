@@ -194,4 +194,54 @@ describe("checking hover", function()
       assert.equal(0, #render_state.mappings["expand"])
     end)
   end)
+
+  describe("in set mode", function()
+    local render_state
+    local component
+    local updated
+    before_each(function()
+      render_state = render.new_state()
+      component = Hover(expression, mock_state)
+      updated = {}
+
+      component:render(render_state)
+      render_state.mappings["edit"][1][1]()
+      render_state = render.new_state()
+      component:render(render_state)
+
+      mock_state.set_variable = function(_, container_ref, variable, value)
+        updated[#updated + 1] = { container_ref, variable, value }
+      end
+    end)
+
+    it("adds edit prompt", function()
+      assert.Not.Nil(render_state.prompt)
+    end)
+
+    it("fills prompt with current value", function()
+      assert.equal("[0, 1, [2, 3, 4, 5]]", render_state.prompt.fill)
+    end)
+
+    it("updates variable value", function()
+      render_state.prompt.callback("new_value")
+      assert.are.same({
+        nil,
+        {
+          evaluateName = "expr",
+          presentationHint = {},
+          result = "[0, 1, [2, 3, 4, 5]]",
+          type = "list",
+          variablesReference = 1,
+        },
+        "new_value",
+      }, updated[1])
+    end)
+
+    it("component resets mode", function()
+      render_state.prompt.callback("new_value")
+      render_state = render.new_state()
+      component:render(render_state)
+      assert.Nil(component.mode)
+    end)
+  end)
 end)

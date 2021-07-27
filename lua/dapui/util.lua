@@ -120,8 +120,11 @@ function M.format_error(error)
   if vim.tbl_isempty(error.body or {}) then
     return error.message
   end
+  if not error.body.error then
+    return error.body.message
+  end
   local formatted = error.body.error.format
-  for name, val in pairs(error.body.error.variables) do
+  for name, val in pairs(error.body.error.variables or {}) do
     formatted = string.gsub(formatted, "{" .. name .. "}", val)
   end
   return formatted
