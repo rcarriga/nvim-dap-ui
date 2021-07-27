@@ -105,19 +105,37 @@ describe("checking scopes", function()
 
   describe("when variables are not found", function()
     local monitored
+    local invalid_state
     before_each(function()
       monitored = {}
-      mock_state.variables = function()
-        return nil
-      end
-      mock_state.monitor = function(_, ref)
-        monitored[ref] = true
-      end
+      invalid_state = {
+        current_frame = function()
+          return { id = 1 }
+        end,
+        scopes = function()
+          return {
+            {
+              name = "Scope A",
+              variablesReference = 1,
+            },
+            {
+              name = "Scope B",
+              variablesReference = 2,
+            },
+          }
+        end,
+        variables = function()
+          return nil
+        end,
+        monitor = function(_, ref)
+          monitored[ref] = true
+        end,
+      }
     end)
 
     it("invalidates render", function()
       local render_state = render.new_state()
-      local component = Scopes(mock_state)
+      local component = Scopes(invalid_state)
 
       component:render(render_state)
       assert.False(render_state.valid)
