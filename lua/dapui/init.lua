@@ -2,12 +2,9 @@ local M = {}
 
 local listener_id = "dapui"
 
-local sidebar_open = true
-local tray_open = true
-
 local render = require("dapui.render")
 local config = require("dapui.config")
-local util = require("dapui.util")
+local windows = require("dapui.windows")
 local UIState = require("dapui.state")
 local ui_state
 
@@ -83,6 +80,9 @@ function M.setup(user_config)
   local dap = require("dap")
 
   config.setup(user_config)
+
+  windows.setup()
+
   ui_state = UIState()
   ui_state:attach(dap)
 
@@ -121,52 +121,28 @@ end
 
 function M.close(component)
   if not component or component == "tray" then
-    tray_open = false
-    require("dapui.windows").close_tray()
+    windows.tray:close()
   end
   if not component or component == "sidebar" then
-    sidebar_open = false
-    require("dapui.windows").close_sidebar()
+    windows.sidebar:close()
   end
 end
 
 function M.open(component)
   if not component or component == "tray" then
-    tray_open = true
-    local tray_elems = {}
-    for _, module in pairs(config.tray().elements) do
-      tray_elems[#tray_elems + 1] = element(module)
-    end
-    require("dapui.windows").open_tray(tray_elems)
+    windows.tray:open()
   end
   if not component or component == "sidebar" then
-    sidebar_open = true
-    local sidebar_elems = {}
-    for _, module in pairs(config.sidebar().elements) do
-      sidebar_elems[#sidebar_elems + 1] = element(module)
-    end
-    require("dapui.windows").open_sidebar(sidebar_elems)
+    windows.sidebar:open()
   end
 end
 
 function M.toggle(component)
-  if not component then
-    M.toggle("tray")
-    M.toggle("sidebar")
+  if not component or component == "tray" then
+    windows.tray:toggle()
   end
-  if component == "tray" then
-    if tray_open then
-      M.close(component)
-    else
-      M.open(component)
-    end
-  end
-  if component == "sidebar" then
-    if sidebar_open then
-      M.close(component)
-    else
-      M.open(component)
-    end
+  if not component or component == "sidebar" then
+    windows.sidebar:toggle()
   end
 end
 
