@@ -68,12 +68,14 @@ function M.eval(expr)
   end
   local elem = require("dapui.elements.hover")
   elem.set_expression(expr)
-  local line_no = vim.fn.screenrow()
-  local col_no = vim.fn.screencol()
-  local position = { line = line_no, col = col_no }
-  open_float = require("dapui.windows").open_float(elem, position, {})
-  open_float:listen("close", function()
-    open_float = nil
+  vim.schedule(function ()
+    local line_no = vim.fn.screenrow()
+    local col_no = vim.fn.screencol()
+    local position = { line = line_no, col = col_no }
+    open_float = require("dapui.windows").open_float(elem, position, {})
+    open_float:listen("close", function()
+      open_float = nil
+    end)
   end)
 end
 
