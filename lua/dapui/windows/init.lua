@@ -117,7 +117,7 @@ function M.open_float(element, position, settings)
     end
   end)
   render.loop.run(element.name)
-  vim.cmd("au WinEnter * ++once lua require('dapui.windows').close_float('" .. element.name .. "')")
+  vim.cmd("au WinEnter,CursorMoved * ++once lua require('dapui.windows').close_float('" .. element.name .. "')")
   float_win:listen("close", element.on_close)
   float_windows[element.name] = float_win
   if settings.enter then
