@@ -68,7 +68,7 @@ function M.eval(expr)
   end
   local elem = require("dapui.elements.hover")
   elem.set_expression(expr)
-  vim.schedule(function ()
+  vim.schedule(function()
     local line_no = vim.fn.screenrow()
     local col_no = vim.fn.screencol()
     local position = { line = line_no, col = col_no }
