@@ -20,6 +20,7 @@ M.actions = {
 local default_config = {
   icons = { expanded = "▾", collapsed = "▸" },
   mappings = {
+    -- Use a table to apply multiple mappings
     [M.actions.EXPAND] = { "<CR>", "<2-LeftMouse>" },
     [M.actions.OPEN] = "o",
     [M.actions.REMOVE] = "d",
@@ -28,22 +29,30 @@ local default_config = {
   },
   sidebar = {
     open_on_start = true,
+    -- You can change the order of elements in the sidebar
     elements = {
-      M.elements.SCOPES,
-      M.elements.BREAKPOINTS,
-      M.elements.STACKS,
-      M.elements.WATCHES,
+      -- Provide IDs as strings or tables with "id" and "size" keys
+      {
+        id = M.elements.SCOPES,
+        size = 0.5, -- Can be float or integer > 1
+      },
+      { id = M.elements.BREAKPOINTS, size = 0.1 },
+      { id = M.elements.STACKS, size = 0.1 },
+      { id = M.elements.WATCHES, size = 0.3 },
     },
     width = 40,
-    position = "left",
+    position = "left", -- Can be "left" or "right"
   },
   tray = {
     open_on_start = true,
-    elements = { M.elements.REPL },
+    elements = { { id = M.elements.REPL, size = 1 } },
     height = 10,
-    position = "bottom",
+    position = "bottom", -- Can be "bottom" or "top"
   },
-  floating = { max_height = nil, max_width = nil },
+  floating = {
+    max_height = nil, -- These can be integers or a float between 0 and 1.
+    max_width = nil, -- Floats will be treated as percentage of your screen.
+  },
   windows = { indent = 1 },
 }
 

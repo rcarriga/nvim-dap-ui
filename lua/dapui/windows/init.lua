@@ -1,5 +1,6 @@
 local M = {}
 
+local api = vim.api
 local config = require("dapui.config")
 local render = require("dapui.render")
 local WindowLayout = require("dapui.windows.layout")
@@ -20,10 +21,16 @@ local function setup_tray()
   end
 
   local tray_elems = {}
-  for _, module in pairs(config.tray().elements) do
-    tray_elems[#tray_elems + 1] = require("dapui.elements." .. module)
+  for _, win_config in pairs(config.tray().elements) do
+    local exists, element = pcall(require, "dapui.elements." .. win_config.id)
+    if exists then
+      win_config.element = element
+      tray_elems[#tray_elems + 1] = win_config
+    else
+      vim.notify("nvim-dap-ui: Element " .. win_config.id .. " does not exist")
+    end
   end
-  return WindowLayout(open_tray_win, tray_elems)
+  return WindowLayout(open_tray_win, api.nvim_win_get_width, function() end, tray_elems)
 end
 
 local function setup_sidebar()
@@ -35,10 +42,21 @@ local function setup_sidebar()
   end
 
   local sidebar_elems = {}
-  for _, module in pairs(config.sidebar().elements) do
-    sidebar_elems[#sidebar_elems + 1] = require("dapui.elements." .. module)
+  for _, win_config in pairs(config.sidebar().elements) do
+    local exists, element = pcall(require, "dapui.elements." .. win_config.id)
+    if exists then
+      win_config.element = element
+      sidebar_elems[#sidebar_elems + 1] = win_config
+    else
+      vim.notify("nvim-dap-ui: Element " .. win_config.id .. " does not exist")
+    end
   end
-  return WindowLayout(open_sidebar_win, sidebar_elems)
+  return WindowLayout(
+    open_sidebar_win,
+    api.nvim_win_get_height,
+    api.nvim_win_set_height,
+    sidebar_elems
+  )
 end
 
 function M.setup()

@@ -2,10 +2,8 @@ local M = {}
 
 local listener_id = "dapui"
 
-local render = require("dapui.render")
-local config = require("dapui.config")
 local windows = require("dapui.windows")
-local UIState = require("dapui.state")
+local config = require("dapui.config")
 local ui_state
 
 ---@return Element
@@ -78,11 +76,11 @@ end
 
 function M.setup(user_config)
   local dap = require("dap")
+  local render = require("dapui.render")
 
   config.setup(user_config)
 
-  windows.setup()
-
+  local UIState = require("dapui.state")
   ui_state = UIState()
   ui_state:attach(dap)
 
@@ -96,6 +94,8 @@ function M.setup(user_config)
       end
     end
   end
+
+  windows.setup()
 
   ui_state:on_refresh(function()
     render.loop.run()
@@ -120,29 +120,53 @@ function M.setup(user_config)
 end
 
 function M.close(component)
+  windows.tray:update_sizes()
+  windows.sidebar:update_sizes()
   if not component or component == "tray" then
+    windows.tray:update_sizes()
     windows.tray:close()
   end
   if not component or component == "sidebar" then
+    windows.sidebar:update_sizes()
     windows.sidebar:close()
   end
 end
 
 function M.open(component)
+  windows.tray:update_sizes()
+  windows.sidebar:update_sizes()
+  local open_sidebar = false
+  if component == "tray" and windows.sidebar:is_open() then
+    windows.sidebar:close()
+    open_sidebar = true
+  end
   if not component or component == "tray" then
     windows.tray:open()
   end
   if not component or component == "sidebar" then
     windows.sidebar:open()
   end
+  if open_sidebar then
+    windows.sidebar:open()
+  end
 end
 
 function M.toggle(component)
+  windows.tray:update_sizes()
+  windows.sidebar:update_sizes()
+  local open_sidebar = false
+  if component == "tray" and windows.sidebar:is_open() then
+    windows.sidebar:close()
+    open_sidebar = true
+  end
   if not component or component == "tray" then
     windows.tray:toggle()
   end
   if not component or component == "sidebar" then
     windows.sidebar:toggle()
+  end
+  if open_sidebar then
+    windows.sidebar:open()
   end
 end
 
