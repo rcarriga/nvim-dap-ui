@@ -34,11 +34,11 @@ local default_config = {
       -- Provide IDs as strings or tables with "id" and "size" keys
       {
         id = M.elements.SCOPES,
-        size = 0.5, -- Can be float or integer > 1
+        size = 0.25, -- Can be float or integer > 1
       },
-      { id = M.elements.BREAKPOINTS, size = 0.1 },
-      { id = M.elements.STACKS, size = 0.1 },
-      { id = M.elements.WATCHES, size = 0.3 },
+      { id = M.elements.BREAKPOINTS, size = 0.25 },
+      { id = M.elements.STACKS, size = 0.25 },
+      { id = M.elements.WATCHES, size = 0.25 },
     },
     width = 40,
     position = "left", -- Can be "left" or "right"

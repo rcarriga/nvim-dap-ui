@@ -65,21 +65,21 @@ require("dapui").setup({
     open_on_start = true,
     -- You can change the order of elements in the sidebar
     elements = {
-      -- Provide IDs as strings or tables with "id" and "size" keys
+      -- Provide as ID strings or tables with "id" and "size" keys
       {
         id = "scopes",
-        size = 0.5, -- Can be float or integer > 1
+        size = 0.25, -- Can be float or integer > 1
       },
-      { id = "breakpoints", size = 0.1 },
-      { id = "stacks", size = 0.1 },
-      { id = "watches", size = 0.3 },
+      { id = "breakpoints", size = 0.25 },
+      { id = "stacks", size = 0.25 },
+      { id = "watches", size = 00.25 },
     },
     width = 40,
     position = "left", -- Can be "left" or "right"
   },
   tray = {
     open_on_start = true,
-    elements = { { id = "repl", size = 1 } },
+    elements = { "repl" },
     height = 10,
     position = "bottom", -- Can be "bottom" or "top"
   },
