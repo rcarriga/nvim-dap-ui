@@ -2,6 +2,14 @@ local M = {}
 
 local api = vim.api
 
+function M.round(num)
+  if num < math.floor(num) + 0.5 then
+    return math.floor(num)
+  else
+    return math.ceil(num)
+  end
+end
+
 function M.is_uri(path)
   local scheme = path:match("^([a-z]+)://.*")
   if scheme then

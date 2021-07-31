@@ -30,7 +30,13 @@ local function setup_tray()
       vim.notify("nvim-dap-ui: Element " .. win_config.id .. " does not exist")
     end
   end
-  return WindowLayout(open_tray_win, api.nvim_win_get_width, function() end, tray_elems)
+  return WindowLayout(
+    open_tray_win,
+    api.nvim_win_get_width,
+    function() end,
+    tray_elems,
+    render.loop
+  )
 end
 
 local function setup_sidebar()
@@ -55,7 +61,8 @@ local function setup_sidebar()
     open_sidebar_win,
     api.nvim_win_get_height,
     api.nvim_win_set_height,
-    sidebar_elems
+    sidebar_elems,
+    render.loop
   )
 end
 

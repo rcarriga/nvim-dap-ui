@@ -1,4 +1,5 @@
 local render = require("dapui.render")
+local util = require("dapui.util")
 
 ---@class WinState
 ---@field id string
@@ -12,6 +13,7 @@ local render = require("dapui.render")
 ---@field win_size fun(win_id: integer): integer
 ---@field resize_win fun(win_id: integer, size: integer, total_size: integer)
 ---@field has_initial_open boolean
+---@field loop RenderLoop
 local WindowLayout = {}
 
 function WindowLayout:open()
@@ -28,19 +30,14 @@ function WindowLayout:open()
     end
     vim.api.nvim_set_current_buf(bufnr)
     self.open_wins[i] = win_id
-    render.loop.register_buffer(element.name, bufnr)
+    self.loop.register_buffer(element.name, bufnr)
     self:_init_win_settings(win_id)
-    render.loop.run(element.name)
+    self.loop.run(element.name)
   end
   for i, win_state in pairs(self.win_states) do
     local win_size = win_state.size
     if not self.has_initial_open and win_size <= 1 then
-      local abs_size = total_size * win_size
-      if abs_size < math.floor(abs_size) + 0.5 then
-        win_size = math.floor(abs_size)
-      else
-        win_size = math.ceil(abs_size)
-      end
+      win_size = util.round(win_size * total_size)
     end
     self.resize_win(self.open_wins[i], win_size)
   end
@@ -104,13 +101,14 @@ function WindowLayout:_init_win_settings(win)
   end
 end
 
-function WindowLayout:new(open_index, win_size, resize_win, win_states)
+function WindowLayout:new(open_index, win_size, resize_win, win_states, loop)
   local layout = {
     win_states = win_states,
     win_size = win_size,
     resize_win = resize_win,
     open_index = open_index,
     open_wins = {},
+    loop = loop,
   }
   setmetatable(layout, self)
   self.__index = self
@@ -121,7 +119,8 @@ end
 ---@param resize_win fun(win_id: integer, size: integer)
 ---@param win_size fun(win_id: integer): integer
 ---@param win_states table<integer,string>
+---@param loop RenderLoop
 ---@return WindowLayout
-return function(open_index, win_size, resize_win, win_states)
-  return WindowLayout:new(open_index, win_size, resize_win, win_states)
+return function(open_index, win_size, resize_win, win_states, loop)
+  return WindowLayout:new(open_index, win_size, resize_win, win_states, loop)
 end

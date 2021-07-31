@@ -45,7 +45,7 @@ local default_config = {
   },
   tray = {
     open_on_start = true,
-    elements = { { id = M.elements.REPL, size = 1 } },
+    elements = { M.elements.REPL },
     height = 10,
     position = "bottom", -- Can be "bottom" or "top"
   },
@@ -58,13 +58,33 @@ local default_config = {
 
 local user_config = {}
 
+local function fill_elements(area)
+  area = vim.deepcopy(area)
+  local filled = {}
+  for i, element in ipairs(area.elements) do
+    if type(element) == "string" then
+      filled[i] = { id = element, size = 1 / #area.elements }
+    else
+      filled[i] = element
+    end
+  end
+  area.elements = filled
+  return area
+end
+
+local function fill_mappings(mappings)
+  local filled = {}
+  for action, keys in pairs(mappings) do
+    filled[action] = type(keys) == "table" and keys or { keys }
+  end
+  return filled
+end
+
 function M.setup(config)
   local filled = vim.tbl_deep_extend("keep", config or {}, default_config)
-  local mappings = {}
-  for action, keys in pairs(filled.mappings) do
-    mappings[action] = type(keys) == "table" and keys or { keys }
-  end
-  filled.mappings = mappings
+  filled.mappings = fill_mappings(filled.mappings)
+  filled.sidebar = fill_elements(filled.sidebar)
+  filled.tray = fill_elements(filled.tray)
   user_config = filled
   require("dapui.config.highlights").setup()
 end
