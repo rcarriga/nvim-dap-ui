@@ -1,4 +1,4 @@
-local render = require("dapui.render")
+local api = vim.api
 local util = require("dapui.util")
 
 ---@class WinState
@@ -17,59 +17,77 @@ local util = require("dapui.util")
 local WindowLayout = {}
 
 function WindowLayout:open()
-  local cur_win = vim.api.nvim_get_current_win()
-  local total_size = 0
+  if self:is_open() then
+    return
+  end
+  local cur_win = api.nvim_get_current_win()
   for i, win_state in pairs(self.win_states) do
     local element = win_state.element
-    local bufnr = vim.api.nvim_create_buf(false, true)
+    local bufnr = api.nvim_create_buf(false, true)
     self.open_index(i)
-    local win_id = vim.api.nvim_get_current_win()
-    if i == 1 then
-      -- Account for statuslines
-      total_size = self.win_size(win_id) - #self.win_states + 1
-    end
-    vim.api.nvim_set_current_buf(bufnr)
+    local win_id = api.nvim_get_current_win()
+    api.nvim_set_current_buf(bufnr)
     self.open_wins[i] = win_id
     self.loop.register_buffer(element.name, bufnr)
     self:_init_win_settings(win_id)
     self.loop.run(element.name)
   end
+  self:resize()
+  api.nvim_set_current_win(cur_win)
+  self.has_initial_open = true
+end
+
+function WindowLayout:_total_size()
+  local total_size = 0
+  for _, open_win in pairs(self.open_wins) do
+    local success, win_size = pcall(self.win_size, open_win)
+    total_size = total_size + (success and win_size or 0)
+  end
+  return total_size
+end
+
+function WindowLayout:resize()
+  if not self:is_open() then
+    return
+  end
+  local total_size = self:_total_size()
   for i, win_state in pairs(self.win_states) do
     local win_size = win_state.size
-    if not self.has_initial_open and win_size <= 1 then
-      win_size = util.round(win_size * total_size)
+    win_size = util.round(win_size * total_size)
+    if win_size == 0 then
+      win_size = 1
     end
     self.resize_win(self.open_wins[i], win_size)
   end
-  vim.api.nvim_set_current_win(cur_win)
-  self.has_initial_open = true
 end
 
 function WindowLayout:update_sizes()
   if not self:is_open() then
     return
   end
+  local total_size = self:_total_size()
   for i, win_state in ipairs(self.win_states) do
     local win = self.open_wins[i]
-    local win_exists, _ = pcall(vim.api.nvim_win_get_buf, win)
+    local win_exists, _ = pcall(api.nvim_win_get_buf, win)
     if win_exists then
       local current_size = self.win_size(self.open_wins[i])
-      win_state.size = current_size
+      win_state.size = current_size / total_size
     end
   end
 end
 
 function WindowLayout:close()
-  local current_win = vim.api.nvim_get_current_win()
+  local current_win = api.nvim_get_current_win()
   for _, win in pairs(self.open_wins) do
-    local win_exists, buf = pcall(vim.api.nvim_win_get_buf, win)
+    local win_exists, buf = pcall(api.nvim_win_get_buf, win)
+
     if win_exists then
       if win == current_win then
         vim.cmd("stopinsert") -- Prompt buffers act poorly when closed in insert mode, see #33
       end
+      pcall(api.nvim_win_close, win, true)
+      api.nvim_buf_delete(buf, { force = true, unload = false })
     end
-    pcall(vim.api.nvim_win_close, win, true)
-    vim.api.nvim_buf_delete(buf, { force = true, unload = false })
   end
   self.open_wins = {}
 end
@@ -97,7 +115,7 @@ function WindowLayout:_init_win_settings(win)
     wrap = false,
   }
   for key, val in pairs(win_settings) do
-    vim.api.nvim_win_set_option(win, key, val)
+    api.nvim_win_set_option(win, key, val)
   end
 end
 

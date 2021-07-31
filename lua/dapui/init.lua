@@ -149,6 +149,7 @@ function M.open(component)
   if open_sidebar then
     windows.sidebar:open()
   end
+  windows.tray:resize()
 end
 
 function M.toggle(component)
@@ -168,6 +169,7 @@ function M.toggle(component)
   if open_sidebar then
     windows.sidebar:open()
   end
+  windows.tray:resize()
 end
 
 return M

@@ -33,7 +33,7 @@ local function setup_tray()
   return WindowLayout(
     open_tray_win,
     api.nvim_win_get_width,
-    function() end,
+    api.nvim_win_set_width,
     tray_elems,
     render.loop
   )
