@@ -1,3 +1,4 @@
+---@class RenderLoop
 local M = {}
 
 local render_state = require("dapui.render.state")

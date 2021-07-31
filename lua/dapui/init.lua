@@ -2,13 +2,8 @@ local M = {}
 
 local listener_id = "dapui"
 
-local sidebar_open = true
-local tray_open = true
-
-local render = require("dapui.render")
+local windows = require("dapui.windows")
 local config = require("dapui.config")
-local util = require("dapui.util")
-local UIState = require("dapui.state")
 local ui_state
 
 ---@return Element
@@ -81,8 +76,11 @@ end
 
 function M.setup(user_config)
   local dap = require("dap")
+  local render = require("dapui.render")
 
   config.setup(user_config)
+
+  local UIState = require("dapui.state")
   ui_state = UIState()
   ui_state:attach(dap)
 
@@ -96,6 +94,8 @@ function M.setup(user_config)
       end
     end
   end
+
+  windows.setup()
 
   ui_state:on_refresh(function()
     render.loop.run()
@@ -120,54 +120,56 @@ function M.setup(user_config)
 end
 
 function M.close(component)
+  windows.tray:update_sizes()
+  windows.sidebar:update_sizes()
   if not component or component == "tray" then
-    tray_open = false
-    require("dapui.windows").close_tray()
+    windows.tray:update_sizes()
+    windows.tray:close()
   end
   if not component or component == "sidebar" then
-    sidebar_open = false
-    require("dapui.windows").close_sidebar()
+    windows.sidebar:update_sizes()
+    windows.sidebar:close()
   end
 end
 
 function M.open(component)
+  windows.tray:update_sizes()
+  windows.sidebar:update_sizes()
+  local open_sidebar = false
+  if component == "tray" and windows.sidebar:is_open() then
+    windows.sidebar:close()
+    open_sidebar = true
+  end
   if not component or component == "tray" then
-    tray_open = true
-    local tray_elems = {}
-    for _, module in pairs(config.tray().elements) do
-      tray_elems[#tray_elems + 1] = element(module)
-    end
-    require("dapui.windows").open_tray(tray_elems)
+    windows.tray:open()
   end
   if not component or component == "sidebar" then
-    sidebar_open = true
-    local sidebar_elems = {}
-    for _, module in pairs(config.sidebar().elements) do
-      sidebar_elems[#sidebar_elems + 1] = element(module)
-    end
-    require("dapui.windows").open_sidebar(sidebar_elems)
+    windows.sidebar:open()
   end
+  if open_sidebar then
+    windows.sidebar:open()
+  end
+  windows.tray:resize()
 end
 
 function M.toggle(component)
-  if not component then
-    M.toggle("tray")
-    M.toggle("sidebar")
+  windows.tray:update_sizes()
+  windows.sidebar:update_sizes()
+  local open_sidebar = false
+  if component == "tray" and windows.sidebar:is_open() then
+    windows.sidebar:close()
+    open_sidebar = true
   end
-  if component == "tray" then
-    if tray_open then
-      M.close(component)
-    else
-      M.open(component)
-    end
+  if not component or component == "tray" then
+    windows.tray:toggle()
   end
-  if component == "sidebar" then
-    if sidebar_open then
-      M.close(component)
-    else
-      M.open(component)
-    end
+  if not component or component == "sidebar" then
+    windows.sidebar:toggle()
   end
+  if open_sidebar then
+    windows.sidebar:open()
+  end
+  windows.tray:resize()
 end
 
 return M

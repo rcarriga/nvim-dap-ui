@@ -2,7 +2,7 @@ local M = {}
 local api = vim.api
 local config = require("dapui.config")
 
-local Float = { ids = {}, listeners = { close = {} }, position = {} }
+local Float = { win_id = nil, listeners = { close = {} }, position = {} }
 
 local function create_opts(content_width, content_height, position)
   local line_no = position.line
@@ -37,11 +37,11 @@ local function create_opts(content_width, content_height, position)
   }
 end
 
-function Float:new(ids, position)
+function Float:new(win_id, position)
   local win = {}
   setmetatable(win, self)
   self.__index = self
-  win.ids = ids
+  win.win_id = win_id
   win.position = position
   return win
 end
@@ -52,11 +52,11 @@ end
 
 function Float:resize(width, height)
   local opts = create_opts(width, height, self.position)
-  api.nvim_win_set_config(self.ids[1], opts)
+  api.nvim_win_set_config(self.win_id, opts)
 end
 
 function Float:get_buf()
-  local pass, win = pcall(api.nvim_win_get_buf, self.ids[1])
+  local pass, win = pcall(api.nvim_win_get_buf, self.win_id)
   if not pass then
     return -1
   end
@@ -64,17 +64,15 @@ function Float:get_buf()
 end
 
 function Float:jump_to()
-  api.nvim_set_current_win(self.ids[1])
+  api.nvim_set_current_win(self.win_id)
 end
 
 function Float:close(force)
-  if not force and api.nvim_get_current_win() == self.ids[1] then
+  if not force and api.nvim_get_current_win() == self.win_id then
     return false
   end
   local buf = self:get_buf()
-  for _, win_id in pairs(self.ids) do
-    pcall(api.nvim_win_close, win_id, true)
-  end
+  pcall(api.nvim_win_close, self.win_id, true)
   for _, listener in pairs(self.listeners.close) do
     listener({ buffer = buf })
   end
@@ -100,7 +98,7 @@ function M.open_float(settings)
   vim.fn.setwinvar(output_win_id, "&winhl", "Normal:Normal,FloatBorder:DapUIFloatBorder")
   vim.api.nvim_win_set_option(content_window, "wrap", false)
 
-  return Float:new({ content_window }, position)
+  return Float:new(content_window, position)
 end
 
 return M

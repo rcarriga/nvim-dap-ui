@@ -1,87 +1,78 @@
 local M = {}
 
+local api = vim.api
 local config = require("dapui.config")
 local render = require("dapui.render")
+local WindowLayout = require("dapui.windows.layout")
 
 local float_windows = {}
-local sidebar_windows = {}
-local tray_windows = {}
 
-local function init_win_settings(win)
-  local win_settings = {
-    list = false,
-    relativenumber = false,
-    number = false,
-    winfixwidth = true,
-    wrap = false,
-  }
-  for key, val in pairs(win_settings) do
-    vim.api.nvim_win_set_option(win, key, val)
-  end
-end
+---@type WindowLayout
+M.sidebar = nil
+---@type WindowLayout
+M.tray = nil
 
-local function open_wins(elements, open, saved)
-  local cur_win = vim.api.nvim_get_current_win()
-  for i, element in pairs(elements) do
-    local win_id = vim.fn["bufwinid"](element.name)
-    if win_id == -1 then
-      local buf = vim.api.nvim_create_buf(false, true)
-      open(i)
-      win_id = vim.api.nvim_get_current_win()
-      vim.api.nvim_set_current_buf(buf)
-      saved[win_id] = element
-    end
-    local bufnr = vim.api.nvim_win_get_buf(win_id)
-    render.loop.register_buffer(element.name, bufnr)
-    init_win_settings(win_id)
-    render.loop.run(element.name)
-  end
-  vim.api.nvim_set_current_win(cur_win)
-end
-
-local function close_wins(saved)
-  local current_win = vim.api.nvim_get_current_win()
-  for win, _ in pairs(saved) do
-    local win_exists, buf = pcall(vim.api.nvim_win_get_buf, win)
-    if win_exists then
-      if win == current_win then
-        vim.cmd("stopinsert") -- Prompt buffers act poorly when closed in insert mode, see #33
-      end
-      pcall(vim.api.nvim_win_close, win, true)
-      vim.api.nvim_buf_delete(buf, { force = true, unload = false })
-    end
-  end
-end
-
-function M.open_sidebar(elements)
-  local position = config.sidebar().position
-  local width = config.sidebar().width
-  local open_cmd = position == "left" and "topleft" or "botright"
-  local function open_sidebar_win(index)
-    vim.cmd(index == 1 and open_cmd .. " " .. width .. "vsplit" or "split")
-  end
-
-  open_wins(elements, open_sidebar_win, sidebar_windows)
-end
-
-function M.open_tray(elements)
+local function setup_tray()
   local position = config.tray().position
-  local height = config.tray().height
   local open_cmd = position == "top" and "topleft" or "botright"
   local function open_tray_win(index)
-    vim.cmd(index == 1 and open_cmd .. " " .. height .. " split" or "vsplit")
+    vim.cmd(index == 1 and open_cmd .. " " .. " split" or "vsplit")
   end
-  open_wins(elements, open_tray_win, tray_windows)
+
+  local tray_elems = {}
+  for _, win_config in pairs(config.tray().elements) do
+    local exists, element = pcall(require, "dapui.elements." .. win_config.id)
+    if exists then
+      win_config.element = element
+      tray_elems[#tray_elems + 1] = win_config
+    else
+      vim.notify("nvim-dap-ui: Element " .. win_config.id .. " does not exist")
+    end
+  end
+  return WindowLayout({
+    area_state = { size = config.tray().height },
+    win_states = tray_elems,
+    get_win_size = api.nvim_win_get_width,
+    get_area_size = api.nvim_win_get_height,
+    set_win_size = api.nvim_win_set_width,
+    set_area_size = api.nvim_win_set_height,
+    open_index = open_tray_win,
+    loop = render.loop,
+  })
 end
 
-function M.close_sidebar()
-  close_wins(sidebar_windows)
-  sidebar_windows = {}
+local function setup_sidebar()
+  local position = config.sidebar().position
+  local open_cmd = position == "left" and "topleft" or "botright"
+  local function open_sidebar_win(index)
+    vim.cmd(index == 1 and open_cmd .. " " .. "vsplit" or "split")
+  end
+
+  local sidebar_elems = {}
+  for _, win_config in pairs(config.sidebar().elements) do
+    local exists, element = pcall(require, "dapui.elements." .. win_config.id)
+    if exists then
+      win_config.element = element
+      sidebar_elems[#sidebar_elems + 1] = win_config
+    else
+      vim.notify("nvim-dap-ui: Element " .. win_config.id .. " does not exist")
+    end
+  end
+  return WindowLayout({
+    area_state = { size = config.sidebar().width },
+    win_states = sidebar_elems,
+    get_win_size = api.nvim_win_get_height,
+    get_area_size = api.nvim_win_get_width,
+    set_area_size = api.nvim_win_set_width,
+    set_win_size = api.nvim_win_set_height,
+    open_index = open_sidebar_win,
+    loop = render.loop,
+  })
 end
 
-function M.close_tray()
-  close_wins(tray_windows)
-  tray_windows = {}
+function M.setup()
+  M.tray = setup_tray()
+  M.sidebar = setup_sidebar()
 end
 
 function M.open_float(element, position, settings)
