@@ -34,13 +34,16 @@ describe("checking window layout", function()
       end,
     }
 
-    layout = WindowLayout(
-      open_sidebar_win,
-      api.nvim_win_get_height,
-      api.nvim_win_set_height,
-      win_configs,
-      loop
-    )
+    layout = WindowLayout({
+      open_index = open_sidebar_win,
+      get_win_size = api.nvim_win_get_height,
+      get_area_size = api.nvim_win_get_width,
+      set_win_size = api.nvim_win_set_height,
+      set_area_size = api.nvim_win_set_width,
+      win_states = win_configs,
+      area_state = { size = 10 },
+      loop = loop,
+    })
     layout:open()
   end)
 
@@ -65,6 +68,10 @@ describe("checking window layout", function()
       assert(registered[win_config.element.name])
       assert(win_config.element.name, run[i])
     end
+  end)
+
+  it("sizes area correctly", function()
+    assert.equal(10, api.nvim_win_get_width(vim.fn.bufwinid(win_configs[1].element.name)))
   end)
 
   it("sizes windows correctly", function()
@@ -92,6 +99,7 @@ describe("checking window layout", function()
     local total_size = 0
     local heights = {}
     vim.api.nvim_win_set_height(vim.fn.bufwinid(win_configs[1].element.name), 1)
+    vim.api.nvim_win_set_width(vim.fn.bufwinid(win_configs[1].element.name), 20)
     for _, win_config in pairs(win_configs) do
       local win = vim.fn.bufwinid(win_config.element.name)
       heights[win_config.element.name] = api.nvim_win_get_height(win)
@@ -100,6 +108,7 @@ describe("checking window layout", function()
     layout:update_sizes()
     layout:close()
     layout:open()
+    assert.equal(20, api.nvim_win_get_width(vim.fn.bufwinid(win_configs[1].element.name)))
     for _, win_config in pairs(win_configs) do
       local win = vim.fn.bufwinid(win_config.element.name)
       assert.equal(heights[win_config.element.name], api.nvim_win_get_height(win))

@@ -14,10 +14,9 @@ M.tray = nil
 
 local function setup_tray()
   local position = config.tray().position
-  local height = config.tray().height
   local open_cmd = position == "top" and "topleft" or "botright"
   local function open_tray_win(index)
-    vim.cmd(index == 1 and open_cmd .. " " .. height .. " split" or "vsplit")
+    vim.cmd(index == 1 and open_cmd .. " " .. " split" or "vsplit")
   end
 
   local tray_elems = {}
@@ -30,21 +29,23 @@ local function setup_tray()
       vim.notify("nvim-dap-ui: Element " .. win_config.id .. " does not exist")
     end
   end
-  return WindowLayout(
-    open_tray_win,
-    api.nvim_win_get_width,
-    api.nvim_win_set_width,
-    tray_elems,
-    render.loop
-  )
+  return WindowLayout({
+    area_state = { size = config.tray().height },
+    win_states = tray_elems,
+    get_win_size = api.nvim_win_get_width,
+    get_area_size = api.nvim_win_get_height,
+    set_win_size = api.nvim_win_set_width,
+    set_area_size = api.nvim_win_set_height,
+    open_index = open_tray_win,
+    loop = render.loop,
+  })
 end
 
 local function setup_sidebar()
   local position = config.sidebar().position
-  local width = config.sidebar().width
   local open_cmd = position == "left" and "topleft" or "botright"
   local function open_sidebar_win(index)
-    vim.cmd(index == 1 and open_cmd .. " " .. width .. "vsplit" or "split")
+    vim.cmd(index == 1 and open_cmd .. " " .. "vsplit" or "split")
   end
 
   local sidebar_elems = {}
@@ -57,13 +58,16 @@ local function setup_sidebar()
       vim.notify("nvim-dap-ui: Element " .. win_config.id .. " does not exist")
     end
   end
-  return WindowLayout(
-    open_sidebar_win,
-    api.nvim_win_get_height,
-    api.nvim_win_set_height,
-    sidebar_elems,
-    render.loop
-  )
+  return WindowLayout({
+    area_state = { size = config.sidebar().width },
+    win_states = sidebar_elems,
+    get_win_size = api.nvim_win_get_height,
+    get_area_size = api.nvim_win_get_width,
+    set_area_size = api.nvim_win_set_width,
+    set_win_size = api.nvim_win_set_height,
+    open_index = open_sidebar_win,
+    loop = render.loop,
+  })
 end
 
 function M.setup()

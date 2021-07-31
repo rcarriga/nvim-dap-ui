@@ -6,12 +6,21 @@ local util = require("dapui.util")
 ---@field size number
 ---@field element Element
 
+---@class AreaState
+---@field size number
+
 ---@class WindowLayout
 ---@field open_wins table<integer, integer>
+--
 ---@field win_states table<integer,WinState>
+---@field area_state AreaState
+--
 ---@field open_index fun(index: number)
----@field win_size fun(win_id: integer): integer
----@field resize_win fun(win_id: integer, size: integer, total_size: integer)
+---@field get_win_size fun(win_id: integer): integer
+---@field get_area_size fun(win_id: integer): integer
+---@field set_win_size fun(win_id: integer, size: integer, total_size: integer)
+---@field set_area_size fun(win_id: integer, size: integer)
+--
 ---@field has_initial_open boolean
 ---@field loop RenderLoop
 local WindowLayout = {}
@@ -40,7 +49,7 @@ end
 function WindowLayout:_total_size()
   local total_size = 0
   for _, open_win in pairs(self.open_wins) do
-    local success, win_size = pcall(self.win_size, open_win)
+    local success, win_size = pcall(self.get_win_size, open_win)
     total_size = total_size + (success and win_size or 0)
   end
   return total_size
@@ -50,6 +59,7 @@ function WindowLayout:resize()
   if not self:is_open() then
     return
   end
+  self.set_area_size(self.open_wins[1], self.area_state.size)
   local total_size = self:_total_size()
   for i, win_state in pairs(self.win_states) do
     local win_size = win_state.size
@@ -57,7 +67,7 @@ function WindowLayout:resize()
     if win_size == 0 then
       win_size = 1
     end
-    self.resize_win(self.open_wins[i], win_size)
+    self.set_win_size(self.open_wins[i], win_size)
   end
 end
 
@@ -65,12 +75,13 @@ function WindowLayout:update_sizes()
   if not self:is_open() then
     return
   end
+  self.area_state.size = self.get_area_size(self.open_wins[1])
   local total_size = self:_total_size()
   for i, win_state in ipairs(self.win_states) do
     local win = self.open_wins[i]
     local win_exists, _ = pcall(api.nvim_win_get_buf, win)
     if win_exists then
-      local current_size = self.win_size(self.open_wins[i])
+      local current_size = self.get_win_size(self.open_wins[i])
       win_state.size = current_size / total_size
     end
   end
@@ -119,26 +130,14 @@ function WindowLayout:_init_win_settings(win)
   end
 end
 
-function WindowLayout:new(open_index, win_size, resize_win, win_states, loop)
-  local layout = {
-    win_states = win_states,
-    win_size = win_size,
-    resize_win = resize_win,
-    open_index = open_index,
-    open_wins = {},
-    loop = loop,
-  }
+function WindowLayout:new(layout)
+  layout.open_wins = {}
   setmetatable(layout, self)
   self.__index = self
   return layout
 end
 
----@param open_index fun(index: number)
----@param resize_win fun(win_id: integer, size: integer)
----@param win_size fun(win_id: integer): integer
----@param win_states table<integer,string>
----@param loop RenderLoop
 ---@return WindowLayout
-return function(open_index, win_size, resize_win, win_states, loop)
-  return WindowLayout:new(open_index, win_size, resize_win, win_states, loop)
+return function(layout)
+  return WindowLayout:new(layout)
 end
