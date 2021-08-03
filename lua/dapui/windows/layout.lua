@@ -55,6 +55,16 @@ function WindowLayout:_total_size()
   return total_size
 end
 
+function WindowLayout:_area_size()
+  for _, win in pairs(self.open_wins) do
+    local success, area_size = pcall(self.get_area_size, win)
+    if success then
+      return area_size
+    end
+  end
+  return 0
+end
+
 function WindowLayout:resize()
   if not self:is_open() then
     return
@@ -75,14 +85,20 @@ function WindowLayout:update_sizes()
   if not self:is_open() then
     return
   end
-  self.area_state.size = self.get_area_size(self.open_wins[1])
+  local area_size = self:_area_size()
+  if area_size == 0 then
+    return
+  end
+  self.area_state.size = area_size
   local total_size = self:_total_size()
   for i, win_state in ipairs(self.win_states) do
     local win = self.open_wins[i]
     local win_exists, _ = pcall(api.nvim_win_get_buf, win)
     if win_exists then
-      local current_size = self.get_win_size(self.open_wins[i])
-      win_state.size = current_size / total_size
+      local success, current_size = pcall(self.get_win_size, self.open_wins[i])
+      if success then
+        win_state.size = current_size / total_size
+      end
     end
   end
 end
