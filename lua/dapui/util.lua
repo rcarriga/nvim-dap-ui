@@ -104,7 +104,7 @@ end
 
 function M.apply_mapping(mappings, func, buffer)
   for _, key in pairs(mappings) do
-    vim.api.nvim_buf_set_keymap(buffer, "n", key, func, {})
+    vim.api.nvim_buf_set_keymap(buffer, "n", key, func, { noremap = true })
   end
 end
 

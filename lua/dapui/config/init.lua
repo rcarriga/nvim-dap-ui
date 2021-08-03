@@ -17,6 +17,10 @@ M.actions = {
   REPL = "repl",
 }
 
+M.FLOAT_MAPPINGS = {
+  CLOSE = "close",
+}
+
 local default_config = {
   icons = { expanded = "▾", collapsed = "▸" },
   mappings = {
@@ -52,6 +56,9 @@ local default_config = {
   floating = {
     max_height = nil, -- These can be integers or a float between 0 and 1.
     max_width = nil, -- Floats will be treated as percentage of your screen.
+    mappings = {
+      [M.FLOAT_MAPPINGS.CLOSE] = { "q", "<Esc>" },
+    },
   },
   windows = { indent = 1 },
 }
@@ -83,6 +90,7 @@ end
 function M.setup(config)
   local filled = vim.tbl_deep_extend("keep", config or {}, default_config)
   filled.mappings = fill_mappings(filled.mappings)
+  filled.floating.mappings = fill_mappings(filled.floating.mappings)
   filled.sidebar = fill_elements(filled.sidebar)
   filled.tray = fill_elements(filled.tray)
   user_config = filled
