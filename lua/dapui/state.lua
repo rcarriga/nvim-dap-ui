@@ -161,6 +161,10 @@ function UIState:monitor(var_ref)
   end)
 end
 
+function UIState:is_monitored(var_ref)
+  return self._monitored_vars[var_ref] ~= nil
+end
+
 function UIState:stop_monitor(var_ref)
   self._monitored_vars[var_ref] = (self._monitored_vars[var_ref] or 1) - 1
   if self._monitored_vars[var_ref] then

@@ -103,6 +103,12 @@ function Variables:render(render_state, parent_ref, variables, indent)
       local child_vars = self.state:variables(variable.variablesReference)
       if not child_vars then
         render_state:invalidate()
+        -- Happens when the parent component is collapsed and the variable
+        -- reference changes when re-opened.  The name is recorded as opened
+        -- but the variable reference is not yet monitored.
+        if not self.state:is_monitored(variable.variablesReference) then
+          self.state:monitor(variable.variablesReference)
+        end
         return
       else
         self:_get_child_component(variable.name):render(

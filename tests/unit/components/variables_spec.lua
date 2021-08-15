@@ -16,6 +16,9 @@ describe("checking variables", function()
       monitor = function(_, ref)
         monitored[ref] = true
       end,
+      is_monitored = function(_, ref)
+        return monitored[ref] ~= nil
+      end,
       stop_monitor = function(_, ref)
         monitored[ref] = nil
       end,
@@ -179,6 +182,22 @@ describe("checking variables", function()
     end)
 
     it("invalidates render when variables not ready", function()
+      local render_state = render.new_state()
+      local component = Variables(mock_state)
+
+      local vars = mock_state:variables(1)
+      component:render(render_state, 1, vars)
+      render_state.mappings["expand"][1][1]()
+      render_state = render.new_state()
+      mock_state.variables = function()
+        return nil
+      end
+      vars[1].variablesReference = 10
+      component:render(render_state, 1, vars)
+      assert.True(monitored[10])
+    end)
+
+    it("monitors child var when variable reference is changed", function()
       local render_state = render.new_state()
       local component = Variables(mock_state)
 

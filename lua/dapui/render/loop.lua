@@ -103,7 +103,6 @@ function M.run(element_names)
             end
           end
         end
-      else
       end
     end
   end
