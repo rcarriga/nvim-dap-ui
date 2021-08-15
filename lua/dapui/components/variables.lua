@@ -5,6 +5,7 @@ local partial = util.partial
 
 ---@class Variables
 ---@field expanded_children table
+---@field expanded_references table
 ---@field child_components table<number, Variables>
 ---@field state UIState
 ---@field var_to_set string | nil
@@ -12,7 +13,7 @@ local partial = util.partial
 local Variables = {}
 
 function Variables:new(state)
-  local elem = { expanded_children = {}, child_components = {}, state = state }
+  local elem = { expanded_references = {}, expanded_children = {}, child_components = {}, state = state }
   setmetatable(elem, self)
   self.__index = self
   state:on_clear(function()
@@ -24,8 +25,11 @@ end
 function Variables:toggle_reference(ref, name)
   self.expanded_children[name] = not self.expanded_children[name]
   if not self.expanded_children[name] then
+    self.expanded_references[name] = nil
+    self:_get_child_component(name):collapse()
     self.state:stop_monitor(ref)
   else
+    self.expanded_references[name] = ref
     self.state:monitor(ref)
   end
 end
@@ -128,6 +132,15 @@ function Variables:_reference_prefix(variable)
     return " "
   end
   return config.icons()[self.expanded_children[variable.name] and "expanded" or "collapsed"]
+end
+
+function Variables:collapse()
+  for name, ref in pairs(self.expanded_references) do
+    if ref ~= nil then
+      self:toggle_reference(ref, name)
+      self:_get_child_component(name):collapse()
+    end
+  end
 end
 
 ---@param state UIState
