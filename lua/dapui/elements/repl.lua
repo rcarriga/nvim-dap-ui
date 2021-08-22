@@ -9,7 +9,7 @@ return {
   float_defaults = { width = 80, height = 20, enter = true },
   setup = function() end,
   setup_buffer = function(buf)
-    dap.repl.close()
+    dap.repl.close({ mode = "toggle" })
     win = vim.fn.bufwinid(buf)
     local wincmd = "call nvim_set_current_win(" .. tostring(win) .. ")"
     dap.repl.open({}, wincmd)
