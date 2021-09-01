@@ -30,7 +30,11 @@ function BreakPoints:render(render_state)
 
     render_state:add_line()
   end
-  render_state:remove_line()
+  if render_state:length() > 0 then
+    render_state:remove_line()
+  else
+    render_state:add_line()
+  end
 end
 
 ---@param state UIState
