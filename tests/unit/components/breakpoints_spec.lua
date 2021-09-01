@@ -64,3 +64,30 @@ describe("checking multiple file breakpoints", function()
   vim.api.nvim_buf_delete(buf_a)
   vim.api.nvim_buf_delete(buf_b)
 end)
+
+describe("checking no breakpoints", function()
+  require("dapui.config").setup({})
+
+  local mock_state = {
+    breakpoints = function()
+      return {}
+    end,
+    current_frame = function()
+      return { source = { path = "test/file_a.py" }, line = 20 }
+    end,
+  }
+
+  local api = mock(vim.api, true)
+  api.nvim_buf_get_lines.returns({ "text" })
+
+  it("creates single empty line", function()
+    local render_state = render.new_state()
+    local component = Breakpoints(mock_state)
+
+    component:render(render_state)
+    local expected = {
+      "",
+    }
+    assert.are.same(expected, render_state.lines)
+  end)
+end)
