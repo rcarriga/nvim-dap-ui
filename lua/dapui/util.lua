@@ -49,7 +49,11 @@ local function open_buf(bufnr, line, column)
   end
 end
 
-function M.jump_to_frame(frame, session)
+function M.jump_to_frame(frame, session, set_frame)
+  if set_frame then
+    session:_frame_set(frame)
+    return
+  end
   local line = frame.line
   local column = frame.column
   local source = frame.source

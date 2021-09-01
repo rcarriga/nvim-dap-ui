@@ -107,6 +107,6 @@ describe("checking stack frames", function()
       },
     }, {
       1,
-    })
+    }, true)
   end)
 end)

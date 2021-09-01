@@ -13,7 +13,9 @@ function StackFrames:new()
 end
 
 local function open_frame(frame)
-  util.with_session(util.partial(util.jump_to_frame, frame))
+  util.with_session(function(session)
+    util.jump_to_frame(frame, session, true)
+  end)
 end
 
 ---@param render_state RenderState
