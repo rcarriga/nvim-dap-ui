@@ -27,5 +27,4 @@ vim.cmd([[
   augroup END
 ]])
 
-
 return M
