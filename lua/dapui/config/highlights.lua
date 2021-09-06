@@ -20,4 +20,12 @@ function M.setup()
   vim.cmd("hi default link DapUIBreakpointsLine DapUILineNumber")
 end
 
+vim.cmd([[
+  augroup DAPUIRefreshHighlights
+    autocmd!
+    autocmd ColorScheme * lua require('dapui.config.highlights').setup()
+  augroup END
+]])
+
+
 return M
