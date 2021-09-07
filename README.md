@@ -40,8 +40,9 @@ nvim-dap-ui is built on the idea of "elements". These elements are windows
 which provide different features.
 
 The UI is split between a sidebar which sits on the side of the screen, and a
-tray which sits on the top or bottom of the screen. Both of these can contain
-any of the available elements.
+tray which sits on the bottom of the screen by default. Both of these can
+contain any of the available elements and the position of each can be changed
+to any side of the screen.
 
 Elements can also be displayed temporarily in a floating window.
 
@@ -74,14 +75,14 @@ require("dapui").setup({
       { id = "stacks", size = 0.25 },
       { id = "watches", size = 00.25 },
     },
-    width = 40,
-    position = "left", -- Can be "left" or "right"
+    size = 40,
+    position = "left", -- Can be "left", "right", "top", "bottom"
   },
   tray = {
     open_on_start = true,
     elements = { "repl" },
-    height = 10,
-    position = "bottom", -- Can be "bottom" or "top"
+    size = 10,
+    position = "bottom", -- Can be "left", "right", "top", "bottom"
   },
   floating = {
     max_height = nil, -- These can be integers or a float between 0 and 1.

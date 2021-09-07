@@ -1,6 +1,7 @@
 local M = {}
 
 local api = vim.api
+local util = require("dapui.util")
 local config = require("dapui.config")
 local render = require("dapui.render")
 local WindowLayout = require("dapui.windows.layout")
@@ -12,26 +13,30 @@ M.sidebar = nil
 ---@type WindowLayout
 M.tray = nil
 
-local function setup_tray()
-  local position = config.tray().position
-  local open_cmd = position == "top" and "topleft" or "botright"
-  local function open_tray_win(index)
-    vim.cmd(index == 1 and open_cmd .. " " .. " split" or "vsplit")
-  end
-
-  local tray_elems = {}
-  for _, win_config in pairs(config.tray().elements) do
+local function register_elements(elements)
+  local win_configs = {}
+  for _, win_config in pairs(elements) do
     local exists, element = pcall(require, "dapui.elements." .. win_config.id)
     if exists then
       win_config.element = element
-      tray_elems[#tray_elems + 1] = win_config
+      win_configs[#win_configs + 1] = win_config
     else
       vim.notify("nvim-dap-ui: Element " .. win_config.id .. " does not exist")
     end
   end
+  return win_configs
+end
+
+local function tray_layout(height, position, win_configs)
+  local open_cmd = position == "top" and "topleft" or "botright"
+
+  local function open_tray_win(index)
+    vim.cmd(index == 1 and open_cmd .. " " .. " split" or "vsplit")
+  end
+
   return WindowLayout({
-    area_state = { size = config.tray().height },
-    win_states = tray_elems,
+    area_state = { size = height },
+    win_states = win_configs,
     get_win_size = api.nvim_win_get_width,
     get_area_size = api.nvim_win_get_height,
     set_win_size = api.nvim_win_set_width,
@@ -41,38 +46,40 @@ local function setup_tray()
   })
 end
 
-local function setup_sidebar()
-  local position = config.sidebar().position
+local function side_layout(width, position, win_configs)
   local open_cmd = position == "left" and "topleft" or "botright"
-  local function open_sidebar_win(index)
+  local function open_side_win(index)
     vim.cmd(index == 1 and open_cmd .. " " .. "vsplit" or "split")
   end
 
-  local sidebar_elems = {}
-  for _, win_config in pairs(config.sidebar().elements) do
-    local exists, element = pcall(require, "dapui.elements." .. win_config.id)
-    if exists then
-      win_config.element = element
-      sidebar_elems[#sidebar_elems + 1] = win_config
-    else
-      vim.notify("nvim-dap-ui: Element " .. win_config.id .. " does not exist")
-    end
-  end
   return WindowLayout({
-    area_state = { size = config.sidebar().width },
-    win_states = sidebar_elems,
+    area_state = { size = width },
+    win_states = win_configs,
     get_win_size = api.nvim_win_get_height,
     get_area_size = api.nvim_win_get_width,
     set_area_size = api.nvim_win_set_width,
     set_win_size = api.nvim_win_set_height,
-    open_index = open_sidebar_win,
+    open_index = open_side_win,
     loop = render.loop,
   })
 end
 
+local function area_layout(size, position, elements)
+  local win_configs = register_elements(elements)
+  local layout_func
+  if position == "top" or position == "bottom" then
+    layout_func = tray_layout
+  else
+    layout_func = side_layout
+  end
+  return layout_func(size, position, win_configs)
+end
+
 function M.setup()
-  M.tray = setup_tray()
-  M.sidebar = setup_sidebar()
+  local tray_config = config.tray()
+  M.tray = area_layout(tray_config.size, tray_config.position, tray_config.elements)
+  local sidebar_config = config.sidebar()
+  M.sidebar = area_layout(sidebar_config.size, sidebar_config.position, sidebar_config.elements)
 end
 
 function M.open_float(element, position, settings)

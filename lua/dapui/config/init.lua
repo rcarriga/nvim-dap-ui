@@ -44,13 +44,13 @@ local default_config = {
       { id = M.elements.STACKS, size = 0.25 },
       { id = M.elements.WATCHES, size = 0.25 },
     },
-    width = 40,
+    size = 40,
     position = "left", -- Can be "left" or "right"
   },
   tray = {
     open_on_start = true,
     elements = { M.elements.REPL },
-    height = 10,
+    size = 10,
     position = "bottom", -- Can be "bottom" or "top"
   },
   floating = {
@@ -93,6 +93,30 @@ function M.setup(config)
   filled.floating.mappings = fill_mappings(filled.floating.mappings)
   filled.sidebar = fill_elements(filled.sidebar)
   filled.tray = fill_elements(filled.tray)
+
+  -- Deprecation notice --
+  if filled.sidebar.width then
+    filled.sidebar.size = filled.sidebar.width
+    vim.schedule(function()
+      vim.notify(
+        "Sidebar 'width' option has been deprecated. Use 'size' instead",
+        "warn",
+        { title = "nvim-dap-ui" }
+      )
+    end)
+  end
+  if filled.tray.height then
+    filled.tray.size = filled.tray.height
+    vim.schedule(function()
+      vim.notify(
+        "Tray 'height' option has been deprecated. Use 'size' instead",
+        "warn",
+        { title = "nvim-dap-ui" }
+      )
+    end)
+  end
+  ------------------------
+
   user_config = filled
   require("dapui.config.highlights").setup()
 end
