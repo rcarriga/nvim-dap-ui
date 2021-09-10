@@ -115,6 +115,12 @@ function M.open_float(element, position, settings)
     end
   end)
   render.loop.run(element.name)
+  local updated_buf = float_win:get_buf()
+  util.apply_mapping(
+    config.floating().mappings[config.FLOAT_MAPPINGS.CLOSE],
+    "<Cmd>q<CR>",
+    updated_buf
+  )
   vim.cmd(
     "au WinEnter,CursorMoved * ++once lua require('dapui.windows').close_float('"
       .. element.name

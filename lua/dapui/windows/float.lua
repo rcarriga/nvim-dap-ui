@@ -1,5 +1,4 @@
 local M = {}
-local util = require("dapui.util")
 local api = vim.api
 local config = require("dapui.config")
 
@@ -93,11 +92,6 @@ function M.open_float(settings)
   local position = settings.position or { line = line_no, col = col_no }
   local opts = create_opts(settings.width, settings.height, position)
   local content_buffer = settings.buffer or api.nvim_create_buf(false, true)
-  util.apply_mapping(
-    config.floating().mappings[config.FLOAT_MAPPINGS.CLOSE],
-    "<Cmd>q<CR>",
-    content_buffer
-  )
   local content_window = api.nvim_open_win(content_buffer, false, opts)
 
   local output_win_id = api.nvim_win_get_number(content_window)
