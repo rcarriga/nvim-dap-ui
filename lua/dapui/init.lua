@@ -28,7 +28,7 @@ local function query_elem_name()
   return elems[vim.fn.inputlist(entries)]
 end
 
-function M.float_element(elem_name)
+function M.float_element(elem_name, user_settings)
   vim.schedule(function()
     local line_no = vim.fn.screenrow()
     local col_no = vim.fn.screencol()
@@ -39,7 +39,8 @@ function M.float_element(elem_name)
     end
     open_float = elem_name
     local elem = element(elem_name)
-    local win = require("dapui.windows").open_float(elem, position, elem.float_defaults or {})
+    local settings = vim.tbl_deep_extend("keep", user_settings or {}, elem.float_defaults or {})
+    local win = require("dapui.windows").open_float(elem, position, settings)
     win:listen("close", function()
       open_float = nil
     end)

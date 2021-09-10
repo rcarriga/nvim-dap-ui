@@ -188,10 +188,15 @@ floating window.
 ![image](https://user-images.githubusercontent.com/24252670/126844102-8789effb-4276-4599-afe6-a074b019c38d.png)
 
 ```lua
-require("dapui").float_element(<element ID>)
+require("dapui").float_element(<element ID>, <optional settings>)
 ```
 
 If you do not provide an element ID, you will be queried to select one.
+
+The optional settings can included the following keys:
+- `width: number` Width of the window
+- `height: number` Height of the window
+- `enter: boolean` Enter the floating window
 
 Call the same function again while the window is open and the cursor will jump
 to the floating window. The REPL will automatically jump to the floating
