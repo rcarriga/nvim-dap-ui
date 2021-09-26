@@ -3,6 +3,7 @@ local render = require("dapui.render")
 
 describe("checking hover", function()
   require("dapui.config").setup({})
+  assert:add_formatter(vim.inspect)
 
   local expression = "expr"
   local bad_expr = "bad_expr"
@@ -35,6 +36,9 @@ describe("checking hover", function()
         end
 
         assert(false, "Invalid watch expression")
+      end,
+      step_number = function()
+        return 1
       end,
       stop_monitor = function(_, ref)
         monitored[ref] = nil
@@ -78,7 +82,11 @@ describe("checking hover", function()
       local component = Hover(expression, mock_state)
 
       component:render(render_state)
-      local expected = { { "DapUIDecoration", { 1, 1, 3 } }, { "DapUIType", { 1, 10, 4 } } }
+      local expected = {
+        { "DapUIDecoration", { 1, 1, 4 } },
+        { "DapUIType", { 1, 10, 4 } },
+        { "DapUIValue", { 1, 17, 20 } },
+      }
       assert.are.same(expected, render_state.matches)
     end)
 
@@ -117,14 +125,17 @@ describe("checking hover", function()
       render_state = render.new_state()
       component:render(render_state)
       local expected = {
-        { "DapUIDecoration", { 1, 1, 3 } },
+        { "DapUIDecoration", { 1, 1, 4 } },
         { "DapUIType", { 1, 10, 4 } },
-        { "DapUIDecoration", { 2, 2, 1 } },
+        { "DapUIValue", { 1, 17, 20 } },
+        { "DapUIDecoration", { 2, 2, 3 } },
         { "DapUIVariable", { 2, 6, 1 } },
         { "DapUIType", { 2, 8, 4 } },
-        { "DapUIDecoration", { 3, 2, 1 } },
+        { "DapUIValue", { 2, 15, 15 } },
+        { "DapUIDecoration", { 3, 2, 3 } },
         { "DapUIVariable", { 3, 6, 1 } },
         { "DapUIType", { 3, 8, 4 } },
+        { "DapUIValue", { 3, 15, 2 } },
       }
       assert.are.same(expected, render_state.matches)
     end)
@@ -182,7 +193,7 @@ describe("checking hover", function()
       local component = Hover(bad_expr, mock_state)
 
       component:render(render_state)
-      local expected = { { "DapUIWatchesError", { 1, 1, 3 } } }
+      local expected = { { "DapUIWatchesError", { 1, 1, 4 } }, { "DapUIValue", { 1, 15, 37 } } }
       assert.are.same(expected, render_state.matches)
     end)
 

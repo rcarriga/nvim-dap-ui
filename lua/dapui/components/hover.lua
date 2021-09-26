@@ -54,16 +54,18 @@ function Hover:render(render_state)
       hover_expr.error and "DapUIWatchesError" or "DapUIDecoration",
       line_no,
       1,
-      3
+      #prefix
     )
   else
     prefix = ""
   end
   local new_line = prefix .. self.expression
 
-  local val_indent = 0
+  local val_start = 0
   if hover_expr.error then
-    new_line = new_line .. ": " .. hover_expr.error
+    new_line = new_line .. ": "
+    val_start = #new_line
+    new_line = new_line .. hover_expr.error
   elseif hover_expr.evaluated then
     local evaluated = hover_expr.evaluated
     if #(evaluated.type or "") > 0 then
@@ -72,13 +74,19 @@ function Hover:render(render_state)
       new_line = new_line .. evaluated.type
     end
     new_line = new_line .. " = "
-    val_indent = string.rep(" ", #new_line - 2)
+    val_start = #new_line
     new_line = new_line .. evaluated.result
   end
   for j, line in pairs(vim.split(new_line, "\n")) do
     if j > 1 then
-      line = val_indent .. line
+      line = string.rep(" ", #val_start - 2) .. line
     end
+    render_state:add_match(
+      "DapUIValue",
+      line_no - 1 + j,
+      val_start + (j > 1 and -1 or 1),
+      #line - val_start + (j > 1 and 2 or 0)
+    )
     render_state:add_line(line)
     if not hover_expr.error then
       render_state:add_mapping(config.actions.EXPAND, function()

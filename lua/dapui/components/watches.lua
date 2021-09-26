@@ -12,6 +12,8 @@ local partial = util.partial
 ---@field state UIState
 ---@field mode "new"|"edit"
 ---@field edit_index integer
+---@field rendered_step integer | nil
+---@field rendered_exprs table[]
 local Watches = {}
 
 function Watches:new(state)
@@ -22,6 +24,7 @@ function Watches:new(state)
     state = state,
     mode = "new",
     edit_index = nil,
+    rendered_exprs = {},
   }
   setmetatable(watches, self)
   self.__index = self
@@ -77,8 +80,9 @@ function Watches:render(render_state)
     render_state:set_prompt("> ", partial(self.edit_expr, self), { fill = old_val })
   end
   if vim.tbl_count(self.expressions) == 0 then
-    render_state:add_line("No Expressions")
-    render_state:add_match("DapUIWatchesEmpty", render_state:length())
+    local message = "No Expressions"
+    render_state:add_line(message)
+    render_state:add_match("DapUIWatchesEmpty", render_state:length(), 1, #message)
     render_state:add_line()
     return
   end
@@ -91,21 +95,22 @@ function Watches:render(render_state)
       local var_ref = watch.evaluated and watch.evaluated.variablesReference
       local prefix = config.icons()[self.expanded[i] and "expanded" or "collapsed"]
 
-      local indent = config.windows().indent
-      local new_line = string.rep(" ", indent)
+      local new_line = ""
       render_state:add_match(
         watch.error and "DapUIWatchesError" or "DapUIWatchesValue",
         line_no,
-        indent,
-        3
+        1,
+        #prefix
       )
 
       new_line = new_line .. prefix .. " " .. expr
 
-      local val_indent = 0
+      local val_start = 0
       if watch.error then
         self.expanded[i] = false
-        new_line = new_line .. ": " .. watch.error
+        new_line = new_line .. ": "
+        val_start = #new_line
+        new_line = new_line .. watch.error
       elseif watch.evaluated then
         local evaluated = watch.evaluated
         if #(evaluated.type or "") > 0 then
@@ -114,13 +119,29 @@ function Watches:render(render_state)
           new_line = new_line .. evaluated.type
         end
         new_line = new_line .. " = "
-        val_indent = string.rep(" ", #new_line - 2)
+        val_start = #new_line
         new_line = new_line .. evaluated.result
+      end
+      local var_group
+      if
+        not self.rendered_exprs[i]
+        or not watch.evaluated
+        or self.rendered_exprs[i].result == watch.evaluated.result
+      then
+        var_group = "DapUIValue"
+      else
+        var_group = "DapUIModifiedValue"
       end
       for j, line in pairs(vim.split(new_line, "\n")) do
         if j > 1 then
-          line = val_indent .. line
+          line = string.rep(" ", val_start - 2) .. line
         end
+        render_state:add_match(
+          var_group,
+          line_no - 1 + j,
+          val_start + (j > 1 and -1 or 1),
+          #line - val_start + (j > 1 and 2 or 0)
+        )
         render_state:add_line(line)
         render_state:add_mapping(config.actions.REMOVE, partial(self.remove_expr, self, i))
         render_state:add_mapping(config.actions.EDIT, function()
@@ -139,15 +160,16 @@ function Watches:render(render_state)
         if not child_vars then
           render_state:invalidate()
         else
-          self.var_components[i]:render(
-            render_state,
-            var_ref,
-            child_vars,
-            config.windows().indent * 2
-          )
+          self.var_components[i]:render(render_state, var_ref, child_vars, config.windows().indent)
         end
       end
+      if self.rendered_step ~= self.state:step_number() then
+        self.rendered_exprs[i] = watch.evaluated
+      end
     end
+  end
+  if self.rendered_step ~= self.state:step_number() then
+    self.rendered_step = self.state:step_number()
   end
   render_state:add_line()
 end

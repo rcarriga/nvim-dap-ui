@@ -10,6 +10,7 @@ local util = require("dapui.util")
 ---@field private _watches table
 ---@field private _stopped_thread_id string,
 ---@field private _listeners table
+---@field private _step_number integer
 local UIState = {}
 
 local events = { CLEAR = "clear", REFRESH = "refresh" }
@@ -25,6 +26,7 @@ function UIState:new()
     _current_frame = {},
     _watches = {},
     _stopped_thread_id = nil,
+    _step_number = 0,
     _listeners = { [events.CLEAR] = {}, [events.REFRESH] = {} },
   }
   setmetatable(state, self)
@@ -50,6 +52,9 @@ function UIState:attach(dap, listener_id)
   self._listener_id = listener_id
   dap.listeners.after.event_terminated[listener_id] = function()
     self:_clear()
+  end
+  dap.listeners.after.event_stopped[listener_id] = function()
+    self._step_number = self._step_number + 1
   end
   dap.listeners.after.scopes[listener_id] = function(session, err, response)
     if not err then
@@ -159,6 +164,10 @@ function UIState:monitor(var_ref)
   util.with_session(function(session)
     session:request("variables", { variablesReference = var_ref }, function() end)
   end)
+end
+
+function UIState:step_number()
+  return self._step_number
 end
 
 function UIState:is_monitored(var_ref)

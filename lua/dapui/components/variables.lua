@@ -7,8 +7,10 @@ local partial = util.partial
 ---@field expanded_children table
 ---@field child_components table<number, Variables>
 ---@field state UIState
----@field var_to_set string | nil
+---@field var_to_set table | nil
 ---@field mode "set" | nil
+---@field rendered_step integer | nil
+---@field rendered_vars table[] | nil
 local Variables = {}
 
 function Variables:new(state)
@@ -46,12 +48,12 @@ function Variables:render(render_state, parent_ref, variables, indent)
     )
   end
   indent = indent or 0
-  for _, variable in pairs(variables) do
+  for var_index, variable in pairs(variables) do
     local line_no = render_state:length() + 1
 
     local new_line = string.rep(" ", indent)
     local prefix = self:_reference_prefix(variable)
-    render_state:add_match("DapUIDecoration", line_no, #new_line + 1, 1)
+    render_state:add_match("DapUIDecoration", line_no, #new_line + 1, #prefix)
     new_line = new_line .. prefix .. " "
 
     render_state:add_match("DapUIVariable", line_no, #new_line + 1, #variable.name)
@@ -63,6 +65,16 @@ function Variables:render(render_state, parent_ref, variables, indent)
       new_line = new_line .. variable.type
     end
 
+    local var_group
+    if
+      not self.rendered_vars
+      or not self.rendered_vars[var_index]
+      or self.rendered_vars[var_index].value == variable.value
+    then
+      var_group = "DapUIValue"
+    else
+      var_group = "DapUIModifiedValue"
+    end
     local function add_var_line(line)
       render_state:add_line(line)
       if variable.variablesReference > 0 then
@@ -93,13 +105,19 @@ function Variables:render(render_state, parent_ref, variables, indent)
         if i > 1 then
           line = string.rep(" ", value_start - 2) .. line
         end
+        render_state:add_match(
+          var_group,
+          line_no - 1 + i,
+          value_start + (i > 1 and -1 or 1),
+          #line - value_start + (i > 1 and 2 or 0)
+        )
         add_var_line(line)
       end
     else
       add_var_line(new_line)
     end
 
-    if self.expanded_children[variable.name] then
+    if self.expanded_children[variable.name] and variable.variablesReference ~= 0 then
       local child_vars = self.state:variables(variable.variablesReference)
       if not child_vars then
         render_state:invalidate()
@@ -119,6 +137,10 @@ function Variables:render(render_state, parent_ref, variables, indent)
         )
       end
     end
+  end
+  if self.state:step_number() ~= self.rendered_step then
+    self.rendered_vars = variables
+    self.rendered_step = self.state:step_number()
   end
 end
 

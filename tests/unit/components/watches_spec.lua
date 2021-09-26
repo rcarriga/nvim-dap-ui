@@ -10,6 +10,9 @@ describe("checking hover", function()
     before_each(function()
       data.mock_state = {
         on_clear = function() end,
+        step_number = function()
+          return 1
+        end,
         watches = function(_)
           return {}
         end,
@@ -25,7 +28,7 @@ describe("checking hover", function()
     end)
 
     it("creates matches", function()
-      local expected = { { "DapUIWatchesEmpty", { 1 } } }
+      local expected = { { "DapUIWatchesEmpty", { 1, 1, 14 } } }
       assert.are.same(expected, data.render_state.matches)
     end)
   end)
@@ -38,6 +41,9 @@ describe("checking hover", function()
       data.watches = {}
       data.mock_state = {
         on_clear = function() end,
+        step_number = function()
+          return 1
+        end,
         monitor = function(_, ref)
           data.monitored[ref] = true
         end,
@@ -93,12 +99,16 @@ describe("checking hover", function()
     end)
 
     it("creates lines", function()
-      local expected = { " ▸ expr list = [0, 1, [2, 3, 4, 5]]", "" }
+      local expected = { "▸ expr list = [0, 1, [2, 3, 4, 5]]", "" }
       assert.are.same(expected, data.render_state.lines)
     end)
 
     it("creates matches", function()
-      local expected = { { "DapUIWatchesValue", { 1, 1, 3 } }, { "DapUIType", { 1, 11, 4 } } }
+      local expected = {
+        { "DapUIWatchesValue", { 1, 1, 3 } },
+        { "DapUIType", { 1, 10, 4 } },
+        { "DapUIValue", { 1, 17, 20 } },
+      }
       assert.are.same(expected, data.render_state.matches)
     end)
 
@@ -113,9 +123,9 @@ describe("checking hover", function()
 
       it("creates lines", function()
         local expected = {
-          " ▾ expr list = [0, 1, [2, 3, 4, 5]]",
-          "  ▸ a list = [[2, 3, 4, 10]]",
-          "  ▸ b dict = {}",
+          "▾ expr list = [0, 1, [2, 3, 4, 5]]",
+          " ▸ a list = [[2, 3, 4, 10]]",
+          " ▸ b dict = {}",
           "",
         }
         assert.are.same(expected, data.expanded_render.lines)
@@ -124,13 +134,16 @@ describe("checking hover", function()
       it("creates matches", function()
         local expected = {
           { "DapUIWatchesValue", { 1, 1, 3 } },
-          { "DapUIType", { 1, 11, 4 } },
-          { "DapUIDecoration", { 2, 3, 1 } },
-          { "DapUIVariable", { 2, 7, 1 } },
-          { "DapUIType", { 2, 9, 4 } },
-          { "DapUIDecoration", { 3, 3, 1 } },
-          { "DapUIVariable", { 3, 7, 1 } },
-          { "DapUIType", { 3, 9, 4 } },
+          { "DapUIType", { 1, 10, 4 } },
+          { "DapUIValue", { 1, 17, 20 } },
+          { "DapUIDecoration", { 2, 2, 3 } },
+          { "DapUIVariable", { 2, 6, 1 } },
+          { "DapUIType", { 2, 8, 4 } },
+          { "DapUIValue", { 2, 15, 15 } },
+          { "DapUIDecoration", { 3, 2, 3 } },
+          { "DapUIVariable", { 3, 6, 1 } },
+          { "DapUIType", { 3, 8, 4 } },
+          { "DapUIValue", { 3, 15, 2 } },
         }
         assert.are.same(expected, data.expanded_render.matches)
       end)
@@ -162,6 +175,9 @@ describe("checking hover", function()
         add_watch = function(value)
           data.watches[value] = true
         end,
+        step_number = function()
+          return 1
+        end,
         watches = function(_)
           return {
             [bad_expr] = {
@@ -180,12 +196,12 @@ describe("checking hover", function()
     end)
 
     it("creates lines", function()
-      local expected = { " ▸ bad_expr: Error message", "" }
+      local expected = { "▸ bad_expr: Error message", "" }
       assert.are.same(expected, data.render_state.lines)
     end)
 
     it("creates matches", function()
-      local expected = { { "DapUIWatchesError", { 1, 1, 3 } } }
+      local expected = { { "DapUIWatchesError", { 1, 1, 3 } }, { "DapUIValue", { 1, 15, 13 } } }
       assert.are.same(expected, data.render_state.matches)
     end)
   end)

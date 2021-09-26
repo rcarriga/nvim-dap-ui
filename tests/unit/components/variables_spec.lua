@@ -3,6 +3,7 @@ local render = require("dapui.render")
 
 describe("checking variables", function()
   require("dapui.config").setup({})
+  assert:add_formatter(vim.inspect)
 
   ---@type UIState
   local mock_state
@@ -16,6 +17,9 @@ describe("checking variables", function()
       monitor = function(_, ref)
         monitored[ref] = true
       end,
+      step_number = function()
+        return 1
+      end,
       is_monitored = function(_, ref)
         return monitored[ref] ~= nil
       end,
@@ -25,14 +29,14 @@ describe("checking variables", function()
       set_variable = function(_, container_ref, variable, value)
         updated[#updated + 1] = { container_ref, variable, value }
       end,
-      variables = function(_, ref)
+      variables = function(_, ref, first_val)
         if ref == 1 then
           return {
             {
               evaluateName = "a",
               name = "a",
               type = "list",
-              value = "[[2, 3, 4, 10]]",
+              value = first_val or "[[2, 3, 4, 10]]",
               variablesReference = 2,
             },
             {
@@ -76,12 +80,35 @@ describe("checking variables", function()
 
       component:render(render_state, 1, mock_state:variables(1))
       local expected = {
-        { "DapUIDecoration", { 1, 1, 1 } },
+        { "DapUIDecoration", { 1, 1, 3 } },
         { "DapUIVariable", { 1, 5, 1 } },
         { "DapUIType", { 1, 7, 4 } },
-        { "DapUIDecoration", { 2, 1, 1 } },
+        { "DapUIValue", { 1, 14, 15 } },
+        { "DapUIDecoration", { 2, 1, 3 } },
         { "DapUIVariable", { 2, 5, 1 } },
         { "DapUIType", { 2, 7, 4 } },
+        { "DapUIValue", { 2, 14, 2 } },
+      }
+      assert.are.same(expected, render_state.matches)
+    end)
+
+    it("creates matches with modified value", function()
+      local component = Variables(mock_state)
+
+      local render_state = render.new_state()
+      component:render(render_state, 1, mock_state:variables(1))
+      render_state = render.new_state()
+      component:render(render_state, 1, mock_state:variables(1, "different"))
+
+      local expected = {
+        { "DapUIDecoration", { 1, 1, 3 } },
+        { "DapUIVariable", { 1, 5, 1 } },
+        { "DapUIType", { 1, 7, 4 } },
+        { "DapUIModifiedValue", { 1, 14, 9 } },
+        { "DapUIDecoration", { 2, 1, 3 } },
+        { "DapUIVariable", { 2, 5, 1 } },
+        { "DapUIType", { 2, 7, 4 } },
+        { "DapUIValue", { 2, 14, 2 } },
       }
       assert.are.same(expected, render_state.matches)
     end)
@@ -121,15 +148,18 @@ describe("checking variables", function()
       render_state = render.new_state()
       component:render(render_state, 1, mock_state:variables(1))
       local expected = {
-        { "DapUIDecoration", { 1, 1, 1 } },
+        { "DapUIDecoration", { 1, 1, 3 } },
         { "DapUIVariable", { 1, 5, 1 } },
         { "DapUIType", { 1, 7, 4 } },
-        { "DapUIDecoration", { 2, 2, 1 } },
+        { "DapUIValue", { 1, 14, 15 } },
+        { "DapUIDecoration", { 2, 2, 3 } },
         { "DapUIVariable", { 2, 6, 4 } },
         { "DapUIType", { 2, 11, 4 } },
-        { "DapUIDecoration", { 3, 1, 1 } },
+        { "DapUIValue", { 2, 18, 13 } },
+        { "DapUIDecoration", { 3, 1, 3 } },
         { "DapUIVariable", { 3, 5, 1 } },
         { "DapUIType", { 3, 7, 4 } },
+        { "DapUIValue", { 3, 14, 2 } },
       }
       assert.are.same(expected, render_state.matches)
     end)

@@ -142,7 +142,14 @@ function M.render_buffer(state, buffer)
     api.nvim_buf_set_lines(buffer, #lines, last_line, false, {})
   end
   for _, match in pairs(matches) do
-    vim.fn["matchaddpos"](match[1], { match[2] }, 10, -1, { window = win })
+    local pos = match[2]
+    api.nvim_buf_set_extmark(
+      buffer,
+      M.namespace,
+      pos[1] - 1,
+      (pos[2] or 1) - 1,
+      { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
+    )
   end
   if state.prompt then
     api.nvim_buf_set_option(buffer, "buftype", "prompt")

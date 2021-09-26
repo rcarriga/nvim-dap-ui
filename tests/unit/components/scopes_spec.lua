@@ -3,6 +3,7 @@ local render = require("dapui.render")
 
 describe("checking scopes", function()
   require("dapui.config").setup({})
+  assert:add_formatter(vim.inspect)
 
   local mock_state
   before_each(function()
@@ -22,6 +23,9 @@ describe("checking scopes", function()
             variablesReference = 2,
           },
         }
+      end,
+      step_number = function()
+        return 1
       end,
       variables = function(_, ref)
         if ref == 1 then
@@ -81,16 +85,19 @@ describe("checking scopes", function()
     component:render(render_state)
     local expected = {
       { "DapUIScope", { 1, 1, 7 } },
-      { "DapUIDecoration", { 2, 2, 1 } },
+      { "DapUIDecoration", { 2, 2, 3 } },
       { "DapUIVariable", { 2, 6, 1 } },
       { "DapUIType", { 2, 8, 3 } },
-      { "DapUIDecoration", { 3, 2, 1 } },
+      { "DapUIValue", { 2, 14, 1 } },
+      { "DapUIDecoration", { 3, 2, 3 } },
       { "DapUIVariable", { 3, 6, 1 } },
       { "DapUIType", { 3, 8, 4 } },
+      { "DapUIValue", { 3, 15, 2 } },
       { "DapUIScope", { 5, 1, 7 } },
-      { "DapUIDecoration", { 6, 2, 1 } },
+      { "DapUIDecoration", { 6, 2, 3 } },
       { "DapUIVariable", { 6, 6, 1 } },
       { "DapUIType", { 6, 8, 4 } },
+      { "DapUIValue", { 6, 15, 13 } },
     }
     assert.are.same(expected, render_state.matches)
   end)
