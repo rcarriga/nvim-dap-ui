@@ -101,23 +101,6 @@ function M.setup(user_config)
   ui_state:on_refresh(function()
     render.loop.run()
   end)
-
-  dap.listeners.after.event_initialized[listener_id] = function()
-    if config.tray().open_on_start then
-      M.open("tray")
-    end
-    if config.sidebar().open_on_start then
-      M.open("sidebar")
-    end
-  end
-
-  dap.listeners.before.event_terminated[listener_id] = function()
-    M.close()
-  end
-
-  dap.listeners.before.event_exited[listener_id] = function()
-    M.close()
-  end
 end
 
 function M.close(component)

@@ -32,7 +32,6 @@ local default_config = {
     [M.actions.REPL] = "r",
   },
   sidebar = {
-    open_on_start = true,
     -- You can change the order of elements in the sidebar
     elements = {
       -- Provide IDs as strings or tables with "id" and "size" keys
@@ -48,7 +47,6 @@ local default_config = {
     position = "left", -- Can be "left" or "right"
   },
   tray = {
-    open_on_start = true,
     elements = { M.elements.REPL },
     size = 10,
     position = "bottom", -- Can be "bottom" or "top"
@@ -79,6 +77,16 @@ local function fill_elements(area)
   return area
 end
 
+local dep_warnings = {}
+local function dep_warning(message)
+  vim.schedule(function()
+    if not dep_warnings[message] then
+      dep_warnings[message] = true
+      vim.notify(message, "warn", { title = "nvim-dap-ui" })
+    end
+  end)
+end
+
 local function fill_mappings(mappings)
   local filled = {}
   for action, keys in pairs(mappings) do
@@ -95,25 +103,24 @@ function M.setup(config)
   filled.tray = fill_elements(filled.tray)
 
   -- Deprecation notice --
+  if filled.sidebar.open_on_start or filled.tray.open_on_start then
+    dep_warning(
+      "Automatically opening the UI is deprecated.\n"
+        .. "You can replicate previous behaviour by adding the following to your config\n\n"
+        .. "local dap, dapui = require('dap'), require('dapui')\n"
+        .. "dap.listeners.after.event_initialized['dapui_config'] = function() dapui.open() end\n"
+        .. "dap.listeners.before.event_terminated['dapui_config'] = function() dapui.close() end\n"
+        .. "dap.listeners.before.event_exited['dapui_config'] = function() dapui.close() end\n\n"
+        .. "To hide this message, remove the `open_on_start` settings from your config"
+    )
+  end
   if filled.sidebar.width then
     filled.sidebar.size = filled.sidebar.width
-    vim.schedule(function()
-      vim.notify(
-        "Sidebar 'width' option has been deprecated. Use 'size' instead",
-        "warn",
-        { title = "nvim-dap-ui" }
-      )
-    end)
+    dep_warning("Sidebar 'width' option has been deprecated. Use 'size' instead")
   end
   if filled.tray.height then
     filled.tray.size = filled.tray.height
-    vim.schedule(function()
-      vim.notify(
-        "Tray 'height' option has been deprecated. Use 'size' instead",
-        "warn",
-        { title = "nvim-dap-ui" }
-      )
-    end)
+    dep_warning("Tray 'height' option has been deprecated. Use 'size' instead")
   end
   ------------------------
 

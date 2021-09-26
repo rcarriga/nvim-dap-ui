@@ -63,7 +63,6 @@ require("dapui").setup({
     repl = "r",
   },
   sidebar = {
-    open_on_start = true,
     -- You can change the order of elements in the sidebar
     elements = {
       -- Provide as ID strings or tables with "id" and "size" keys
@@ -79,7 +78,6 @@ require("dapui").setup({
     position = "left", -- Can be "left", "right", "top", "bottom"
   },
   tray = {
-    open_on_start = true,
     elements = { "repl" },
     size = 10,
     position = "bottom", -- Can be "left", "right", "top", "bottom"
@@ -166,10 +164,7 @@ custom settings.
 require("dapui").setup()
 ```
 
-nvim-dap-ui will add hooks to nvim-dap to open the sidebar and tray whenever
-you start a debugging session, and close when the session is finished.
-
-You can manually open, close and toggle the windows with corresponding functions:
+You can open, close and toggle the windows with corresponding functions:
 
 ```lua
 require("dapui").open()
