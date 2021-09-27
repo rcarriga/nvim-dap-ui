@@ -79,7 +79,7 @@ function Hover:render(render_state)
   end
   for j, line in pairs(vim.split(new_line, "\n")) do
     if j > 1 then
-      line = string.rep(" ", #val_start - 2) .. line
+      line = string.rep(" ", val_start - 2) .. line
     end
     render_state:add_match(
       "DapUIValue",
