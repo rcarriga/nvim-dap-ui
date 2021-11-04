@@ -13,6 +13,7 @@ local function create_opts(content_width, content_height, position)
 
   local max_height = config.floating().max_height or vim.o.lines
   local max_width = config.floating().max_width or vim.o.columns
+  local border = config.floating().border or "single"
   if 0 < max_height and max_height < 1 then
     max_height = math.floor(vim.o.lines * max_height)
   end
@@ -33,7 +34,7 @@ local function create_opts(content_width, content_height, position)
     width = width,
     height = height,
     style = "minimal",
-    border = "single",
+    border = border,
   }
 end
 
