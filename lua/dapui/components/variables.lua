@@ -17,9 +17,6 @@ function Variables:new(state)
   local elem = { expanded_children = {}, child_components = {}, state = state }
   setmetatable(elem, self)
   self.__index = self
-  state:on_clear(function()
-    elem.expanded_references = {}
-  end)
   return elem
 end
 
