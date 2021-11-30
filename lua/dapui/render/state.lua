@@ -163,7 +163,13 @@ function M.render_buffer(state, buffer)
       api.nvim_input("A")
     end
     api.nvim_buf_set_option(buffer, "modified", false)
-    api.nvim_buf_set_keymap(buffer, "i", "<BS>", "<ESC>xa", { noremap = true })
+    api.nvim_buf_set_keymap(
+      buffer,
+      "i",
+      "<BS>",
+      "<cmd>lua require('dapui.render.state')._prompt_backspace()<CR>",
+      { noremap = true }
+    )
     vim.cmd("augroup DAPUIPromptSetUnmodified" .. buffer)
     vim.cmd(
       "autocmd ExitPre <buffer="
@@ -195,6 +201,18 @@ function M._mapping(action)
   end
   for _, callback in pairs(callbacks) do
     callback()
+  end
+end
+
+function M._prompt_backspace()
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local cur_line = cursor[1]
+  local cur_col = cursor[2]
+  local prompt_length = vim.str_utfindex(vim.fn["prompt_getprompt"]("%"))
+
+  if cur_col ~= prompt_length then
+    vim.api.nvim_buf_set_text(0, cur_line - 1, cur_col - 1, cur_line - 1, cur_col, { "" })
+    vim.api.nvim_win_set_cursor(0, { cur_line, cur_col - 1 })
   end
 end
 
