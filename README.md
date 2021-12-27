@@ -176,6 +176,21 @@ require("dapui").toggle()
 Each of the functions optionally takes either `"sidebar"` or `"tray"` as an
 argument to only change the specified component.
 
+You can use nvim-dap events to open and close the windows automatically (`:help dap-extensions`)
+
+```lua
+local dap, dapui = require("dap"), require("dapui")
+dap.listeners.after.event_initialized["dapui_config"] = function()
+  dapui.open()
+end
+dap.listeners.before.event_terminated["dapui_config"] = function()
+  dapui.close()
+end
+dap.listeners.before.event_exited["dapui_config"] = function()
+  dapui.close()
+end
+```
+
 ### Floating Elements
 
 For elements that are not opened in the tray or sidebar, you can open them in a
@@ -190,6 +205,7 @@ require("dapui").float_element(<element ID>, <optional settings>)
 If you do not provide an element ID, you will be queried to select one.
 
 The optional settings can included the following keys:
+
 - `width: number` Width of the window
 - `height: number` Height of the window
 - `enter: boolean` Enter the floating window
@@ -219,4 +235,3 @@ vnoremap <M-k> <Cmd>lua require("dapui").eval()<CR>
 Call the same function again while the window is open to jump to the eval window.
 
 The same mappings as the variables element apply within the hover window.
-
