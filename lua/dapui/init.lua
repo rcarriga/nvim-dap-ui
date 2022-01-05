@@ -39,6 +39,9 @@ function M.float_element(elem_name, user_settings)
     end
     open_float = elem_name
     local elem = element(elem_name)
+    if elem.name == require("dapui.elements.hover").name then
+      elem.set_expression(vim.fn.expand("<cexpr>"))
+    end
     local settings = vim.tbl_deep_extend("keep", user_settings or {}, elem.float_defaults or {})
     local win = require("dapui.windows").open_float(elem, position, settings)
     win:listen("close", function()
