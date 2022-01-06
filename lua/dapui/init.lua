@@ -1,7 +1,5 @@
 local M = {}
 
-local listener_id = "dapui"
-
 local windows = require("dapui.windows")
 local config = require("dapui.config")
 local ui_state
@@ -13,37 +11,46 @@ end
 
 local open_float = nil
 
-local function query_elem_name()
-  if open_float then
-    return open_float
-  end
-  local entries = { "Select an element:" }
+local function query_elem_name(on_select)
+  local entries = {}
   local elems = {}
   for _, name in pairs(config.elements) do
     if name ~= config.elements.HOVER then
-      entries[#entries + 1] = tostring(#entries) .. ": " .. name
+      entries[#entries + 1] = name
       elems[#elems + 1] = name
     end
   end
-  return elems[vim.fn.inputlist(entries)]
+  vim.ui.select(entries, {
+    prompt = "Select an element:",
+    format_item = function(entry)
+      return entry:sub(1, 1):upper() .. entry:sub(2)
+    end,
+  }, on_select)
 end
 
 function M.float_element(elem_name, user_settings)
   vim.schedule(function()
+    if open_float then
+      return open_float:jump_to()
+    end
     local line_no = vim.fn.screenrow()
     local col_no = vim.fn.screencol()
     local position = { line = line_no, col = col_no }
-    elem_name = elem_name or query_elem_name()
-    if not elem_name then
-      return
-    end
-    open_float = elem_name
-    local elem = element(elem_name)
-    local settings = vim.tbl_deep_extend("keep", user_settings or {}, elem.float_defaults or {})
-    local win = require("dapui.windows").open_float(elem, position, settings)
-    win:listen("close", function()
-      open_float = nil
+    local with_elem = vim.schedule_wrap(function(elem_name)
+      if not elem_name then
+        return
+      end
+      local elem = element(elem_name)
+      local settings = vim.tbl_deep_extend("keep", user_settings or {}, elem.float_defaults or {})
+      open_float = require("dapui.windows").open_float(elem, position, settings)
+      open_float:listen("close", function()
+        open_float = nil
+      end)
     end)
+    if elem_name then
+      with_elem(elem_name)
+    end
+    query_elem_name(with_elem)
   end)
 end
 
