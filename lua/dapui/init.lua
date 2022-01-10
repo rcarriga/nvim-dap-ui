@@ -49,6 +49,7 @@ function M.float_element(elem_name, user_settings)
     end)
     if elem_name then
       with_elem(elem_name)
+      return
     end
     query_elem_name(with_elem)
   end)
