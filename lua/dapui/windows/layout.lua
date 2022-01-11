@@ -11,7 +11,7 @@ local util = require("dapui.util")
 
 ---@class WindowLayout
 ---@field open_wins table<integer, integer>
---
+---@field win_bufs table<integer, integer>
 ---@field win_states table<integer,WinState>
 ---@field area_state AreaState
 --
@@ -40,10 +40,27 @@ function WindowLayout:open()
     self.loop.register_buffer(element.name, bufnr)
     self:_init_win_settings(win_id)
     self.loop.run(element.name)
+    -- REPL changes the buffer
+    self.win_bufs[win_id] = api.nvim_win_get_buf(win_id)
   end
   self:resize()
   api.nvim_set_current_win(cur_win)
   self.has_initial_open = true
+end
+
+function WindowLayout:force_buffers()
+  local curwin = api.nvim_get_current_win()
+  local curbuf = api.nvim_win_get_buf(curwin)
+  for win, bufnr in pairs(self.win_bufs) do
+    if curwin == win and curbuf ~= bufnr then
+      if api.nvim_buf_is_loaded(bufnr) and api.nvim_buf_is_valid(bufnr) then
+        -- pcall necessary to avoid erroring with `mark not set` although no mark are set
+        -- this avoid other issues
+        pcall(api.nvim_win_set_buf, win, bufnr)
+      end
+      util.open_buf(curbuf)
+    end
+  end
 end
 
 function WindowLayout:_total_size()
@@ -150,6 +167,7 @@ end
 
 function WindowLayout:new(layout)
   layout.open_wins = {}
+  layout.win_bufs = {}
   setmetatable(layout, self)
   self.__index = self
   return layout

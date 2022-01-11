@@ -27,10 +27,12 @@ function M.with_session(cb)
   end
 end
 
-local function open_buf(bufnr, line, column)
+function M.open_buf(bufnr, line, column)
   for _, win in pairs(api.nvim_tabpage_list_wins(0)) do
     if api.nvim_win_get_buf(win) == bufnr then
-      api.nvim_win_set_cursor(win, { line, column - 1 })
+      if line then
+        api.nvim_win_set_cursor(win, { line, (column or 1) - 1 })
+      end
       api.nvim_set_current_win(win)
       return
     end
@@ -41,7 +43,9 @@ local function open_buf(bufnr, line, column)
     if api.nvim_buf_get_option(winbuf, "buftype") == "" then
       local bufchanged, _ = pcall(api.nvim_win_set_buf, win, bufnr)
       if bufchanged then
-        api.nvim_win_set_cursor(win, { line, column - 1 })
+        if line then
+          api.nvim_win_set_cursor(win, { line, (column or 1) - 1 })
+        end
         api.nvim_set_current_win(win)
         return
       end
@@ -72,7 +76,7 @@ function M.jump_to_frame(frame, session, set_frame)
         return
       end
       vim.api.nvim_buf_set_lines(buf, 0, 0, true, vim.split(response.body.content, "\n"))
-      open_buf(buf, line, column)
+      M.open_buf(buf, line, column)
       vim.api.nvim_buf_set_option(buf, "bufhidden", "delete")
       vim.api.nvim_buf_set_option(buf, "modifiable", false)
     end)

@@ -80,6 +80,17 @@ function M.setup()
   M.tray = area_layout(tray_config.size, tray_config.position, tray_config.elements)
   local sidebar_config = config.sidebar()
   M.sidebar = area_layout(sidebar_config.size, sidebar_config.position, sidebar_config.elements)
+  vim.cmd([[
+    augroup DapuiWindowsSetup
+      au!
+      au BufWinEnter,BufWinLeave * lua require('dapui.windows')._force_buffers()
+    augroup END
+  ]])
+end
+
+function M._force_buffers()
+  M.tray:force_buffers()
+  M.sidebar:force_buffers()
 end
 
 function M.open_float(element, position, settings)
