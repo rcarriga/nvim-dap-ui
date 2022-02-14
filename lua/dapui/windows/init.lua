@@ -132,11 +132,9 @@ function M.open_float(element, position, settings)
     "<Cmd>q<CR>",
     updated_buf
   )
-  vim.cmd(
-    "au WinEnter,CursorMoved * ++once lua require('dapui.windows').close_float('"
-      .. element.name
-      .. "')"
-  )
+  local close_cmd = "lua require('dapui.windows').close_float('" .. element.name .. "')"
+  vim.cmd("au WinEnter,CursorMoved * ++once " .. close_cmd)
+  vim.cmd("au WinClosed " .. float_win.win_id .. " ++once " .. close_cmd)
   float_win:listen("close", element.on_close)
   float_windows[element.name] = float_win
   if settings.enter then
@@ -153,9 +151,9 @@ function M.close_float(element_name)
   local buf = win:get_buf()
   local closed = win:close(false)
   if not closed then
-    vim.cmd(
-      "au WinEnter * ++once lua require('dapui.windows').close_float('" .. element_name .. "')"
-    )
+    local close_cmd = "lua require('dapui.windows').close_float('" .. element_name .. "')"
+    vim.cmd("au WinEnter * ++once " .. close_cmd)
+    vim.cmd("au WinClosed " .. win.win_id .. " ++once " .. close_cmd)
   else
     render.loop.remove_buffer(element_name, buf)
     float_windows[element_name] = nil
