@@ -135,6 +135,9 @@ function M.open_float(element, position, settings)
   local close_cmd = "lua require('dapui.windows').close_float('" .. element.name .. "')"
   vim.cmd("au WinEnter,CursorMoved * ++once " .. close_cmd)
   vim.cmd("au WinClosed " .. float_win.win_id .. " ++once " .. close_cmd)
+  float_win:listen("close", function()
+    pcall(vim.api.nvim_buf_delete, buf, { force = true })
+  end)
   float_win:listen("close", element.on_close)
   float_windows[element.name] = float_win
   if settings.enter then
