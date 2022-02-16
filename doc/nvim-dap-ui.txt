@@ -1,0 +1,70 @@
+================================================================================
+                                                                   *nvim-dap-ui*
+
+dapui.float_element({elem_name}, {settings})           *dapui.float_element()*
+    Open a floating window containing the desired element.
+
+    If no fixed dimensions are given, the window will expand to fit the
+    contents of the buffer.
+
+
+    Parameters: ~
+        {elem_name} (string)
+        {settings}  (table)
+
+    Fields: ~
+        {width}  (integer)  Fixed width of window
+        {height} (integer)  Fixed height of window
+        {enter}  (boolean)  Whether or not to enter the window after opening
+
+
+dapui.eval({expr}, {settings})                                  *dapui.eval()*
+    Open a floating window containing the result of evaluting an expression
+
+    If no fixed dimensions are given, the window will expand to fit the
+    contents of the buffer.
+
+
+    Parameters: ~
+        {expr}     (string)  Expression to evaluate. If nil, then in normal
+                             more the current word is used, and in visual mode
+                             the currently highlighted text.
+        {settings} (table)
+
+    Fields: ~
+        {context} (string)   Context to use for evalutate request, defaults to
+                             "hover". Hover requests should have no side
+                             effects, if you have errors with evaluation, try
+                             changing context to "repl". See the DAP
+                             specification for more details.
+        {width}   (integer)  Fixed width of window
+        {height}  (integer)  Fixed height of window
+        {enter}   (boolean)  Whether or not to enter the window after opening
+
+
+dapui.close({component})                                       *dapui.close()*
+    Close either or both the tray and sidebar
+
+
+    Parameters: ~
+        {component} (string)  "tray" or "sidebar"
+
+
+dapui.open({component})                                         *dapui.open()*
+    Open either or both the tray and sidebar
+
+
+    Parameters: ~
+        {component} (string)  "tray" or "sidebar"
+
+
+dapui.toggle({component})                                     *dapui.toggle()*
+    Toggle either or both the tray and sidebar
+
+
+    Parameters: ~
+        {component} (string)  "tray" or "sidebar"
+
+
+
+ vim:tw=78:ts=8:ft=help:norl:

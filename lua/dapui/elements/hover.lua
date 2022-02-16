@@ -13,8 +13,8 @@ return {
   setup = function(state)
     _state = state
   end,
-  set_expression = function(expression)
-    _state:add_watch(expression, "hover")
+  set_expression = function(expression, context)
+    _state:add_watch(expression, context or "hover")
     hover_component = Hover(expression, _state)
   end,
 }
