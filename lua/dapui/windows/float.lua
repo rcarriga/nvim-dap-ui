@@ -65,6 +65,9 @@ function Float:get_buf()
 end
 
 function Float:jump_to()
+  if vim.fn.mode(true) ~= "n" then
+    vim.cmd([[call feedkeys("\<C-\>\<C-N>", "n")]])
+  end
   api.nvim_set_current_win(self.win_id)
 end
 
