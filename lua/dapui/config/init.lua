@@ -60,6 +60,7 @@ local default_config = {
     },
   },
   windows = { indent = 1 },
+  theme = true,
 }
 
 local user_config = {}
@@ -126,7 +127,9 @@ function M.setup(config)
   ------------------------
 
   user_config = filled
-  require("dapui.config.highlights").setup()
+  if filled.theme then
+    require("dapui.config.highlights").setup()
+  end
 end
 
 function M.mappings()
