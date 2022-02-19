@@ -96,9 +96,13 @@ function UIState:attach(dap, listener_id)
     end
   end
 
-  dap.listeners.after.evaluate[listener_id] = function(session, err, _, request)
-    if not err and request.context == "repl" then
-      self:_refresh_scopes(session)
+  dap.listeners.after.evaluate[listener_id] = function(session, err, response)
+    if not err and response.variablesReference then
+      session:request(
+        "variables",
+        { variablesReference = response.variablesReference },
+        function() end
+      )
     end
   end
 
@@ -136,13 +140,6 @@ function UIState:_refresh_watches(session)
     }, function(err, response)
       expr_data.evaluated = response
       expr_data.error = err and util.format_error(err)
-      if not err and response.variablesReference then
-        session:request(
-          "variables",
-          { variablesReference = response.variablesReference },
-          function() end
-        )
-      end
       self:_emit_refreshed(session)
     end)
   end
