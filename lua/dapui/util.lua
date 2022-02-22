@@ -97,7 +97,7 @@ function M.jump_to_frame(frame, session, set_frame)
     M.is_uri(path) and path or vim.uri_from_fname(vim.fn.fnamemodify(path, ":p"))
   )
   vim.fn.bufload(bufnr)
-  open_buf(bufnr, line, column)
+  M.open_buf(bufnr, line, column)
 end
 
 function M.get_selection(start, finish)
