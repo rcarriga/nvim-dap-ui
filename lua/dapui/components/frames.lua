@@ -18,35 +18,31 @@ local function open_frame(frame)
   end)
 end
 
----@param render_state RenderState
-function StackFrames:render(render_state, frames, indent)
+---@param canvas dapui.Canvas
+function StackFrames:render(canvas, frames, indent)
   indent = indent or 0
   local visible = vim.tbl_filter(function(frame)
     return frame.presentationHint ~= "subtle"
   end, frames)
-  for _, frame in pairs(visible) do
-    local line_no = render_state:length() + 1
-
-    local new_line = string.rep(" ", indent)
-
-    render_state:add_match("DapUIFrameName", line_no, #new_line + 1, #frame.name)
-    new_line = new_line .. frame.name .. " "
+  for i, frame in ipairs(visible) do
+    canvas:write(string.rep(" ", indent))
+    canvas:write(frame.name, { group = "DapUIFrameName" })
+    canvas:write(" ")
 
     if frame.source ~= nil then
       local file_name = frame.source.name or frame.source.path or "<unknown>"
       local source_name = util.pretty_name(file_name)
-      render_state:add_match("DapUISource", line_no, #new_line + 1, #source_name)
-      new_line = new_line .. source_name
+      canvas:write(source_name, { group = "DapUISource" })
     end
 
     if frame.line ~= nil then
-      new_line = new_line .. ":"
-      render_state:add_match("DapUILineNumber", line_no, #new_line + 1, #tostring(frame.line))
-      new_line = new_line .. frame.line
+      canvas:write(":")
+      canvas:write(frame.line, { group = "DapUILineNumber" })
     end
-
-    render_state:add_line(new_line)
-    render_state:add_mapping(config.actions.OPEN, util.partial(open_frame, frame))
+    canvas:add_mapping(config.actions.OPEN, util.partial(open_frame, frame))
+    if i < #frames then
+      canvas:write("\n")
+    end
   end
 end
 

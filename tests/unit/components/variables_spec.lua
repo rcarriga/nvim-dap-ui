@@ -66,19 +66,19 @@ describe("checking variables", function()
 
   describe("in initial layout", function()
     it("creates lines", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
-      component:render(render_state, 1, mock_state:variables(1))
-      local expected = { "▸ a list = [[2, 3, 4, 10]]", "▸ b dict = {}" }
-      assert.are.same(expected, render_state.lines)
+      component:render(canvas, 1, mock_state:variables(1))
+      local expected = { "▸ a list = [[2, 3, 4, 10]]", "▸ b dict = {}", "" }
+      assert.are.same(expected, canvas.lines)
     end)
 
     it("creates matches", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
-      component:render(render_state, 1, mock_state:variables(1))
+      component:render(canvas, 1, mock_state:variables(1))
       local expected = {
         { "DapUIDecoration", { 1, 1, 3 } },
         { "DapUIVariable", { 1, 5, 1 } },
@@ -89,16 +89,16 @@ describe("checking variables", function()
         { "DapUIType", { 2, 7, 4 } },
         { "DapUIValue", { 2, 14, 2 } },
       }
-      assert.are.same(expected, render_state.matches)
+      assert.are.same(expected, canvas.matches)
     end)
 
     it("creates matches with modified value", function()
       local component = Variables(mock_state)
 
-      local render_state = render.new_state()
-      component:render(render_state, 1, mock_state:variables(1))
-      render_state = render.new_state()
-      component:render(render_state, 1, mock_state:variables(1, "different"))
+      local canvas = render.new_canvas()
+      component:render(canvas, 1, mock_state:variables(1))
+      canvas = render.new_canvas()
+      component:render(canvas, 1, mock_state:variables(1, "different"))
 
       local expected = {
         { "DapUIDecoration", { 1, 1, 3 } },
@@ -110,43 +110,44 @@ describe("checking variables", function()
         { "DapUIType", { 2, 7, 4 } },
         { "DapUIValue", { 2, 14, 2 } },
       }
-      assert.are.same(expected, render_state.matches)
+      assert.are.same(expected, canvas.matches)
     end)
 
     it("creates expand mappings", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
-      component:render(render_state, 1, mock_state:variables(1))
-      assert.equal(2, #render_state.mappings["expand"])
+      component:render(canvas, 1, mock_state:variables(1))
+      assert.equal(2, #canvas.mappings["expand"])
     end)
   end)
 
   describe("with expanded variable", function()
     it("creates lines", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
-      component:render(render_state, 1, mock_state:variables(1))
-      render_state.mappings["expand"][1][1]()
-      render_state = render.new_state()
-      component:render(render_state, 1, mock_state:variables(1))
+      component:render(canvas, 1, mock_state:variables(1))
+      canvas.mappings["expand"][1][1]()
+      canvas = render.new_canvas()
+      component:render(canvas, 1, mock_state:variables(1))
       local expected = {
         "▾ a list = [[2, 3, 4, 10]]",
         " ▸ a[0] list = [2, 3, 4, 10]",
         "▸ b dict = {}",
+        "",
       }
-      assert.are.same(expected, render_state.lines)
+      assert.are.same(expected, canvas.lines)
     end)
 
     it("creates matches", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
-      component:render(render_state, 1, mock_state:variables(1))
-      render_state.mappings["expand"][1][1]()
-      render_state = render.new_state()
-      component:render(render_state, 1, mock_state:variables(1))
+      component:render(canvas, 1, mock_state:variables(1))
+      canvas.mappings["expand"][1][1]()
+      canvas = render.new_canvas()
+      component:render(canvas, 1, mock_state:variables(1))
       local expected = {
         { "DapUIDecoration", { 1, 1, 3 } },
         { "DapUIVariable", { 1, 5, 1 } },
@@ -161,112 +162,113 @@ describe("checking variables", function()
         { "DapUIType", { 3, 7, 4 } },
         { "DapUIValue", { 3, 14, 2 } },
       }
-      assert.are.same(expected, render_state.matches)
+      assert.are.same(expected, canvas.matches)
     end)
 
     it("adds monitor", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
-      component:render(render_state, 1, mock_state:variables(1))
-      render_state.mappings["expand"][1][1]()
+      component:render(canvas, 1, mock_state:variables(1))
+      canvas.mappings["expand"][1][1]()
       assert(monitored[2])
     end)
 
     it("creates expand mappings", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
-      component:render(render_state, 1, mock_state:variables(1))
-      render_state.mappings["expand"][1][1]()
-      render_state = render.new_state()
-      component:render(render_state, 1, mock_state:variables(1))
-      assert.equal(3, #render_state.mappings["expand"])
+      component:render(canvas, 1, mock_state:variables(1))
+      canvas.mappings["expand"][1][1]()
+      canvas = render.new_canvas()
+      component:render(canvas, 1, mock_state:variables(1))
+      assert.equal(3, #canvas.mappings["expand"])
     end)
 
     it("closes expanded variable", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
-      component:render(render_state, 1, mock_state:variables(1))
-      render_state.mappings["expand"][1][1]()
-      render_state.mappings["expand"][1][1]()
-      render_state = render.new_state()
-      component:render(render_state, 1, mock_state:variables(1))
+      component:render(canvas, 1, mock_state:variables(1))
+      canvas.mappings["expand"][1][1]()
+      canvas.mappings["expand"][1][1]()
+      canvas = render.new_canvas()
+      component:render(canvas, 1, mock_state:variables(1))
       local expected = {
         "▸ a list = [[2, 3, 4, 10]]",
         "▸ b dict = {}",
+        "",
       }
-      assert.are.same(expected, render_state.lines)
+      assert.are.same(expected, canvas.lines)
     end)
 
     it("removes monitor", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
-      component:render(render_state, 1, mock_state:variables(1))
-      render_state.mappings["expand"][1][1]()
-      render_state.mappings["expand"][1][1]()
-      render_state = render.new_state()
+      component:render(canvas, 1, mock_state:variables(1))
+      canvas.mappings["expand"][1][1]()
+      canvas.mappings["expand"][1][1]()
+      canvas = render.new_canvas()
       assert.Nil(monitored[2])
     end)
 
     it("invalidates render when variables not ready", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
       local vars = mock_state:variables(1)
-      component:render(render_state, 1, vars)
-      render_state.mappings["expand"][1][1]()
-      render_state = render.new_state()
+      component:render(canvas, 1, vars)
+      canvas.mappings["expand"][1][1]()
+      canvas = render.new_canvas()
       mock_state.variables = function()
         return nil
       end
       vars[1].variablesReference = 10
-      component:render(render_state, 1, vars)
+      component:render(canvas, 1, vars)
       assert.True(monitored[10])
     end)
 
     it("monitors child var when variable reference is changed", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
       local vars = mock_state:variables(1)
-      component:render(render_state, 1, vars)
-      render_state.mappings["expand"][1][1]()
-      render_state = render.new_state()
+      component:render(canvas, 1, vars)
+      canvas.mappings["expand"][1][1]()
+      canvas = render.new_canvas()
       mock_state.variables = function()
         return nil
       end
-      component:render(render_state, 1, vars)
-      assert.False(render_state.valid)
+      component:render(canvas, 1, vars)
+      assert.False(canvas.valid)
     end)
 
     it("creates edit mappings", function() end)
 
     describe("in set mode", function()
-      local render_state
+      local canvas
       local component
       before_each(function()
-        render_state = render.new_state()
+        canvas = render.new_canvas()
         component = Variables(mock_state)
 
-        component:render(render_state, 1, mock_state:variables(1))
-        render_state.mappings["edit"][1][1]()
-        render_state = render.new_state()
-        component:render(render_state, 1, mock_state:variables(1))
+        component:render(canvas, 1, mock_state:variables(1))
+        canvas.mappings["edit"][1][1]()
+        canvas = render.new_canvas()
+        component:render(canvas, 1, mock_state:variables(1))
       end)
 
       it("adds edit prompt", function()
-        assert.Not.Nil(render_state.prompt)
+        assert.Not.Nil(canvas.prompt)
       end)
 
       it("fills prompt with current value", function()
-        assert.equal("[[2, 3, 4, 10]]", render_state.prompt.fill)
+        assert.equal("[[2, 3, 4, 10]]", canvas.prompt.fill)
       end)
 
       it("updates variable value", function()
-        render_state.prompt.callback("new_value")
+        canvas.prompt.callback("new_value")
         assert.are.same({
           1,
           {
@@ -281,9 +283,9 @@ describe("checking variables", function()
       end)
 
       it("component resets mode", function()
-        render_state.prompt.callback("new_value")
-        render_state = render.new_state()
-        component:render(render_state, 1, mock_state:variables(1))
+        canvas.prompt.callback("new_value")
+        canvas = render.new_canvas()
+        component:render(canvas, 1, mock_state:variables(1))
         assert.Nil(component.mode)
       end)
     end)

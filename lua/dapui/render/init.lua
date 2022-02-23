@@ -1,10 +1,10 @@
 local M = {}
 
-local render_state = require("dapui.render.state")
+local canvas = require("dapui.render.canvas")
 local render_loop = require("dapui.render.loop")
 
-M.new_state = render_state.new
-M.render_buffer = render_state.render_buffer
+M.new_canvas = canvas.new
+M.render_buffer = canvas.render_buffer
 
 M.loop = render_loop
 

@@ -14,44 +14,44 @@ describe("checking simple breakpoints", function()
   api.nvim_buf_get_lines.returns({ "text" })
 
   it("creates lines", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = BufBreakpoint()
 
-    component:render(render_state, 1, breakpoints, 20, "test/file.py", 0)
+    component:render(canvas, 1, breakpoints, 20, "test/file.py", 0)
     local expected = { "10 text", "20 text", "25 text" }
-    assert.are.same(expected, render_state.lines)
+    assert.are.same(expected, canvas.lines)
   end)
 
   it("creates matches", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = BufBreakpoint()
 
-    component:render(render_state, 1, breakpoints, 20, "test/file.py", 0)
+    component:render(canvas, 1, breakpoints, 20, "test/file.py", 0)
     local expected = {
       { "DapUIBreakpointsLine", { 1, 1, 2 } },
       { "DapUIBreakpointsCurrentLine", { 2, 1, 2 } },
       { "DapUIBreakpointsLine", { 3, 1, 2 } },
     }
-    assert.are.same(expected, render_state.matches)
+    assert.are.same(expected, canvas.matches)
   end)
 
   it("creates mappings", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = BufBreakpoint()
 
-    component:render(render_state, 1, breakpoints, 20, "test/file.py", 0)
-    assert.equal(3, #render_state.mappings["open"])
+    component:render(canvas, 1, breakpoints, 20, "test/file.py", 0)
+    assert.equal(3, #canvas.mappings["open"])
   end)
 
   it("mappings open frame", function()
     local util = require("dapui.util")
     stub(util, "jump_to_frame")
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = BufBreakpoint()
 
-    component:render(render_state, 1, breakpoints, 20, "test/file.py", 0)
+    component:render(canvas, 1, breakpoints, 20, "test/file.py", 0)
 
-    render_state.mappings["open"][1][1]()
+    canvas.mappings["open"][1][1]()
 
     assert.stub(util.jump_to_frame).was.called_with({
       line = 10,
@@ -74,10 +74,10 @@ describe("checking breakpoints with extra metadata", function()
   api.nvim_buf_get_lines.returns({ "text" })
 
   it("creates lines", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = BufBreakpoint()
 
-    component:render(render_state, 1, breakpoints, 20, "test/file.py", 0)
+    component:render(canvas, 1, breakpoints, 20, "test/file.py", 0)
     local expected = {
       "10 text",
       "   Log Message: Message",
@@ -86,7 +86,7 @@ describe("checking breakpoints with extra metadata", function()
       "25 text",
       "   Hit Condition: HitCondition",
     }
-    assert.are.same(expected, render_state.lines)
+    assert.are.same(expected, canvas.lines)
   end)
 
   mock.revert(api)

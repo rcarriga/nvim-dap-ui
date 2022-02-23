@@ -63,10 +63,10 @@ describe("checking scopes", function()
   end)
 
   it("creates lines", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = Scopes(mock_state)
 
-    component:render(render_state)
+    component:render(canvas)
     local expected = {
       "Scope A:",
       " ▸ a int = 1",
@@ -75,14 +75,14 @@ describe("checking scopes", function()
       "Scope B:",
       " ▸ c list = [2, 3, 4, 10]",
     }
-    assert.are.same(expected, render_state.lines)
+    assert.are.same(expected, canvas.lines)
   end)
 
   it("creates matches", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = Scopes(mock_state)
 
-    component:render(render_state)
+    component:render(canvas)
     local expected = {
       { "DapUIScope", { 1, 1, 7 } },
       { "DapUIDecoration", { 2, 2, 3 } },
@@ -99,15 +99,15 @@ describe("checking scopes", function()
       { "DapUIType", { 6, 8, 4 } },
       { "DapUIValue", { 6, 15, 13 } },
     }
-    assert.are.same(expected, render_state.matches)
+    assert.are.same(expected, canvas.matches)
   end)
 
   it("creates expand mappings", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = Scopes(mock_state)
 
-    component:render(render_state)
-    assert.equal(3, #render_state.mappings["expand"])
+    component:render(canvas)
+    assert.equal(3, #canvas.mappings["expand"])
   end)
 
   describe("when variables are not found", function()
@@ -141,11 +141,11 @@ describe("checking scopes", function()
     end)
 
     it("invalidates render", function()
-      local render_state = render.new_state()
+      local canvas = render.new_canvas()
       local component = Scopes(invalid_state)
 
-      component:render(render_state)
-      assert.False(render_state.valid)
+      component:render(canvas)
+      assert.False(canvas.valid)
     end)
   end)
 end)

@@ -41,23 +41,23 @@ describe("checking stack frames", function()
   }
 
   it("creates lines", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = StackFrames()
 
-    component:render(render_state, frames, 1)
+    component:render(canvas, frames, 1)
     local expected = {
       " test_1 test_a.py:6",
       " test_2 test_b.py:1193",
       " test_3 test_c.py:1371",
     }
-    assert.are.same(expected, render_state.lines)
+    assert.are.same(expected, canvas.lines)
   end)
 
   it("creates matches", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = StackFrames()
 
-    component:render(render_state, frames, 1)
+    component:render(canvas, frames, 1)
     local expected = {
       { "DapUIFrameName", { 1, 2, 6 } },
       { "DapUISource", { 1, 9, 9 } },
@@ -69,15 +69,15 @@ describe("checking stack frames", function()
       { "DapUISource", { 3, 9, 9 } },
       { "DapUILineNumber", { 3, 19, 4 } },
     }
-    assert.are.same(expected, render_state.matches)
+    assert.are.same(expected, canvas.matches)
   end)
 
   it("creates mappings", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = StackFrames()
 
-    component:render(render_state, frames, 1)
-    assert.equal(3, #render_state.mappings["open"])
+    component:render(canvas, frames, 1)
+    assert.equal(3, #canvas.mappings["open"])
   end)
 
   it("mappings open frame", function()
@@ -88,12 +88,12 @@ describe("checking stack frames", function()
       end,
     }
     stub(util, "jump_to_frame")
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = StackFrames()
 
-    component:render(render_state, frames, 1)
+    component:render(canvas, frames, 1)
 
-    render_state.mappings["open"][1][1]()
+    canvas.mappings["open"][1][1]()
 
     assert.stub(util.jump_to_frame).was.called_with({
       column = 0,

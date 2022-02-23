@@ -13,17 +13,17 @@ function Threads:new(state)
   return elem
 end
 
-function Threads:render(render_state, indent)
+function Threads:render(canvas, indent)
   indent = indent or 0
   local threads = self.state:threads()
   local stopped = self.state:stopped_thread() or {}
 
   local function render_thread(thread, match_group)
-    render_state:add_match(match_group, render_state:length() + 1, 1, #thread.name)
-    render_state:add_line(thread.name .. ":")
+    canvas:write(thread.name, { group = match_group })
+    canvas:write(":\n")
     local frames = self.state:frames(thread.id)
-    self.frames:render(render_state, frames, indent + config.windows().indent)
-    render_state:add_line()
+    self.frames:render(canvas, frames, indent + config.windows().indent)
+    canvas:write("\n\n")
   end
 
   if stopped.id then
@@ -34,7 +34,8 @@ function Threads:render(render_state, indent)
       render_thread(thread, "DapUIThread")
     end
   end
-  render_state:remove_line()
+  canvas:remove_line()
+  canvas:remove_line()
 end
 
 ---@param state UIState

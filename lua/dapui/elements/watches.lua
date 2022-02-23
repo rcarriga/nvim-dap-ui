@@ -11,7 +11,7 @@ return {
   setup = function(state)
     watches = require("dapui.components.watches")(state)
   end,
-  render = function(render_state)
-    watches:render(render_state)
+  render = function(canvas)
+    watches:render(canvas)
   end,
 }

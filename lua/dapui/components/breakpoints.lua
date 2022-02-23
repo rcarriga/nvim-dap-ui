@@ -14,7 +14,8 @@ function BreakPoints:new(state)
   return elem
 end
 
-function BreakPoints:render(render_state)
+---@param canvas dapui.Canvas
+function BreakPoints:render(canvas)
   local current_frame = self.state:current_frame()
   local current_line = 0
   local current_file = ""
@@ -24,16 +25,17 @@ function BreakPoints:render(render_state)
   end
   for buffer, breakpoints in pairs(self.state:breakpoints()) do
     local name = util.pretty_name(vim.fn.bufname(buffer))
-    render_state:add_match("DapUIBreakpointsPath", render_state:length() + 1, 1, #name)
-    render_state:add_line(name .. ":")
-    self.buffer_breakpoints:render(render_state, buffer, breakpoints, current_line, current_file)
+    canvas:write(name, { group = "DapUIBreakpointsPath" })
+    canvas:write(":\n")
+    self.buffer_breakpoints:render(canvas, buffer, breakpoints, current_line, current_file)
 
-    render_state:add_line()
+    canvas:write("\n\n")
   end
-  if render_state:length() > 0 then
-    render_state:remove_line()
+  if canvas:length() > 0 then
+    canvas:remove_line()
+    canvas:remove_line()
   else
-    render_state:add_line()
+    canvas:write("")
   end
 end
 

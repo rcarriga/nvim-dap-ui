@@ -36,9 +36,10 @@ function Variables:set_var(parent_ref, value)
   loop.run()
 end
 
-function Variables:render(render_state, parent_ref, variables, indent)
+---@param canvas dapui.Canvas
+function Variables:render(canvas, parent_ref, variables, indent)
   if self.mode == "set" then
-    render_state:set_prompt(
+    canvas:set_prompt(
       "> ",
       partial(self.set_var, self, parent_ref),
       { fill = self.var_to_set.value }
@@ -46,20 +47,15 @@ function Variables:render(render_state, parent_ref, variables, indent)
   end
   indent = indent or 0
   for var_index, variable in pairs(variables) do
-    local line_no = render_state:length() + 1
-
-    local new_line = string.rep(" ", indent)
+    canvas:write(string.rep(" ", indent))
     local prefix = self:_reference_prefix(variable)
-    render_state:add_match("DapUIDecoration", line_no, #new_line + 1, #prefix)
-    new_line = new_line .. prefix .. " "
-
-    render_state:add_match("DapUIVariable", line_no, #new_line + 1, #variable.name)
-    new_line = new_line .. variable.name
+    canvas:write(prefix, { group = "DapUIDecoration" })
+    canvas:write(" ")
+    canvas:write(variable.name, { group = "DapUIVariable" })
 
     if #(variable.type or "") > 0 then
-      new_line = new_line .. " "
-      render_state:add_match("DapUIType", line_no, #new_line + 1, #variable.type)
-      new_line = new_line .. variable.type
+      canvas:write(" ")
+      canvas:write(variable.type, { group = "DapUIType" })
     end
 
     local var_group
@@ -73,51 +69,42 @@ function Variables:render(render_state, parent_ref, variables, indent)
       var_group = "DapUIModifiedValue"
     end
     local function add_var_line(line)
-      render_state:add_line(line)
       if variable.variablesReference > 0 then
-        render_state:add_mapping(
+        canvas:add_mapping(
           config.actions.EXPAND,
           partial(Variables.toggle_reference, self, variable.variablesReference, variable.name)
         )
         if variable.evaluateName then
-          render_state:add_mapping(
-            config.actions.REPL,
-            partial(util.send_to_repl, variable.evaluateName)
-          )
+          canvas:add_mapping(config.actions.REPL, partial(util.send_to_repl, variable.evaluateName))
         end
       end
-      render_state:add_mapping(config.actions.EDIT, function()
+      canvas:add_mapping(config.actions.EDIT, function()
         self.mode = "set"
         self.var_to_set = variable
         loop.run()
       end)
+      canvas:write(line .. "\n", { group = var_group })
     end
 
     if #(variable.value or "") > 0 then
-      new_line = new_line .. " = "
-      local value_start = #new_line
-      new_line = new_line .. variable.value
+      canvas:write(" = ")
+      local value_start = #canvas.lines[canvas:length()]
+      local value = variable.value
 
-      for i, line in pairs(vim.split(new_line, "\n")) do
+      for i, line in pairs(vim.split(value, "\n")) do
         if i > 1 then
           line = string.rep(" ", value_start - 2) .. line
         end
-        render_state:add_match(
-          var_group,
-          line_no - 1 + i,
-          value_start + (i > 1 and -1 or 1),
-          #line - value_start + (i > 1 and 2 or 0)
-        )
         add_var_line(line)
       end
     else
-      add_var_line(new_line)
+      add_var_line(variable.value)
     end
 
     if self.expanded_children[variable.name] and variable.variablesReference ~= 0 then
       local child_vars = self.state:variables(variable.variablesReference)
       if not child_vars then
-        render_state:invalidate()
+        canvas:invalidate()
         -- Happens when the parent component is collapsed and the variable
         -- reference changes when re-opened.  The name is recorded as opened
         -- but the variable reference is not yet monitored.
@@ -126,12 +113,9 @@ function Variables:render(render_state, parent_ref, variables, indent)
         end
         return
       else
-        self:_get_child_component(variable.name):render(
-          render_state,
-          variable.variablesReference,
-          child_vars,
-          indent + config.windows().indent
-        )
+        self
+          :_get_child_component(variable.name)
+          :render(canvas, variable.variablesReference, child_vars, indent + config.windows().indent)
       end
     end
   end

@@ -7,7 +7,7 @@ return {
   setup = function(state)
     threads = require("dapui.components.threads")(state)
   end,
-  render = function(render_state)
-    threads:render(render_state)
+  render = function(canvas)
+    threads:render(canvas)
   end,
 }

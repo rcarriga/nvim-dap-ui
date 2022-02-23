@@ -30,10 +30,10 @@ describe("checking multiple file breakpoints", function()
   api.nvim_buf_get_lines.returns({ "text" })
 
   it("creates lines", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = Breakpoints(mock_state)
 
-    component:render(render_state)
+    component:render(canvas)
     local expected = {
       "file_a.py:",
       " 10 text",
@@ -42,14 +42,14 @@ describe("checking multiple file breakpoints", function()
       "file_b.py:",
       " 25 text",
     }
-    assert.are.same(expected, render_state.lines)
+    assert.are.same(expected, canvas.lines)
   end)
 
   it("creates matches", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = Breakpoints(mock_state)
 
-    component:render(render_state)
+    component:render(canvas)
 
     local expected = {
       { "DapUIBreakpointsPath", { 1, 1, 9 } },
@@ -58,7 +58,7 @@ describe("checking multiple file breakpoints", function()
       { "DapUIBreakpointsPath", { 5, 1, 9 } },
       { "DapUIBreakpointsLine", { 6, 2, 2 } },
     }
-    assert.are.same(expected, render_state.matches)
+    assert.are.same(expected, canvas.matches)
   end)
 
   vim.api.nvim_buf_delete(buf_a)
@@ -81,13 +81,13 @@ describe("checking no breakpoints", function()
   api.nvim_buf_get_lines.returns({ "text" })
 
   it("creates single empty line", function()
-    local render_state = render.new_state()
+    local canvas = render.new_canvas()
     local component = Breakpoints(mock_state)
 
-    component:render(render_state)
+    component:render(canvas)
     local expected = {
       "",
     }
-    assert.are.same(expected, render_state.lines)
+    assert.are.same(expected, canvas.lines)
   end)
 end)

@@ -14,10 +14,11 @@ function Scopes:new(state)
   return scopes
 end
 
-function Scopes:render(render_state)
+---@param canvas dapui.Canvas
+function Scopes:render(canvas)
   local frame = self.state:current_frame()
   if not frame then
-    render_state:invalidate()
+    canvas:invalidate()
     return
   end
   if frame.id ~= self.frame_id then
@@ -25,20 +26,21 @@ function Scopes:render(render_state)
     self.var_components = {}
   end
   for i, scope in pairs(self.state:scopes()) do
-    render_state:add_match("DapUIScope", render_state:length() + 1, 1, #scope.name)
-    render_state:add_line(scope.name .. ":")
+    canvas:write(scope.name, { group = "DapUIScope" })
+    canvas:write(":\n")
     local variables = self.state:variables(scope.variablesReference)
     if not variables then
-      render_state:invalidate()
+      canvas:invalidate()
     else
       self
         :_get_var_component(i)
-        :render(render_state, scope.variablesReference, variables, config.windows().indent)
+        :render(canvas, scope.variablesReference, variables, config.windows().indent)
     end
     if i < #self.state:scopes() then
-      render_state:add_line()
+      canvas:write("\n")
     end
   end
+  canvas:remove_line()
 end
 
 function Scopes:_get_var_component(index)

@@ -17,19 +17,19 @@ describe("checking hover", function()
           return {}
         end,
       }
-      data.render_state = render.new_state()
+      data.canvas = render.new_canvas()
       data.component = Watches(data.mock_state)
-      data.component:render(data.render_state)
+      data.component:render(data.canvas)
     end)
 
     it("creates lines", function()
       local expected = { "No Expressions", "" }
-      assert.are.same(expected, data.render_state.lines)
+      assert.are.same(expected, data.canvas.lines)
     end)
 
     it("creates matches", function()
       local expected = { { "DapUIWatchesEmpty", { 1, 1, 14 } } }
-      assert.are.same(expected, data.render_state.matches)
+      assert.are.same(expected, data.canvas.matches)
     end)
   end)
 
@@ -91,16 +91,16 @@ describe("checking hover", function()
         end,
       }
       data.component = Watches(data.mock_state)
-      data.render_state = render.new_state()
-      data.component:render(data.render_state)
-      data.render_state.prompt.callback(expression)
-      data.render_state = render.new_state()
-      data.component:render(data.render_state)
+      data.canvas = render.new_canvas()
+      data.component:render(data.canvas)
+      data.canvas.prompt.callback(expression)
+      data.canvas = render.new_canvas()
+      data.component:render(data.canvas)
     end)
 
     it("creates lines", function()
       local expected = { "▸ expr list = [0, 1, [2, 3, 4, 5]]", "" }
-      assert.are.same(expected, data.render_state.lines)
+      assert.are.same(expected, data.canvas.lines)
     end)
 
     it("creates matches", function()
@@ -109,15 +109,15 @@ describe("checking hover", function()
         { "DapUIType", { 1, 10, 4 } },
         { "DapUIValue", { 1, 17, 20 } },
       }
-      assert.are.same(expected, data.render_state.matches)
+      assert.are.same(expected, data.canvas.matches)
     end)
 
     describe("expanded", function()
       before_each(function()
-        data.expanded_render = render.new_state()
+        data.expanded_render = render.new_canvas()
         data.component:render(data.expanded_render)
         data.expanded_render.mappings.expand[1][1]()
-        data.expanded_render = render.new_state()
+        data.expanded_render = render.new_canvas()
         data.component:render(data.expanded_render)
       end)
 
@@ -149,7 +149,7 @@ describe("checking hover", function()
       end)
 
       it("collapses variable", function()
-        local collapsed_render = render.new_state()
+        local collapsed_render = render.new_canvas()
         data.expanded_render.mappings.expand[1][1]()
         data.component:render(collapsed_render)
         assert.equal(2, #collapsed_render.lines)
@@ -157,8 +157,8 @@ describe("checking hover", function()
     end)
 
     it("removes expression", function()
-      data.render_state.mappings.remove[1][1]()
-      local deleted_render = render.new_state()
+      data.canvas.mappings.remove[1][1]()
+      local deleted_render = render.new_canvas()
       data.component:render(deleted_render)
       local expected = { "No Expressions", "" }
       assert.are.same(expected, deleted_render.lines)
@@ -188,21 +188,21 @@ describe("checking hover", function()
       }
       data.component = Watches(data.mock_state)
 
-      data.render_state = render.new_state()
-      data.component:render(data.render_state)
-      data.render_state.prompt.callback(bad_expr)
-      data.render_state = render.new_state()
-      data.component:render(data.render_state)
+      data.canvas = render.new_canvas()
+      data.component:render(data.canvas)
+      data.canvas.prompt.callback(bad_expr)
+      data.canvas = render.new_canvas()
+      data.component:render(data.canvas)
     end)
 
     it("creates lines", function()
       local expected = { "▸ bad_expr: Error message", "" }
-      assert.are.same(expected, data.render_state.lines)
+      assert.are.same(expected, data.canvas.lines)
     end)
 
     it("creates matches", function()
       local expected = { { "DapUIWatchesError", { 1, 1, 3 } }, { "DapUIValue", { 1, 15, 13 } } }
-      assert.are.same(expected, data.render_state.matches)
+      assert.are.same(expected, data.canvas.matches)
     end)
   end)
 end)

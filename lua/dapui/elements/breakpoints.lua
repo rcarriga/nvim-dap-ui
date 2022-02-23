@@ -6,8 +6,8 @@ return {
   setup = function(state)
     breakpoints = require("dapui.components.breakpoints")(state)
   end,
-  render = function(render_state)
-    breakpoints:render(render_state)
+  render = function(canvas)
+    breakpoints:render(canvas)
   end,
   dap_after_listeners = {
     "setBreakpoints",

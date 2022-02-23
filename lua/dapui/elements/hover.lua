@@ -7,8 +7,8 @@ local hover_component = nil
 return {
   name = "DAP Hover",
   buf_options = { filetype = "dapui_hover" },
-  render = function(render_state)
-    hover_component:render(render_state)
+  render = function(canvas)
+    hover_component:render(canvas)
   end,
   setup = function(state)
     _state = state

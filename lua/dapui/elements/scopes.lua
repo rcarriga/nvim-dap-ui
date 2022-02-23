@@ -7,7 +7,7 @@ return {
   setup = function(state)
     scopes = require("dapui.components.scopes")(state)
   end,
-  render = function(render_state)
-    scopes:render(render_state)
+  render = function(canvas)
+    scopes:render(canvas)
   end,
 }
