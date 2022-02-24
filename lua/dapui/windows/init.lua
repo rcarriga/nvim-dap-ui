@@ -8,9 +8,9 @@ local WindowLayout = require("dapui.windows.layout")
 
 local float_windows = {}
 
----@type WindowLayout
+---@type dapui.WindowLayout
 M.sidebar = nil
----@type WindowLayout
+---@type dapui.WindowLayout
 M.tray = nil
 
 local function register_elements(elements)

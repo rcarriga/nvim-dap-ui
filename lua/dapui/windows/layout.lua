@@ -1,19 +1,19 @@
 local api = vim.api
 local util = require("dapui.util")
 
----@class WinState
+---@class dapui.WinState
 ---@field id string
 ---@field size number
 ---@field element Element
 
----@class AreaState
+---@class dapui.AreaState
 ---@field size number
 
----@class WindowLayout
----@field open_wins table<integer, integer>
+---@class dapui.WindowLayout
+---@field opened_wins integer[]
 ---@field win_bufs table<integer, integer>
----@field win_states table<integer,WinState>
----@field area_state AreaState
+---@field win_states table<integer,dapui.WinState>
+---@field area_state dapui.AreaState
 --
 ---@field open_index fun(index: number)
 ---@field get_win_size fun(win_id: integer): integer
@@ -36,7 +36,7 @@ function WindowLayout:open()
     self.open_index(i)
     local win_id = api.nvim_get_current_win()
     api.nvim_set_current_buf(bufnr)
-    self.open_wins[i] = win_id
+    self.opened_wins[i] = win_id
     self.loop.register_buffer(element.name, bufnr)
     self:_init_win_settings(win_id)
     self.loop.run(element.name)
@@ -65,7 +65,7 @@ end
 
 function WindowLayout:_total_size()
   local total_size = 0
-  for _, open_win in pairs(self.open_wins) do
+  for _, open_win in ipairs(self.opened_wins) do
     local success, win_size = pcall(self.get_win_size, open_win)
     total_size = total_size + (success and win_size or 0)
   end
@@ -73,7 +73,7 @@ function WindowLayout:_total_size()
 end
 
 function WindowLayout:_area_size()
-  for _, win in pairs(self.open_wins) do
+  for _, win in ipairs(self.opened_wins) do
     local success, area_size = pcall(self.get_area_size, win)
     if success then
       return area_size
@@ -86,7 +86,7 @@ function WindowLayout:resize()
   if not self:is_open() then
     return
   end
-  self.set_area_size(self.open_wins[1], self.area_state.size)
+  self.set_area_size(self.opened_wins[1], self.area_state.size)
   local total_size = self:_total_size()
   for i, win_state in pairs(self.win_states) do
     local win_size = win_state.size
@@ -94,7 +94,7 @@ function WindowLayout:resize()
     if win_size == 0 then
       win_size = 1
     end
-    self.set_win_size(self.open_wins[i], win_size)
+    self.set_win_size(self.opened_wins[i], win_size)
   end
 end
 
@@ -109,10 +109,10 @@ function WindowLayout:update_sizes()
   self.area_state.size = area_size
   local total_size = self:_total_size()
   for i, win_state in ipairs(self.win_states) do
-    local win = self.open_wins[i]
+    local win = self.opened_wins[i]
     local win_exists, _ = pcall(api.nvim_win_get_buf, win)
     if win_exists then
-      local success, current_size = pcall(self.get_win_size, self.open_wins[i])
+      local success, current_size = pcall(self.get_win_size, self.opened_wins[i])
       if success then
         win_state.size = current_size / total_size
       end
@@ -122,7 +122,7 @@ end
 
 function WindowLayout:close()
   local current_win = api.nvim_get_current_win()
-  for _, win in pairs(self.open_wins) do
+  for _, win in pairs(self.opened_wins) do
     local win_exists, buf = pcall(api.nvim_win_get_buf, win)
 
     if win_exists then
@@ -135,19 +135,24 @@ function WindowLayout:close()
       end
     end
   end
-  self.open_wins = {}
+  self.opened_wins = {}
 end
 
 ---@return boolean
 function WindowLayout:is_open()
-  return not vim.tbl_isempty(self.open_wins)
+  for _, win in ipairs(self.opened_wins) do
+    if pcall(vim.api.nvim_win_get_number, win) then
+      return true
+    end
+  end
+  return false
 end
 
 function WindowLayout:toggle()
-  if vim.tbl_isempty(self.open_wins) then
-    self:open()
-  else
+  if self:is_open() then
     self:close()
+  else
+    self:open()
   end
 end
 
@@ -166,14 +171,14 @@ function WindowLayout:_init_win_settings(win)
 end
 
 function WindowLayout:new(layout)
-  layout.open_wins = {}
+  layout.opened_wins = {}
   layout.win_bufs = {}
   setmetatable(layout, self)
   self.__index = self
   return layout
 end
 
----@return WindowLayout
+---@return dapui.WindowLayout
 return function(layout)
   return WindowLayout:new(layout)
 end
