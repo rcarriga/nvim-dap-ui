@@ -275,9 +275,7 @@ function UIState:toggle_breakpoint(bp)
     condition = bp.condition,
     hit_condition = bp.hitCondition,
     log_message = bp.logMessage,
-  }, vim.fn.bufnr(
-    bp.file
-  ), bp.line)
+  }, vim.fn.bufnr(bp.file), bp.line)
   util.with_session(function(session)
     self:_emit_refreshed(session)
   end)
