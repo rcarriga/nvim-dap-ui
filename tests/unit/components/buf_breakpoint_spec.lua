@@ -5,17 +5,27 @@ local BufBreakpoint = require("dapui.components.buf_breakpoints")
 local render = require("dapui.render")
 
 describe("checking simple breakpoints", function()
-  local breakpoints = {
-    { line = 10, file = "test/file.py" },
-    { line = 20, file = "test/file.py" },
-    { line = 25, file = "test/file.py" },
-  }
-  local api = mock(vim.api, true)
-  api.nvim_buf_get_lines.returns({ "text" })
+  local breakpoints, disabled, api, mock_state, component
+  before_each(function()
+    breakpoints = {
+      { line = 10, file = "test/file.py", enabled = true },
+      { line = 20, file = "test/file.py", enabled = true },
+      { line = 25, file = "test/file.py", enabled = true },
+    }
+    disabled = nil
+    api = mock(vim.api, true)
+    api.nvim_buf_get_lines.returns({ "text" })
+
+    mock_state = {
+      toggle_breakpoint = function(_, bp)
+        disabled = bp
+      end,
+    }
+    component = BufBreakpoint(mock_state)
+  end)
 
   it("creates lines", function()
     local canvas = render.new_canvas()
-    local component = BufBreakpoint()
 
     component:render(canvas, 1, breakpoints, 20, "test/file.py", 0)
     local expected = { "10 text", "20 text", "25 text" }
@@ -24,30 +34,29 @@ describe("checking simple breakpoints", function()
 
   it("creates matches", function()
     local canvas = render.new_canvas()
-    local component = BufBreakpoint()
+    breakpoints[3].enabled = false
 
     component:render(canvas, 1, breakpoints, 20, "test/file.py", 0)
     local expected = {
       { "DapUIBreakpointsLine", { 1, 1, 2 } },
       { "DapUIBreakpointsCurrentLine", { 2, 1, 2 } },
-      { "DapUIBreakpointsLine", { 3, 1, 2 } },
+      { "DapUIBreakpointsDisabledLine", { 3, 1, 2 } },
     }
     assert.are.same(expected, canvas.matches)
   end)
 
   it("creates mappings", function()
     local canvas = render.new_canvas()
-    local component = BufBreakpoint()
 
     component:render(canvas, 1, breakpoints, 20, "test/file.py", 0)
     assert.equal(3, #canvas.mappings["open"])
+    assert.equal(3, #canvas.mappings["toggle"])
   end)
 
   it("mappings open frame", function()
     local util = require("dapui.util")
     stub(util, "jump_to_frame")
     local canvas = render.new_canvas()
-    local component = BufBreakpoint()
 
     component:render(canvas, 1, breakpoints, 20, "test/file.py", 0)
 
@@ -58,6 +67,17 @@ describe("checking simple breakpoints", function()
       column = 0,
       source = { path = "test/file.py" },
     })
+
+    mock.revert(api)
+  end)
+  it("mapping toggles breakpoint", function()
+    local canvas = render.new_canvas()
+
+    component:render(canvas, 1, breakpoints, 20, "test/file.py", 0)
+
+    canvas.mappings["toggle"][1][1]()
+
+    assert.are.same(breakpoints[1], disabled)
 
     mock.revert(api)
   end)

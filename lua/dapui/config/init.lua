@@ -15,6 +15,7 @@ M.actions = {
   REMOVE = "remove",
   EDIT = "edit",
   REPL = "repl",
+  TOGGLE = "toggle",
 }
 
 M.FLOAT_MAPPINGS = {
@@ -30,6 +31,7 @@ local default_config = {
     [M.actions.REMOVE] = "d",
     [M.actions.EDIT] = "e",
     [M.actions.REPL] = "r",
+    [M.actions.TOGGLE] = "t",
   },
   sidebar = {
     -- You can change the order of elements in the sidebar
@@ -79,6 +81,7 @@ local function fill_elements(area)
 end
 
 local dep_warnings = {}
+
 local function dep_warning(message)
   vim.schedule(function()
     if not dep_warnings[message] then
@@ -102,28 +105,6 @@ function M.setup(config)
   filled.floating.mappings = fill_mappings(filled.floating.mappings)
   filled.sidebar = fill_elements(filled.sidebar)
   filled.tray = fill_elements(filled.tray)
-
-  -- Deprecation notice --
-  if filled.sidebar.open_on_start or filled.tray.open_on_start then
-    dep_warning(
-      "Automatically opening the UI is deprecated.\n"
-        .. "You can replicate previous behaviour by adding the following to your config\n\n"
-        .. "local dap, dapui = require('dap'), require('dapui')\n"
-        .. "dap.listeners.after.event_initialized['dapui_config'] = function() dapui.open() end\n"
-        .. "dap.listeners.before.event_terminated['dapui_config'] = function() dapui.close() end\n"
-        .. "dap.listeners.before.event_exited['dapui_config'] = function() dapui.close() end\n\n"
-        .. "To hide this message, remove the `open_on_start` settings from your config"
-    )
-  end
-  if filled.sidebar.width then
-    filled.sidebar.size = filled.sidebar.width
-    dep_warning("Sidebar 'width' option has been deprecated. Use 'size' instead")
-  end
-  if filled.tray.height then
-    filled.tray.size = filled.tray.height
-    dep_warning("Tray 'height' option has been deprecated. Use 'size' instead")
-  end
-  ------------------------
 
   user_config = filled
   require("dapui.config.highlights").setup()

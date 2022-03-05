@@ -61,6 +61,7 @@ require("dapui").setup({
     remove = "d",
     edit = "e",
     repl = "r",
+    toggle = "t",
   },
   sidebar = {
     -- You can change the order of elements in the sidebar
@@ -149,6 +150,7 @@ List all breakpoints currently set.
 Mappings:
 
 - `open`: Jump to the location the breakpoint is set
+- `toggle`: Enable/disable the selected breakpoint
 
 ### REPL
 

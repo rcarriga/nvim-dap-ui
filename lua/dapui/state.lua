@@ -11,6 +11,7 @@ local util = require("dapui.util")
 ---@field private _stopped_thread_id string,
 ---@field private _listeners table
 ---@field private _step_number integer
+---@field private _disabled_breakpoints table<string, table<integer, table>>
 local UIState = {}
 
 local events = { CLEAR = "clear", REFRESH = "refresh" }
@@ -27,6 +28,7 @@ function UIState:new()
     _watches = {},
     _stopped_thread_id = nil,
     _step_number = 0,
+    _disabled_breakpoints = {},
     _listeners = { [events.CLEAR] = {}, [events.REFRESH] = {} },
   }
   setmetatable(state, self)
@@ -238,15 +240,69 @@ end
 
 function UIState:breakpoints()
   local breakpoints = require("dap.breakpoints").get() or {}
-  for buffer, buf_points in pairs(breakpoints) do
-    if not vim.tbl_isempty(buf_points) then
-      local buf_name = vim.fn.bufname(buffer)
-      for _, bp in pairs(buf_points) do
-        bp.file = buf_name
+  local merged_breakpoints = {}
+  local buffers = {}
+  for buf, _ in pairs(breakpoints) do
+    buffers[buf] = true
+  end
+  for buf_name, _ in pairs(self._disabled_breakpoints) do
+    local buf = vim.fn.bufnr(buf_name)
+    buffers[buf] = true
+  end
+  for buffer, _ in pairs(buffers) do
+    local buf_points = breakpoints[buffer] or {}
+    local buf_name = vim.fn.bufname(buffer)
+    for _, bp in ipairs(buf_points) do
+      bp.file = buf_name
+      bp.enabled = true
+      if self._disabled_breakpoints[bp.file] then
+        self._disabled_breakpoints[bp.file][bp.line] = nil
       end
     end
+    merged_breakpoints[buffer] = buf_points
+    for _, bp in pairs(self._disabled_breakpoints[buf_name] or {}) do
+      table.insert(merged_breakpoints[buffer], bp)
+    end
+    table.sort(merged_breakpoints[buffer], function(a, b)
+      return a.line < b.line
+    end)
   end
-  return breakpoints
+  return merged_breakpoints
+end
+
+function UIState:toggle_breakpoint(bp)
+  require("dap.breakpoints").toggle({
+    condition = bp.condition,
+    hit_condition = bp.hitCondition,
+    log_message = bp.logMessage,
+  }, vim.fn.bufnr(
+    bp.file
+  ), bp.line)
+  util.with_session(function(session)
+    self:_emit_refreshed(session)
+  end)
+  local buffer_breakpoints = require("dap.breakpoints").get(bp.file)
+  local enabled = false
+  for _, buf_bp in ipairs(buffer_breakpoints) do
+    if buf_bp.line == bp.line then
+      enabled = true
+      break
+    end
+  end
+
+  if not self._disabled_breakpoints[bp.file] then
+    self._disabled_breakpoints[bp.file] = {}
+  end
+
+  if not enabled then
+    bp.enabled = false
+    self._disabled_breakpoints[bp.file][bp.line] = bp
+  else
+    self._disabled_breakpoints[bp.file][bp.line] = nil
+  end
+  util.with_session(function(session)
+    self:_emit_refreshed(session)
+  end)
 end
 
 function UIState:add_watch(expression, context)

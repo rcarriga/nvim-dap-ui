@@ -1,13 +1,12 @@
 local config = require("dapui.config")
 local util = require("dapui.util")
 
----@class BufBreakpoints
----@field mark_breakpoint_map table
----@field expanded_breakpoints table
+---@class dapui.BufBreakpoints
+---@field state UIState
 local BufBreakpoints = {}
 
-function BufBreakpoints:new()
-  local elem = { mark_breakpoint_map = {}, expanded_breakpoints = {} }
+function BufBreakpoints:new(state)
+  local elem = { state = state }
   setmetatable(elem, self)
   self.__index = self
   return elem
@@ -29,15 +28,23 @@ function BufBreakpoints:render(canvas, buffer, breakpoints, current_line, curren
   local function is_current_line(bp)
     return bp.line == current_line and bp.file == current_file
   end
-  for _, bp in pairs(breakpoints) do
+  for _, bp in ipairs(breakpoints) do
     local text = vim.api.nvim_buf_get_lines(buffer, bp.line - 1, bp.line, false)
     if vim.tbl_count(text) ~= 0 then
       canvas:add_mapping(config.actions.OPEN, open_frame_callback(bp))
+      canvas:add_mapping(config.actions.TOGGLE, function()
+        self.state:toggle_breakpoint(bp)
+      end)
       canvas:write(string.rep(" ", indent))
-      canvas:write(
-        tostring(bp.line),
-        { group = is_current_line(bp) and "DapUIBreakpointsCurrentLine" or "DapUIBreakpointsLine" }
-      )
+      local group
+      if not bp.enabled then
+        group = "DapUIBreakpointsDisabledLine"
+      elseif is_current_line(bp) then
+        group = "DapUIBreakpointsCurrentLine"
+      else
+        group = "DapUIBreakpointsLine"
+      end
+      canvas:write(tostring(bp.line), { group = group })
       canvas:write(" " .. vim.trim(text[1]) .. "\n")
 
       local info_indent = indent + #tostring(bp.line) + 1
@@ -63,9 +70,9 @@ function BufBreakpoints:render(canvas, buffer, breakpoints, current_line, curren
   canvas:remove_line()
 end
 
----@return BufBreakpoints
-local function new()
-  return BufBreakpoints:new()
+---@return dapui.BufBreakpoints
+local function new(state)
+  return BufBreakpoints:new(state)
 end
 
 return new

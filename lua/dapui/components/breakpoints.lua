@@ -3,12 +3,12 @@ local util = require("dapui.util")
 local BufBreakpoints = require("dapui.components.buf_breakpoints")
 
 ---@class Breakpoints
----@field buffer_breakpoints BufBreakpoints
+---@field buffer_breakpoints dapui.BufBreakpoints
 ---@field state UIState
 local BreakPoints = {}
 
 function BreakPoints:new(state)
-  local elem = { buffer_breakpoints = BufBreakpoints(), state = state }
+  local elem = { buffer_breakpoints = BufBreakpoints(state), state = state }
   setmetatable(elem, self)
   self.__index = self
   return elem

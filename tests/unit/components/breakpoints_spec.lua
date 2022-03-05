@@ -4,16 +4,17 @@ local Breakpoints = require("dapui.components.breakpoints")
 local render = require("dapui.render")
 
 describe("checking multiple file breakpoints", function()
+  assert:add_formatter(vim.inspect)
   require("dapui.config").setup({})
   local buf_a = vim.api.nvim_create_buf(true, true)
   vim.api.nvim_buf_set_name(buf_a, "test/file_a.py")
   local buf_b = vim.api.nvim_create_buf(true, true)
   vim.api.nvim_buf_set_name(buf_b, "test/file_b.py")
   local breakpoints = {
-    [buf_b] = { { line = 25, file = "test/file_b.py" } },
+    [buf_b] = { { line = 25, file = "test/file_b.py", enabled = true } },
     [buf_a] = {
-      { line = 10, file = "test/file_a.py" },
-      { line = 20, file = "test/file_a.py" },
+      { line = 10, file = "test/file_a.py", enabled = true },
+      { line = 20, file = "test/file_a.py", enabled = true },
     },
   }
 
