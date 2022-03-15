@@ -104,7 +104,6 @@ function Variables:render(canvas, parent_ref, variables, indent)
     if self.expanded_children[variable.name] and variable.variablesReference ~= 0 then
       local child_vars = self.state:variables(variable.variablesReference)
       if not child_vars then
-        canvas:invalidate()
         -- Happens when the parent component is collapsed and the variable
         -- reference changes when re-opened.  The name is recorded as opened
         -- but the variable reference is not yet monitored.

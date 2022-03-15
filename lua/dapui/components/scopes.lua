@@ -18,7 +18,6 @@ end
 function Scopes:render(canvas)
   local frame = self.state:current_frame()
   if not frame then
-    canvas:invalidate()
     return
   end
   if frame.id ~= self.frame_id then
@@ -28,14 +27,10 @@ function Scopes:render(canvas)
   for i, scope in pairs(self.state:scopes()) do
     canvas:write(scope.name, { group = "DapUIScope" })
     canvas:write(":\n")
-    local variables = self.state:variables(scope.variablesReference)
-    if not variables then
-      canvas:invalidate()
-    else
-      self
-        :_get_var_component(i)
-        :render(canvas, scope.variablesReference, variables, config.windows().indent)
-    end
+    local variables = self.state:variables(scope.variablesReference) or {}
+    self
+      :_get_var_component(i)
+      :render(canvas, scope.variablesReference, variables, config.windows().indent)
     if i < #self.state:scopes() then
       canvas:write("\n")
     end

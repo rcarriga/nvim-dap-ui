@@ -55,6 +55,9 @@ function UIState:attach(dap, listener_id)
   dap.listeners.after.event_terminated[listener_id] = function()
     self:_clear()
   end
+  dap.listeners.after.event_exited[listener_id] = function()
+    self:_clear()
+  end
   dap.listeners.after.event_stopped[listener_id] = function()
     self._step_number = self._step_number + 1
   end
@@ -125,14 +128,6 @@ function UIState:_refresh_scopes(session)
   session:request("scopes", { frameId = session.current_frame.id }, function() end)
 end
 
-function UIState:_refresh(session)
-  if not session.current_frame then
-    return
-  end
-  self:_refresh_scopes(session)
-  session:request("threads", nil, function() end)
-end
-
 function UIState:_refresh_watches(session)
   for expression, expr_data in pairs(self._watches) do
     session:request("evaluate", {
@@ -148,11 +143,20 @@ function UIState:_refresh_watches(session)
 end
 
 function UIState:_emit_refreshed(session)
-  if not self:current_frame() or (self:current_frame().id ~= session.current_frame.id) then
+  if
+    not session
+    or not self:current_frame()
+    or not session.current_frame
+    or (self:current_frame().id ~= session.current_frame.id)
+  then
     self._monitored_vars = {}
   end
-  self._current_frame = session.current_frame
-  self._stopped_thread_id = session.stopped_thread_id
+  if session then
+    self._current_frame = session.current_frame
+    self._stopped_thread_id = session.stopped_thread_id
+  else
+    self:_clear()
+  end
   for _, receiver in pairs(self._listeners[events.REFRESH]) do
     receiver(session)
   end
@@ -276,9 +280,6 @@ function UIState:toggle_breakpoint(bp)
     hit_condition = bp.hitCondition,
     log_message = bp.logMessage,
   }, vim.fn.bufnr(bp.file), bp.line)
-  util.with_session(function(session)
-    self:_emit_refreshed(session)
-  end)
   local buffer_breakpoints = require("dap.breakpoints").get(bp.file)
   local enabled = false
   for _, buf_bp in ipairs(buffer_breakpoints) do
@@ -300,6 +301,8 @@ function UIState:toggle_breakpoint(bp)
   end
   util.with_session(function(session)
     self:_emit_refreshed(session)
+  end, function()
+    self:_emit_refreshed()
   end)
 end
 
@@ -347,12 +350,6 @@ end
 
 function UIState:on_clear(callback)
   self:_add_listener(events.CLEAR, callback)
-end
-
-function UIState:refresh()
-  util.with_session(function(session)
-    self:_refresh(session)
-  end)
 end
 
 ---@return UIState

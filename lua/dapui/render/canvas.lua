@@ -22,7 +22,7 @@ function Canvas:new()
     mappings[action] = {}
   end
   local canvas = {
-    lines = {},
+    lines = { "" },
     matches = {},
     mappings = mappings,
     prompt = nil,
@@ -73,7 +73,9 @@ end
 function Canvas:reset()
   self.lines = {}
   self.matches = {}
-  self.mappings = { open = {}, expand = {}, remove = {}, edit = {} }
+  for _, action in pairs(config.actions) do
+    self.mappings[action] = {}
+  end
 end
 
 ---Add a new highlight match to pass to matchaddpos
@@ -100,7 +102,7 @@ end
 --   `line` Line to map to, defaults to last in state
 function Canvas:add_mapping(action, callback, opts)
   opts = opts or {}
-  local line = opts["line"] or self:length()
+  local line = opts.line or self:length()
   if line == 0 then
     line = 1
   end
@@ -133,12 +135,6 @@ end
 function M.render_buffer(state, buffer)
   local success, _ = pcall(api.nvim_buf_set_option, buffer, "modifiable", true)
   if not success then
-    return false
-  end
-  if state:length() == 0 then
-    return
-  end
-  if buffer < 0 then
     return false
   end
   local win = vim.fn.bufwinnr(buffer)

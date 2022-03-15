@@ -142,12 +142,8 @@ function Watches:render(canvas)
       end
 
       if self.var_components[i] and self.expanded[i] then
-        local child_vars = self.state:variables(var_ref)
-        if not child_vars then
-          canvas:invalidate()
-        else
-          self.var_components[i]:render(canvas, var_ref, child_vars, config.windows().indent)
-        end
+        local child_vars = self.state:variables(var_ref) or {}
+        self.var_components[i]:render(canvas, var_ref, child_vars, config.windows().indent)
       end
       if self.rendered_step ~= self.state:step_number() then
         self.rendered_exprs[i] = watch.evaluated

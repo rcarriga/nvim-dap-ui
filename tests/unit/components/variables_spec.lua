@@ -213,7 +213,7 @@ describe("checking variables", function()
       assert.Nil(monitored[2])
     end)
 
-    it("invalidates render when variables not ready", function()
+    it("monitors child var when variable reference is changed", function()
       local canvas = render.new_canvas()
       local component = Variables(mock_state)
 
@@ -227,21 +227,6 @@ describe("checking variables", function()
       vars[1].variablesReference = 10
       component:render(canvas, 1, vars)
       assert.True(monitored[10])
-    end)
-
-    it("monitors child var when variable reference is changed", function()
-      local canvas = render.new_canvas()
-      local component = Variables(mock_state)
-
-      local vars = mock_state:variables(1)
-      component:render(canvas, 1, vars)
-      canvas.mappings["expand"][1][1]()
-      canvas = render.new_canvas()
-      mock_state.variables = function()
-        return nil
-      end
-      component:render(canvas, 1, vars)
-      assert.False(canvas.valid)
     end)
 
     it("creates edit mappings", function() end)

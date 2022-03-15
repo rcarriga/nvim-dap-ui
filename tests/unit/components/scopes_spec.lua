@@ -137,15 +137,19 @@ describe("checking scopes", function()
         monitor = function(_, ref)
           monitored[ref] = true
         end,
+        step_number = function()
+          return 1
+        end,
       }
     end)
 
-    it("invalidates render", function()
+    it("renders empty scopes", function()
       local canvas = render.new_canvas()
       local component = Scopes(invalid_state)
 
       component:render(canvas)
-      assert.False(canvas.valid)
+      local expected = { "Scope A:", "", "Scope B:" }
+      assert.are.same(expected, canvas.lines)
     end)
   end)
 end)

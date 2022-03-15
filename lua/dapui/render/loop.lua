@@ -1,7 +1,7 @@
 ---@class RenderLoop
 local M = {}
 
-local canvas = require("dapui.render.canvas")
+local Canvas = require("dapui.render.canvas")
 
 M.EVENTS = { RENDER = "render", CLOSE = "close" }
 
@@ -92,14 +92,14 @@ function M.run(element_names)
   for _, elem_name in pairs(element_names) do
     local canvas_state = canvas_states[elem_name]
     if not vim.tbl_isempty(canvas_state.buffers) then
-      local state = canvas.new()
-      canvas_state.element.render(state)
-      if state.valid then
+      local canvas = Canvas.new()
+      canvas_state.element.render(canvas)
+      if canvas.valid then
         for _, buf in pairs(canvas_state.buffers) do
-          local rendered = canvas.render_buffer(state, buf)
+          local rendered = Canvas.render_buffer(canvas, buf)
           if rendered then
             for _, listener in pairs(canvas_state.listeners[M.EVENTS.RENDER] or {}) do
-              listener(buf, state)
+              listener(buf, canvas)
             end
           end
         end

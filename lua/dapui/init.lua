@@ -130,6 +130,9 @@ function dapui.setup(user_config)
   ui_state:on_refresh(function()
     render.loop.run()
   end)
+  ui_state:on_clear(function()
+    render.loop.run()
+  end)
 end
 
 ---Close either or both the tray and sidebar

@@ -31,7 +31,7 @@ function BreakPoints:render(canvas)
 
     canvas:write("\n\n")
   end
-  if canvas:length() > 0 then
+  if canvas:length() > 1 then
     canvas:remove_line()
     canvas:remove_line()
   else

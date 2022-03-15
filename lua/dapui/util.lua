@@ -20,10 +20,12 @@ function M.is_uri(path)
 end
 
 ---@param cb fun(session: table)
-function M.with_session(cb)
+function M.with_session(cb, fail_cb)
   local session = require("dap").session()
   if session then
     cb(session)
+  elseif fail_cb then
+    fail_cb()
   end
 end
 
