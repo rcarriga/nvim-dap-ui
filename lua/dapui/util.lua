@@ -105,6 +105,11 @@ end
 function M.get_selection(start, finish)
   local start_line, start_col = start[2], start[3]
   local finish_line, finish_col = finish[2], finish[3]
+
+  if start_line > finish_line or (start_line == finish_line and start_col > finish_col) then
+    start_line, start_col, finish_line, finish_col = finish_line, finish_col, start_line, start_col
+  end
+
   local lines = vim.fn.getline(start_line, finish_line)
   if #lines == 0 then
     return
