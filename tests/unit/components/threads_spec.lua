@@ -3,6 +3,7 @@ local render = require("dapui.render")
 
 describe("checking threads", function()
   require("dapui.config").setup({})
+  assert:add_formatter(vim.inspect)
 
   local mock_state = {
     threads = function()
@@ -33,6 +34,18 @@ describe("checking threads", function()
             source = {
               name = "test_b.py",
               path = "/test/test_b.py",
+              sourceReference = 0,
+            },
+          },
+          {
+            column = 0,
+            id = 1001,
+            line = 200,
+            name = "test_3",
+            presentationHint = "subtle",
+            source = {
+              name = "test_c.py",
+              path = "/test/test_c.py",
               sourceReference = 0,
             },
           },
@@ -94,11 +107,83 @@ describe("checking threads", function()
     assert.are.same(expected, canvas.matches)
   end)
 
-  it("creates mappings", function()
+  it("creates open mappings", function()
     local canvas = render.new_canvas()
     local component = Threads(mock_state)
 
     component:render(canvas)
     assert.equal(3, #canvas.mappings["open"])
+  end)
+
+  it("creates toggle mappings", function()
+    local canvas = render.new_canvas()
+    local component = Threads(mock_state)
+
+    component:render(canvas)
+    assert.equal(3, #canvas.mappings["open"])
+  end)
+
+  describe("with subtle frames", function()
+    local component
+    before_each(function()
+      component = Threads(mock_state)
+      local canvas = render.new_canvas()
+      component:render(canvas, 0)
+      canvas.mappings["toggle"][1][1]()
+    end)
+
+    it("creates lines", function()
+      local canvas = render.new_canvas()
+
+      component:render(canvas, 0)
+      local expected = {
+        "Thread 1:",
+        " test_1 test_a.py:6",
+        " test_2 test_b.py:1193",
+        " test_3 test_c.py:200",
+        "",
+        "Thread 2:",
+        " test_3 test_c.py:1371",
+      }
+      assert.are.same(expected, canvas.lines)
+    end)
+
+    it("creates matches", function()
+      local canvas = render.new_canvas()
+
+      component:render(canvas)
+      local expected = {
+        { "DapUIStoppedThread", { 1, 1, 8 } },
+        { "DapUIFrameName", { 2, 2, 6 } },
+        { "DapUISource", { 2, 9, 9 } },
+        { "DapUILineNumber", { 2, 19, 1 } },
+        { "DapUIFrameName", { 3, 2, 6 } },
+        { "DapUISource", { 3, 9, 9 } },
+        { "DapUILineNumber", { 3, 19, 4 } },
+        { "DapUIFrameName", { 4, 2, 6 } },
+        { "DapUISource", { 4, 9, 9 } },
+        { "DapUILineNumber", { 4, 19, 3 } },
+        { "DapUIThread", { 6, 1, 8 } },
+        { "DapUIFrameName", { 7, 2, 6 } },
+        { "DapUISource", { 7, 9, 9 } },
+        { "DapUILineNumber", { 7, 19, 4 } },
+      }
+
+      assert.are.same(expected, canvas.matches)
+    end)
+
+    it("creates open mappings", function()
+      local canvas = render.new_canvas()
+
+      component:render(canvas)
+      assert.equal(4, #canvas.mappings["open"])
+    end)
+
+    it("creates toggle mappings", function()
+      local canvas = render.new_canvas()
+
+      component:render(canvas)
+      assert.equal(4, #canvas.mappings["open"])
+    end)
   end)
 end)

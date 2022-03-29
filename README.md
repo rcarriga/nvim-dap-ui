@@ -120,6 +120,7 @@ Displays the running threads and their stack frames.
 Mappings:
 
 - `open`: Jump to a place within the stack frame.
+- `toggle`: Toggle displaying [subtle](https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame) frames
 
 ### Watch Expressions
 

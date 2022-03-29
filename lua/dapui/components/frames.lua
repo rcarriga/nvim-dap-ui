@@ -21,10 +21,7 @@ end
 ---@param canvas dapui.Canvas
 function StackFrames:render(canvas, frames, indent)
   indent = indent or 0
-  local visible = vim.tbl_filter(function(frame)
-    return frame.presentationHint ~= "subtle"
-  end, frames)
-  for i, frame in ipairs(visible) do
+  for i, frame in ipairs(frames) do
     canvas:write(string.rep(" ", indent))
     canvas:write(frame.name, { group = "DapUIFrameName" })
     canvas:write(" ")
