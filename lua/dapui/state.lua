@@ -55,6 +55,9 @@ function UIState:attach(dap, listener_id)
   dap.listeners.after.event_terminated[listener_id] = function()
     self:_clear()
   end
+  dap.listeners.after.disconnect[listener_id] = function()
+    self:_clear()
+  end
   dap.listeners.after.event_exited[listener_id] = function()
     self:_clear()
   end
