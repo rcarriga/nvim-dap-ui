@@ -55,23 +55,4 @@ function M.show()
   api.nvim_win_set_option(window_id, "winhighlight", "NormalFloat:Normal")
 end
 
-function M.enable_for_window()
-  vim.notify(api.nvim_buf_get_name(0))
-  if vim.fn.has("nvim-0.7") == 1 then
-    api.nvim_create_augroup("ArctgxLineHover", { clear = true })
-    api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
-      group = "ArctgxLineHover",
-      buffer = 0,
-      -- buffer = bufnr,
-      callback = M.show_delayed,
-    })
-    api.nvim_create_autocmd({ "BufLeave", "TabClosed" }, {
-      group = "ArctgxLineHover",
-      buffer = 0,
-      -- buffer = bufnr,
-      callback = M.hide_existing_window,
-    })
-  end
-end
-
 return M
