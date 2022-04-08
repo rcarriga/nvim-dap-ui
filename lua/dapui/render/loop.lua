@@ -54,6 +54,16 @@ function M.register_buffer(element_name, buf)
       .. buf
       .. ")"
   )
+  vim.cmd(
+    "autocmd CursorHold <buffer="
+      .. buf
+      .. "> lua require(\"dapui.render.line_hover\").show_delayed()"
+  )
+  vim.cmd(
+    "autocmd BufLeave,TabClosed <buffer="
+      .. buf
+      .. "> lua require(\"dapui.render.line_hover\").hide_existing_window()"
+  )
 end
 
 function M.remove_buffer(element_name, buf_to_remove)
