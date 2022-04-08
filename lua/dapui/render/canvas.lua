@@ -197,6 +197,16 @@ function M.render_buffer(state, buffer)
         .. buffer
         .. ", 'modified', v:false)"
     )
+    vim.cmd(
+      "autocmd CursorHold <buffer="
+        .. buffer
+        .. "> lua require(\"dapui.render.line_hover\").show_delayed()"
+    )
+    vim.cmd(
+      "autocmd BufLeave,TabClosed <buffer="
+        .. buffer
+        .. "> lua require(\"dapui.render.line_hover\").hide_existing_window()"
+    )
     vim.cmd("augroup END")
   else
     api.nvim_buf_set_option(buffer, "modifiable", false)
