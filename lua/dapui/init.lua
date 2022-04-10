@@ -116,7 +116,6 @@ function dapui.setup(user_config)
 
   for _, module in pairs(config.elements) do
     local elem = element(module)
-    local settings = {}
     elem.setup(ui_state)
     render.loop.register_element(elem, config.sidebar_element(module))
     for _, event in pairs(elem.dap_after_listeners or {}) do
