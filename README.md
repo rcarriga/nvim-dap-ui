@@ -70,10 +70,11 @@ require("dapui").setup({
       {
         id = "scopes",
         size = 0.25, -- Can be float or integer > 1
+        expand_long_lines = true,
       },
-      { id = "breakpoints", size = 0.25 },
-      { id = "stacks", size = 0.25 },
-      { id = "watches", size = 00.25 },
+      { id = "breakpoints", size = 0.25, expand_long_lines = true },
+      { id = "stacks", size = 0.25, expand_long_lines = true },
+      { id = "watches", size = 00.25, expand_long_lines = true },
     },
     size = 40,
     position = "left", -- Can be "left", "right", "top", "bottom"
