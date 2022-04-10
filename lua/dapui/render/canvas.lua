@@ -170,7 +170,7 @@ function M.render_buffer(state, buffer)
       { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
     )
   end
-  vim.cmd("augroup DAPUIExpandLongLines" .. api.nvim_buf_get_name(buffer))
+  vim.cmd("augroup DAPUIExpandLongLinesFor" .. vim.fn.bufname(buffer):gsub('DAP ', ''))
   vim.cmd("autocmd!")
   vim.cmd(
     "autocmd CursorHold <buffer="
