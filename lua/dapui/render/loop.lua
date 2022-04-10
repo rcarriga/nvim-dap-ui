@@ -54,7 +54,8 @@ function M.register_buffer(element_name, buf)
       .. buf
       .. ")"
   )
-  vim.cmd("augroup DAPUIExpandLongLines" .. buf)
+  vim.cmd("augroup DAPUIExpandLongLines" .. element.name)
+  vim.cmd("autocmd!")
   vim.cmd(
     "autocmd CursorHold <buffer="
       .. buf
@@ -69,7 +70,6 @@ function M.register_buffer(element_name, buf)
 end
 
 function M.remove_buffer(element_name, buf_to_remove)
-  vim.cmd("autocmd! DAPUIExpandLongLines" .. buf_to_remove)
   local canvas_state = canvas_states[element_name]
   canvas_state.buffers = vim.tbl_filter(function(buf)
     return buf_to_remove ~= buf
