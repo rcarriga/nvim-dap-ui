@@ -18,16 +18,19 @@ M.EVENTS = { RENDER = "render", CLOSE = "close" }
 ---@field buffers table<number, number>
 ---@field listeners table<string, table<number, fun(buffer: number)>>
 ---@field element Element
+---@field settings table<string, string>
 
 ---@type table <string, ElementCanvasState>
 local canvas_states = {}
 
 ---@param element Element
-function M.register_element(element)
+---@param settings table
+function M.register_element(element, settings)
   canvas_states[element.name] = {
     element = element,
     buffers = {},
     listeners = { [M.EVENTS.RENDER] = {}, [M.EVENTS.CLOSE] = {} },
+    settings = settings or {},
   }
 end
 
@@ -96,7 +99,7 @@ function M.run(element_names)
       canvas_state.element.render(canvas)
       if canvas.valid then
         for _, buf in pairs(canvas_state.buffers) do
-          local rendered = Canvas.render_buffer(canvas, buf)
+          local rendered = Canvas.render_buffer(canvas, buf, canvas_state.settings)
           if rendered then
             for _, listener in pairs(canvas_state.listeners[M.EVENTS.RENDER] or {}) do
               listener(buf, canvas)

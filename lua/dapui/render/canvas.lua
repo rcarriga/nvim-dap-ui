@@ -132,7 +132,7 @@ end
 ---Apply a render.canvas to a buffer
 ---@param state dapui.Canvas
 ---@param buffer number
-function M.render_buffer(state, buffer)
+function M.render_buffer(state, buffer, settings)
   local success, _ = pcall(api.nvim_buf_set_option, buffer, "modifiable", true)
   if not success then
     return false
@@ -170,19 +170,21 @@ function M.render_buffer(state, buffer)
       { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
     )
   end
-  vim.cmd("augroup DAPUIExpandLongLinesFor" .. vim.fn.bufname(buffer):gsub('DAP ', ''))
-  vim.cmd("autocmd!")
-  vim.cmd(
-    "autocmd CursorHold <buffer="
-    .. buffer
-      .. "> lua require(\"dapui.render.line_hover\").show_delayed()"
-  )
-  vim.cmd(
-    "autocmd BufLeave,TabClosed <buffer="
+  if settings.expand_long_lines then
+    vim.cmd("augroup DAPUIExpandLongLinesFor" .. vim.fn.bufname(buffer):gsub('DAP ', ''))
+    vim.cmd("autocmd!")
+    vim.cmd(
+      "autocmd CursorHold <buffer="
       .. buffer
-      .. "> lua require(\"dapui.render.line_hover\").hide_existing_window()"
-  )
-  vim.cmd("augroup END")
+        .. "> lua require(\"dapui.render.line_hover\").show_delayed()"
+    )
+    vim.cmd(
+      "autocmd BufLeave,TabClosed <buffer="
+        .. buffer
+        .. "> lua require(\"dapui.render.line_hover\").hide_existing_window()"
+    )
+    vim.cmd("augroup END")
+  end
   if state.prompt then
     api.nvim_buf_set_option(buffer, "buftype", "prompt")
     vim.fn.prompt_setprompt(buffer, state.prompt.text)
