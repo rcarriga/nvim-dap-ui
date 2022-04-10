@@ -170,6 +170,19 @@ function M.render_buffer(state, buffer)
       { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
     )
   end
+  vim.cmd("augroup DAPUIExpandLongLines" .. api.nvim_buf_get_name(buffer))
+  vim.cmd("autocmd!")
+  vim.cmd(
+    "autocmd CursorHold <buffer="
+    .. buffer
+      .. "> lua require(\"dapui.render.line_hover\").show_delayed()"
+  )
+  vim.cmd(
+    "autocmd BufLeave,TabClosed <buffer="
+      .. buffer
+      .. "> lua require(\"dapui.render.line_hover\").hide_existing_window()"
+  )
+  vim.cmd("augroup END")
   if state.prompt then
     api.nvim_buf_set_option(buffer, "buftype", "prompt")
     vim.fn.prompt_setprompt(buffer, state.prompt.text)
