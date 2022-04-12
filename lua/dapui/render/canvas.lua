@@ -171,7 +171,7 @@ function M.render_buffer(state, buffer, settings)
     )
   end
   if settings.expand_long_lines then
-    vim.cmd("augroup DAPUIExpandLongLinesFor" .. settings.id:gsub("^%l", string.upper))
+    vim.cmd("augroup DAPUIExpandLongLinesFor" .. vim.fn.bufname(buffer):gsub('DAP ', ''))
     vim.cmd("autocmd!")
     vim.cmd(
       "autocmd CursorHold <buffer="
