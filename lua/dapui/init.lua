@@ -119,7 +119,7 @@ function dapui.setup(user_config)
     delay = {
       expand_lines.delay,
       function(value)
-        vim.validate({ value = { value, 'number' } })
+        vim.validate({ delay = { value, 'number' } })
         return value >= 0
       end,
       'non-negative number'
