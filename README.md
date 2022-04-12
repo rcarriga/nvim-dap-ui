@@ -64,17 +64,21 @@ require("dapui").setup({
     toggle = "t",
   },
   sidebar = {
+    expand_lines = {
+      enabled = true,
+      -- Additional (to vim.go.updatetime) delay after which the current line will be expanded
+      delay = 0,
+    },
     -- You can change the order of elements in the sidebar
     elements = {
       -- Provide as ID strings or tables with "id" and "size" keys
       {
         id = "scopes",
         size = 0.25, -- Can be float or integer > 1
-        expand_long_lines = true,
       },
-      { id = "breakpoints", size = 0.25, expand_long_lines = true },
-      { id = "stacks", size = 0.25, expand_long_lines = true },
-      { id = "watches", size = 00.25, expand_long_lines = true },
+      { id = "breakpoints", size = 0.25 },
+      { id = "stacks", size = 0.25 },
+      { id = "watches", size = 00.25 },
     },
     size = 40,
     position = "left", -- Can be "left", "right", "top", "bottom"

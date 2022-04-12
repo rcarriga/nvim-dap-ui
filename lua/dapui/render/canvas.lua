@@ -132,7 +132,8 @@ end
 ---Apply a render.canvas to a buffer
 ---@param state dapui.Canvas
 ---@param buffer number
-function M.render_buffer(state, buffer, settings)
+---@param table expand_lines
+function M.render_buffer(state, buffer, expand_lines)
   local success, _ = pcall(api.nvim_buf_set_option, buffer, "modifiable", true)
   if not success then
     return false
@@ -170,13 +171,13 @@ function M.render_buffer(state, buffer, settings)
       { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
     )
   end
-  if settings.expand_long_lines then
+  if expand_lines.enabled then
     vim.cmd("augroup DAPUIExpandLongLinesFor" .. vim.fn.bufname(buffer):gsub('DAP ', ''))
     vim.cmd("autocmd!")
     vim.cmd(
       "autocmd CursorHold <buffer="
       .. buffer
-        .. "> lua require(\"dapui.render.line_hover\").show_delayed()"
+        .. "> lua require(\"dapui.render.line_hover\").show_delayed(" .. expand_lines.delay .. ")"
     )
     vim.cmd(
       "autocmd BufLeave,TabClosed <buffer="

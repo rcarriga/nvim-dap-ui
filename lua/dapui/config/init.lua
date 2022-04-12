@@ -34,6 +34,11 @@ local default_config = {
     [M.actions.TOGGLE] = "t",
   },
   sidebar = {
+    expand_lines = {
+      enabled = true,
+      -- Additional (to vim.go.updatetime) delay after which the current line will be expanded
+      delay = 0,
+    },
     -- You can change the order of elements in the sidebar
     elements = {
       -- Provide IDs as strings or tables with "id" and "size" keys
@@ -42,9 +47,9 @@ local default_config = {
         size = 0.25, -- Can be float or integer > 1
         expand_long_lines = true,
       },
-      { id = M.elements.BREAKPOINTS, size = 0.25, expand_long_lines = true },
-      { id = M.elements.STACKS, size = 0.25, expand_long_lines = true },
-      { id = M.elements.WATCHES, size = 0.25, expand_long_lines = true },
+      { id = M.elements.BREAKPOINTS, size = 0.25 },
+      { id = M.elements.STACKS, size = 0.25 },
+      { id = M.elements.WATCHES, size = 0.25 },
     },
     size = 40,
     position = "left", -- Can be "left" or "right"
@@ -133,16 +138,6 @@ end
 
 function M.windows()
   return user_config.windows
-end
-
-function M.sidebar_element(id)
-  for _, config in ipairs(user_config.sidebar.elements) do
-    if config.id == id then
-      return config
-    end
-  end
-
-  return {}
 end
 
 return M

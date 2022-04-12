@@ -114,10 +114,22 @@ function dapui.setup(user_config)
   ui_state = UIState()
   ui_state:attach(dap)
 
+  expand_lines = config.sidebar().expand_lines
+  vim.validate({
+    delay = {
+      expand_lines.delay,
+      function(value)
+        vim.validate({ value = { value, 'number' } })
+        return value >= 0
+      end,
+      'non-negative number'
+    }
+  })
+
   for _, module in pairs(config.elements) do
     local elem = element(module)
     elem.setup(ui_state)
-    render.loop.register_element(elem, config.sidebar_element(module))
+    render.loop.register_element(elem, expand_lines)
     for _, event in pairs(elem.dap_after_listeners or {}) do
       dap.listeners.after[event]["DapUI " .. elem.name] = function()
         render.loop.run(elem.name)
