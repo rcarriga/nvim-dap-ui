@@ -33,19 +33,17 @@ local default_config = {
     [M.actions.REPL] = "r",
     [M.actions.TOGGLE] = "t",
   },
+  line_expansion = {
+    enabled = true,
+    delay = 0,
+  },
   sidebar = {
-    expand_lines = {
-      enabled = true,
-      -- Additional (to vim.go.updatetime) delay after which the current line will be expanded
-      delay = 0,
-    },
     -- You can change the order of elements in the sidebar
     elements = {
       -- Provide IDs as strings or tables with "id" and "size" keys
       {
         id = M.elements.SCOPES,
         size = 0.25, -- Can be float or integer > 1
-        expand_long_lines = true,
       },
       { id = M.elements.BREAKPOINTS, size = 0.25 },
       { id = M.elements.STACKS, size = 0.25 },
@@ -138,6 +136,10 @@ end
 
 function M.windows()
   return user_config.windows
+end
+
+function M.line_expansion()
+  return user_config.line_expansion
 end
 
 return M

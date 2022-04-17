@@ -96,6 +96,11 @@ function M.run(element_names)
     local canvas_state = canvas_states[elem_name]
     if not vim.tbl_isempty(canvas_state.buffers) then
       local canvas = Canvas.new()
+      if false == canvas_state.settings.line_expansion.enabled then
+        canvas:disable_line_expansion()
+      else
+        canvas:change_expansion_delay(canvas_state.settings.line_expansion.delay)
+      end
       canvas_state.element.render(canvas)
       if canvas.valid then
         for _, buf in pairs(canvas_state.buffers) do

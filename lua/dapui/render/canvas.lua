@@ -13,6 +13,7 @@ M.namespace = api.nvim_create_namespace("dapui")
 ---@field mappings table
 ---@field prompt table
 ---@field valid boolean
+---@field line_expansion table
 local Canvas = {}
 
 ---@return dapui.Canvas
@@ -21,12 +22,17 @@ function Canvas:new()
   for _, action in pairs(config.actions) do
     mappings[action] = {}
   end
+  local line_expansion = {
+    enabled = true,
+    delay = 0,
+  }
   local canvas = {
     lines = { "" },
     matches = {},
     mappings = mappings,
     prompt = nil,
     valid = true,
+    line_expansion = line_expansion,
   }
   setmetatable(canvas, self)
   self.__index = self
@@ -129,11 +135,18 @@ function Canvas:width()
   return width
 end
 
+function Canvas:disable_line_expansion()
+  self.line_expansion.enabled = false
+end
+
+function Canvas:change_expansion_delay(delay)
+  self.line_expansion.delay = delay
+end
+
 ---Apply a render.canvas to a buffer
 ---@param state dapui.Canvas
 ---@param buffer number
----@param table expand_lines
-function M.render_buffer(state, buffer, expand_lines)
+function M.render_buffer(state, buffer)
   local success, _ = pcall(api.nvim_buf_set_option, buffer, "modifiable", true)
   if not success then
     return false
@@ -171,13 +184,13 @@ function M.render_buffer(state, buffer, expand_lines)
       { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
     )
   end
-  if expand_lines.enabled then
+  if state.line_expansion.enabled then
     vim.cmd("augroup DAPUIExpandLongLinesFor" .. vim.fn.bufname(buffer):gsub('DAP ', ''))
     vim.cmd("autocmd!")
     vim.cmd(
       "autocmd CursorMoved <buffer="
       .. buffer
-        .. "> lua require(\"dapui.render.line_hover\").show_delayed(" .. expand_lines.delay .. ")"
+      .. "> lua require(\"dapui.render.line_hover\").show_delayed(" .. state.line_expansion.delay .. ")"
     )
     vim.cmd(
       "autocmd BufLeave,TabClosed <buffer="
