@@ -175,7 +175,7 @@ function M.render_buffer(state, buffer, expand_lines)
     vim.cmd("augroup DAPUIExpandLongLinesFor" .. vim.fn.bufname(buffer):gsub('DAP ', ''))
     vim.cmd("autocmd!")
     vim.cmd(
-      "autocmd CursorHold <buffer="
+      "autocmd CursorMoved <buffer="
       .. buffer
         .. "> lua require(\"dapui.render.line_hover\").show_delayed(" .. expand_lines.delay .. ")"
     )
