@@ -18,7 +18,7 @@ M.EVENTS = { RENDER = "render", CLOSE = "close" }
 ---@field buffers table<number, number>
 ---@field listeners table<string, table<number, fun(buffer: number)>>
 ---@field element Element
----@field settings table<string, string>
+---@field settings table
 
 ---@type table <string, ElementCanvasState>
 local canvas_states = {}
