@@ -53,9 +53,10 @@ function Variables:render(canvas, parent_ref, variables, indent)
     canvas:write(" ")
     canvas:write(variable.name, { group = "DapUIVariable" })
 
-    if #(variable.type or "") > 0 then
+    local var_type = util.render_type(variable.type)
+    if #var_type > 0 then
       canvas:write(" ")
-      canvas:write(variable.type, { group = "DapUIType" })
+      canvas:write(var_type, { group = "DapUIType" })
     end
 
     local var_group

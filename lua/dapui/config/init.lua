@@ -62,6 +62,9 @@ local default_config = {
     },
   },
   windows = { indent = 1 },
+  render = {
+    max_type_length = nil, -- Can be integer or nil.
+  },
 }
 
 local user_config = {}
@@ -132,6 +135,10 @@ end
 
 function M.windows()
   return user_config.windows
+end
+
+function M.render()
+  return user_config.render
 end
 
 return M
