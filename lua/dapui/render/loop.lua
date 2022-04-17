@@ -104,7 +104,7 @@ function M.run(element_names)
       canvas_state.element.render(canvas)
       if canvas.valid then
         for _, buf in pairs(canvas_state.buffers) do
-          local rendered = Canvas.render_buffer(canvas, buf, canvas_state.settings)
+          local rendered = Canvas.render_buffer(canvas, buf)
           if rendered then
             for _, listener in pairs(canvas_state.listeners[M.EVENTS.RENDER] or {}) do
               listener(buf, canvas)
