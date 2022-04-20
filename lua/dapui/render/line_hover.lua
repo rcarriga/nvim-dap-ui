@@ -13,10 +13,9 @@ function M.show_delayed(debounce_time)
 end
 
 local function create_buffer(content)
-  local buf_nr = api.nvim_create_buf(false, false)
+  local buf_nr = api.nvim_create_buf(false, true)
   vim.fn.setbufline(buf_nr, 1, content)
   api.nvim_buf_set_option(buf_nr, "bufhidden", "wipe")
-  api.nvim_buf_set_option(buf_nr, "buftype", "nofile")
   api.nvim_buf_set_option(buf_nr, "modified", false)
 
   return buf_nr
