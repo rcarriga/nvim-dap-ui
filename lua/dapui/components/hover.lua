@@ -63,9 +63,10 @@ function Hover:render(canvas)
     value = hover_expr.error
   elseif hover_expr.evaluated then
     local evaluated = hover_expr.evaluated
-    if #(evaluated.type or "") > 0 then
+    local eval_type = util.render_type(evaluated.type)
+    if #eval_type > 0 then
       canvas:write(" ")
-      canvas:write(evaluated.type, { group = "DapUIType" })
+      canvas:write(eval_type, { group = "DapUIType" })
     end
     canvas:write(" = ")
     val_start = canvas:line_width()

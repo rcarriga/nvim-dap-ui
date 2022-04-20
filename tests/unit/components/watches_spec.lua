@@ -2,8 +2,11 @@ local Watches = require("dapui.components.watches")
 local render = require("dapui.render")
 
 describe("checking hover", function()
-  require("dapui.config").setup({})
   assert:add_formatter(vim.inspect)
+  require("dapui.config").setup({})
+  after_each(function()
+    require("dapui.config").setup({})
+  end)
 
   describe("in initial layout", function()
     local data = {}
@@ -110,6 +113,15 @@ describe("checking hover", function()
         { "DapUIValue", { 1, 17, 20 } },
       }
       assert.are.same(expected, data.canvas.matches)
+    end)
+
+    it("truncates types", function()
+      require("dapui.config").setup({ render = { max_type_length = 3 } })
+      data.canvas = render.new_canvas()
+      data.component:render(data.canvas)
+
+      local expected = { "▸ expr lis... = [0, 1, [2, 3, 4, 5]]", "" }
+      assert.are.same(data.canvas.lines, expected)
     end)
 
     describe("expanded", function()

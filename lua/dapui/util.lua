@@ -1,3 +1,5 @@
+local config = require("dapui.config")
+
 local M = {}
 
 local api = vim.api
@@ -179,6 +181,25 @@ function M.float_element(elem_name)
   local position = { line = line_no, col = col_no }
   local elem = require("dapui.elements." .. elem_name)
   return require("dapui.windows").open_float(elem, position, elem.float_defaults or {})
+end
+
+function M.render_type(maybe_type)
+  if not maybe_type then
+    return ""
+  end
+  local max_length = config.render().max_type_length
+  if not max_length then
+    return maybe_type
+  end
+  if max_length == 0 then
+    return ""
+  end
+  if vim.str_utfindex(maybe_type) <= max_length then
+    return maybe_type
+  end
+
+  local byte_length = vim.str_byteindex(maybe_type, max_length)
+  return string.sub(maybe_type, 1, byte_length) .. "..."
 end
 
 return M

@@ -86,8 +86,6 @@ function Watches:render(canvas)
   end
   local watches = self.state:watches()
   for i, expr in pairs(self.expressions) do
-    local line_no = canvas:length() + 1
-
     local watch = watches[expr]
     if not vim.tbl_isempty(watch or {}) then
       local var_ref = watch.evaluated and watch.evaluated.variablesReference
@@ -103,9 +101,10 @@ function Watches:render(canvas)
         value = watch.error
       elseif watch.evaluated then
         local evaluated = watch.evaluated
-        if #(evaluated.type or "") > 0 then
+        local eval_type = util.render_type(evaluated.type)
+        if #eval_type > 0 then
           canvas:write(" ")
-          canvas:write(evaluated.type, { group = "DapUIType" })
+          canvas:write(eval_type, { group = "DapUIType" })
         end
         canvas:write(" = ")
         value = evaluated.result

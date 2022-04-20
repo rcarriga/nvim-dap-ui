@@ -2,7 +2,6 @@ local Variables = require("dapui.components.variables")
 local render = require("dapui.render")
 
 describe("checking variables", function()
-  require("dapui.config").setup({})
   assert:add_formatter(vim.inspect)
 
   ---@type UIState
@@ -10,6 +9,7 @@ describe("checking variables", function()
   local monitored
   local updated
   before_each(function()
+    require("dapui.config").setup({})
     monitored = {}
     updated = {}
     mock_state = {
@@ -229,7 +229,15 @@ describe("checking variables", function()
       assert.True(monitored[10])
     end)
 
-    it("creates edit mappings", function() end)
+    it("truncates variable type", function()
+      require("dapui.config").setup({ render = { max_type_length = 3 } })
+      local canvas = render.new_canvas()
+      local component = Variables(mock_state)
+
+      component:render(canvas, 1, mock_state:variables(1))
+      local expected = { "▸ a lis... = [[2, 3, 4, 10]]", "▸ b dic... = {}", "" }
+      assert.are.same(expected, canvas.lines)
+    end)
 
     describe("in set mode", function()
       local canvas
