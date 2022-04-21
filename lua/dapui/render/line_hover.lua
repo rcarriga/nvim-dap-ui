@@ -33,10 +33,11 @@ end
 
 function M.show()
   M.hide_existing_window()
-  local line_content = vim.fn.getline("."):gsub("[^%g* ]+$", "")
-  local content_width = vim.fn.strdisplaywidth(line_content) + 1
+  local full_line = vim.fn.getline('.')
+  local line_content = full_line:gsub('[^%g* ]+$', '')
+  local content_width = vim.fn.strdisplaywidth(full_line)
 
-  if content_width < vim.fn.winwidth(0) then
+  if content_width < vim.fn.winwidth(0) - vim.fn.getwininfo(vim.api.nvim_get_current_win())[1].textoff then
     return
   end
 
