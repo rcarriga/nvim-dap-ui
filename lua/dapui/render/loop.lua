@@ -2,6 +2,7 @@
 local M = {}
 
 local Canvas = require("dapui.render.canvas")
+local config = require("dapui.config")
 
 M.EVENTS = { RENDER = "render", CLOSE = "close" }
 
@@ -18,19 +19,16 @@ M.EVENTS = { RENDER = "render", CLOSE = "close" }
 ---@field buffers table<number, number>
 ---@field listeners table<string, table<number, fun(buffer: number)>>
 ---@field element Element
----@field settings table
 
 ---@type table <string, ElementCanvasState>
 local canvas_states = {}
 
 ---@param element Element
----@param settings table
-function M.register_element(element, settings)
+function M.register_element(element)
   canvas_states[element.name] = {
     element = element,
     buffers = {},
     listeners = { [M.EVENTS.RENDER] = {}, [M.EVENTS.CLOSE] = {} },
-    settings = settings or {},
   }
 end
 
@@ -96,11 +94,7 @@ function M.run(element_names)
     local canvas_state = canvas_states[elem_name]
     if not vim.tbl_isempty(canvas_state.buffers) then
       local canvas = Canvas.new()
-      if false == canvas_state.settings.line_expansion.enabled then
-        canvas:disable_line_expansion()
-      else
-        canvas:change_expansion_delay(canvas_state.settings.line_expansion.delay)
-      end
+      canvas:set_expand_lines(config.expand_lines())
       canvas_state.element.render(canvas)
       if canvas.valid then
         for _, buf in pairs(canvas_state.buffers) do

@@ -1,16 +1,9 @@
 local M = {}
 
 local api = vim.api
-local default_debounce_time = 300
-local window_id = nil
+local namespace = api.nvim_create_namespace("dapui")
 
-local timer = vim.loop.new_timer()
-
-function M.show_delayed(debounce_time)
-  timer:start(debounce_time or default_debounce_time, 0, vim.schedule_wrap(function()
-    M.show()
-  end))
-end
+local buf_wins = {}
 
 local function create_buffer(content)
   local buf_nr = api.nvim_create_buf(false, true)
@@ -21,38 +14,96 @@ local function create_buffer(content)
   return buf_nr
 end
 
-function M.hide_existing_window()
-  timer:stop()
-
-  if nil == window_id or not api.nvim_win_is_valid(window_id) then
+local function auto_close(win_id, buf_id, orig_line)
+  if not api.nvim_win_is_valid(win_id) then
     return
   end
-
-  api.nvim_win_close(window_id, true)
+  local group = api.nvim_create_augroup("DAPUILongLineExpand" .. buf_id, { clear = true })
+  api.nvim_create_autocmd({ "WinEnter", "TabClosed", "CursorMoved" }, {
+    callback = function()
+      if api.nvim_get_current_buf() == buf_id and vim.fn.line(".") == orig_line then
+        auto_close(win_id, buf_id, orig_line)
+        return
+      end
+      buf_wins[vim.api.nvim_get_current_buf()] = nil
+      pcall(api.nvim_win_close, win_id, true)
+    end,
+    once = true,
+    group = group,
+  })
 end
 
 function M.show()
-  M.hide_existing_window()
-  local full_line = vim.fn.getline('.')
-  local line_content = full_line:gsub('[^%g* ]+$', '')
-  local content_width = vim.fn.strdisplaywidth(full_line)
+  local buffer = api.nvim_get_current_buf()
+  local orig_line = vim.fn.line(".")
+  local orig_col = vim.fn.col(".")
 
-  if content_width < vim.fn.winwidth(0) - vim.fn.getwininfo(vim.api.nvim_get_current_win())[1].textoff then
+  local line_content = vim.fn.getline("."):sub(orig_col)
+  local content_width = vim.str_utfindex(line_content)
+
+  if vim.fn.screencol() + content_width > vim.opt.columns:get() then
+    orig_col = 1
+    line_content = vim.fn.getline(".")
+    content_width = vim.str_utfindex(line_content)
+  end
+
+  if
+    content_width
+    < vim.fn.winwidth(0) - vim.fn.getwininfo(vim.api.nvim_get_current_win())[1].textoff - orig_col
+  then
     return
   end
 
-  local buf_nr = create_buffer(line_content)
+  local extmarks = api.nvim_buf_get_extmarks(
+    buffer,
+    namespace,
+    { orig_line - 1, 0 },
+    { orig_line, 1 },
+    { details = true }
+  )
 
-  window_id = api.nvim_open_win(buf_nr, false, {
-    relative = "win",
+  local win_opts = {
+    relative = "cursor",
     width = content_width,
     height = 1,
-    noautocmd = true,
     style = "minimal",
-    bufpos = { vim.fn.line(".") - 2, 0 },
-  })
+    row = 0,
+    col = 0,
+  }
 
-  api.nvim_win_set_option(window_id, "winhighlight", "NormalFloat:Normal")
+  local window_id = buf_wins[buffer]
+  local hover_buf
+  if window_id and not api.nvim_win_is_valid(window_id) then
+    buf_wins[buffer] = nil
+    window_id = nil
+  end
+  -- Use existing window to prevent flickering
+  if window_id then
+    window_id = buf_wins[buffer]
+    hover_buf = api.nvim_win_get_buf(window_id)
+    api.nvim_win_set_config(window_id, win_opts)
+    api.nvim_buf_set_lines(hover_buf, 0, -1, false, { line_content })
+  else
+    hover_buf = create_buffer(line_content)
+    win_opts.noautocmd = true
+    window_id = api.nvim_open_win(hover_buf, false, win_opts)
+    buf_wins[buffer] = window_id
+
+    api.nvim_win_set_option(window_id, "winhighlight", "NormalFloat:Normal")
+  end
+
+  orig_col = orig_col - 1 -- Working with 0-based index now
+  for _, mark in ipairs(extmarks) do
+    local _, _, col, details = unpack(mark)
+    if not details.end_col or details.end_col > orig_col then
+      details.end_row = 0
+      details.end_col = details.end_col and (details.end_col - orig_col)
+      col = math.max(col, orig_col)
+      api.nvim_buf_set_extmark(hover_buf, namespace, 0, col - orig_col, details)
+    end
+  end
+
+  auto_close(window_id, buffer, orig_line)
 end
 
 return M
