@@ -19,7 +19,5 @@ return {
     vim.fn.winrestview({ leftcol = 0 })
     vim.api.nvim_set_current_win(cur_win)
   end,
-  render = function()
-    return
-  end,
+  render = function() end,
 }

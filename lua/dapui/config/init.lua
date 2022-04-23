@@ -7,6 +7,7 @@ M.elements = {
   STACKS = "stacks",
   WATCHES = "watches",
   HOVER = "hover",
+  CONSOLE = "console",
 }
 
 M.actions = {
@@ -50,7 +51,7 @@ local default_config = {
     position = "left", -- Can be "left" or "right"
   },
   tray = {
-    elements = { M.elements.REPL },
+    elements = { M.elements.REPL, M.elements.CONSOLE },
     size = 10,
     position = "bottom", -- Can be "bottom" or "top"
   },

@@ -82,7 +82,7 @@ require("dapui").setup({
     position = "left", -- Can be "left", "right", "top", "bottom"
   },
   tray = {
-    elements = { "repl" },
+    elements = { "repl", "console" },
     size = 10,
     position = "bottom", -- Can be "left", "right", "top", "bottom"
   },
@@ -164,6 +164,12 @@ Mappings:
 Element ID: `repl`
 
 The REPL provided by nvim-dap.
+
+### Console
+
+Element ID: `console`
+
+The console window used by nvim-dap for the integrated terminal.
 
 ## Usage
 
