@@ -13,7 +13,7 @@ M.namespace = api.nvim_create_namespace("dapui")
 ---@field mappings table
 ---@field prompt table
 ---@field valid boolean
----@field line_expansion table
+---@field expand_lines table
 local Canvas = {}
 
 ---@return dapui.Canvas
@@ -22,17 +22,13 @@ function Canvas:new()
   for _, action in pairs(config.actions) do
     mappings[action] = {}
   end
-  local line_expansion = {
-    enabled = true,
-    delay = 0,
-  }
   local canvas = {
     lines = { "" },
     matches = {},
     mappings = mappings,
     prompt = nil,
     valid = true,
-    line_expansion = line_expansion,
+    expand_lines = false,
   }
   setmetatable(canvas, self)
   self.__index = self
@@ -135,12 +131,8 @@ function Canvas:width()
   return width
 end
 
-function Canvas:disable_line_expansion()
-  self.line_expansion.enabled = false
-end
-
-function Canvas:change_expansion_delay(delay)
-  self.line_expansion.delay = delay
+function Canvas:set_expand_lines(value)
+  self.expand_lines = value
 end
 
 ---Apply a render.canvas to a buffer
@@ -167,7 +159,6 @@ function M.render_buffer(state, buffer)
 
   local lines = state.lines
   local matches = state.matches
-  vim.fn["clearmatches"](win)
   api.nvim_buf_clear_namespace(buffer, M.namespace, 0, -1)
   api.nvim_buf_set_lines(buffer, 0, #lines, false, lines)
   local last_line = vim.fn.getbufinfo(buffer)[1].linecount
@@ -184,20 +175,18 @@ function M.render_buffer(state, buffer)
       { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
     )
   end
-  if state.line_expansion.enabled then
-    vim.cmd("augroup DAPUIExpandLongLinesFor" .. vim.fn.bufname(buffer):gsub('DAP ', ''))
-    vim.cmd("autocmd!")
-    vim.cmd(
-      "autocmd CursorMoved <buffer="
-      .. buffer
-      .. "> lua require(\"dapui.render.line_hover\").show_delayed(" .. state.line_expansion.delay .. ")"
+  if state.expand_lines then
+    local group = api.nvim_create_augroup(
+      "DAPUIExpandLongLinesFor" .. vim.fn.bufname(buffer):gsub("DAP ", ""),
+      { clear = true }
     )
-    vim.cmd(
-      "autocmd BufLeave,TabClosed <buffer="
-        .. buffer
-        .. "> lua require(\"dapui.render.line_hover\").hide_existing_window()"
-    )
-    vim.cmd("augroup END")
+    api.nvim_create_autocmd({ "CursorMoved", "WinScrolled" }, {
+      buffer = buffer,
+      group = group,
+      callback = function()
+        vim.schedule(require("dapui.render.line_hover").show)
+      end,
+    })
   end
   if state.prompt then
     api.nvim_buf_set_option(buffer, "buftype", "prompt")
