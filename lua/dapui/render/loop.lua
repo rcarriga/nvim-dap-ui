@@ -2,6 +2,7 @@
 local M = {}
 
 local Canvas = require("dapui.render.canvas")
+local config = require("dapui.config")
 
 M.EVENTS = { RENDER = "render", CLOSE = "close" }
 
@@ -93,6 +94,7 @@ function M.run(element_names)
     local canvas_state = canvas_states[elem_name]
     if not vim.tbl_isempty(canvas_state.buffers) then
       local canvas = Canvas.new()
+      canvas:set_expand_lines(config.expand_lines())
       canvas_state.element.render(canvas)
       if canvas.valid then
         for _, buf in pairs(canvas_state.buffers) do

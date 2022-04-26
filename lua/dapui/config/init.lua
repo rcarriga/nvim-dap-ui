@@ -33,6 +33,7 @@ local default_config = {
     [M.actions.REPL] = "r",
     [M.actions.TOGGLE] = "t",
   },
+  expand_lines = vim.fn.has("nvim-0.7") == 1,
   sidebar = {
     -- You can change the order of elements in the sidebar
     elements = {
@@ -139,6 +140,10 @@ end
 
 function M.render()
   return user_config.render
+end
+
+function M.expand_lines()
+  return user_config.expand_lines
 end
 
 return M

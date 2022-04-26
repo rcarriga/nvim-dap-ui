@@ -13,6 +13,7 @@ M.namespace = api.nvim_create_namespace("dapui")
 ---@field mappings table
 ---@field prompt table
 ---@field valid boolean
+---@field expand_lines table
 local Canvas = {}
 
 ---@return dapui.Canvas
@@ -27,6 +28,7 @@ function Canvas:new()
     mappings = mappings,
     prompt = nil,
     valid = true,
+    expand_lines = false,
   }
   setmetatable(canvas, self)
   self.__index = self
@@ -129,6 +131,10 @@ function Canvas:width()
   return width
 end
 
+function Canvas:set_expand_lines(value)
+  self.expand_lines = value
+end
+
 ---Apply a render.canvas to a buffer
 ---@param state dapui.Canvas
 ---@param buffer number
@@ -153,7 +159,6 @@ function M.render_buffer(state, buffer)
 
   local lines = state.lines
   local matches = state.matches
-  vim.fn["clearmatches"](win)
   api.nvim_buf_clear_namespace(buffer, M.namespace, 0, -1)
   api.nvim_buf_set_lines(buffer, 0, #lines, false, lines)
   local last_line = vim.fn.getbufinfo(buffer)[1].linecount
@@ -169,6 +174,19 @@ function M.render_buffer(state, buffer)
       (pos[2] or 1) - 1,
       { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
     )
+  end
+  if state.expand_lines then
+    local group = api.nvim_create_augroup(
+      "DAPUIExpandLongLinesFor" .. vim.fn.bufname(buffer):gsub("DAP ", ""),
+      { clear = true }
+    )
+    api.nvim_create_autocmd({ "CursorMoved", "WinScrolled" }, {
+      buffer = buffer,
+      group = group,
+      callback = function()
+        vim.schedule(require("dapui.render.line_hover").show)
+      end,
+    })
   end
   if state.prompt then
     api.nvim_buf_set_option(buffer, "buftype", "prompt")
