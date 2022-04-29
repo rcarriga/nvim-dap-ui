@@ -99,7 +99,7 @@ function M.show()
       details.end_row = 0
       details.end_col = details.end_col and (details.end_col - orig_col)
       col = math.max(col, orig_col)
-      api.nvim_buf_set_extmark(hover_buf, namespace, 0, col - orig_col, details)
+      pcall(api.nvim_buf_set_extmark, hover_buf, namespace, 0, col - orig_col, details)
     end
   end
 
