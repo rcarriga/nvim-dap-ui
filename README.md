@@ -65,7 +65,7 @@ require("dapui").setup({
   },
   -- Expand lines larger than the window
   -- Requires >= 0.7
-  expand_lines = vim.fn.has("nvim-0.7")
+  expand_lines = vim.fn.has("nvim-0.7"),
   sidebar = {
     -- You can change the order of elements in the sidebar
     elements = {
