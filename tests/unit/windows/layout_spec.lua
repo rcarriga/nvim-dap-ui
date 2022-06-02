@@ -17,8 +17,9 @@ describe("checking window layout", function()
     config.setup()
     registered = {}
     run = {}
-    local position = config.sidebar().position
-    local width = config.sidebar().size
+    local layout_conf = config.layouts()[1]
+    local position = layout_conf.position
+    local width = layout_conf.size
     local open_cmd = position == "left" and "topleft" or "botright"
     local function open_sidebar_win(index)
       vim.cmd(index == 1 and open_cmd .. " " .. width .. "vsplit" or "split")

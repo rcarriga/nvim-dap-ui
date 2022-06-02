@@ -135,63 +135,97 @@ function dapui.setup(user_config)
   end)
 end
 
----Close either or both the tray and sidebar
----@param component string: "tray" or "sidebar"
-function dapui.close(component)
-  windows.tray:update_sizes()
-  windows.sidebar:update_sizes()
-  if not component or component == "tray" then
-    windows.tray:update_sizes()
-    windows.tray:close()
+---Close one or all of the window layouts
+---@param layout number|nil: Index of layout in config
+function dapui.close(layout)
+  for _, win_layout in ipairs(windows.layouts) do
+    win_layout:update_sizes()
   end
-  if not component or component == "sidebar" then
-    windows.sidebar:update_sizes()
-    windows.sidebar:close()
+  for i, win_layout in ipairs(windows.layouts) do
+    if not layout or layout == i then
+      win_layout:update_sizes()
+      win_layout:close()
+    end
   end
 end
 
----Open either or both the tray and sidebar
----@param component string: "tray" or "sidebar"
-function dapui.open(component)
-  windows.tray:update_sizes()
-  windows.sidebar:update_sizes()
-  local open_sidebar = false
-  if component == "tray" and windows.sidebar:is_open() then
-    windows.sidebar:close()
-    open_sidebar = true
+---@generic T
+---@param list T[]
+---@return fun(): number, T
+local function reverse(list)
+  local i = #list + 1
+  return function()
+    i = i - 1
+    if i <= 0 then
+      return nil
+    end
+    return i, list[i]
   end
-  if not component or component == "tray" then
-    windows.tray:open()
-  end
-  if not component or component == "sidebar" then
-    windows.sidebar:open()
-  end
-  if open_sidebar then
-    windows.sidebar:open()
-  end
-  windows.tray:resize()
 end
 
----Toggle either or both the tray and sidebar
----@param component string: "tray" or "sidebar"
-function dapui.toggle(component)
-  windows.tray:update_sizes()
-  windows.sidebar:update_sizes()
-  local open_sidebar = false
-  if component == "tray" and windows.sidebar:is_open() then
-    windows.sidebar:close()
-    open_sidebar = true
+---Open one or all of the window layouts
+---@param layout number|nil: Index of layout in config
+function dapui.open(layout)
+  for _, win_layout in ipairs(windows.layouts) do
+    win_layout:update_sizes()
   end
-  if not component or component == "tray" then
-    windows.tray:toggle()
+  local closed = {}
+  if layout then
+    for i = 1, (layout and layout - 1) or #windows.layouts, 1 do
+      if windows.layouts[i]:is_open() then
+        closed[#closed + 1] = i
+        windows.layouts[i]:close()
+      end
+    end
   end
-  if not component or component == "sidebar" then
-    windows.sidebar:toggle()
+
+  for i, win_layout in reverse(windows.layouts) do
+    if not layout or layout == i then
+      win_layout:open()
+    end
   end
-  if open_sidebar then
-    windows.sidebar:open()
+
+  if #closed > 0 then
+    for _, i in ipairs(closed) do
+      windows.layouts[i]:open()
+    end
   end
-  windows.tray:resize()
+
+  for _, win_layout in ipairs(windows.layouts) do
+    win_layout:resize()
+  end
+end
+
+---Toggle one or all of the window layouts.
+---@param layout number|nil: Index of layout in config
+function dapui.toggle(layout)
+  for _, win_layout in reverse(windows.layouts) do
+    win_layout:update_sizes()
+  end
+
+  local closed = {}
+  if layout then
+    for i = 1, (layout and layout - 1) or #windows.layouts, 1 do
+      if windows.layouts[i]:is_open() then
+        closed[#closed + 1] = i
+        windows.layouts[i]:close()
+      end
+    end
+  end
+
+  for i, win_layout in reverse(windows.layouts) do
+    if not layout or layout == i then
+      win_layout:toggle()
+    end
+  end
+
+  for _, i in reverse(closed) do
+    windows.layouts[i]:open()
+  end
+
+  for _, win_layout in ipairs(windows.layouts) do
+    win_layout:resize()
+  end
 end
 
 return dapui

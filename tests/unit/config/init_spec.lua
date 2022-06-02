@@ -22,15 +22,17 @@ describe("checking setup function", function()
   end)
 
   it("fills elements", function()
-    config.setup({ sidebar = { elements = { "scopes" } } })
-    assert.same({ { id = "scopes", size = 1 } }, config.sidebar().elements)
+    config.setup({ layouts = { { size = 10, position = "left", elements = { "scopes" } } } })
+    assert.same({ { id = "scopes", size = 1 } }, config.layouts()[1].elements)
   end)
 
   it("fills elements with proportional size", function()
-    config.setup({ sidebar = { elements = { "scopes", "stacks" } } })
+    config.setup({
+      layouts = { { size = 10, position = "left", elements = { "scopes", "stacks" } } },
+    })
     assert.same(
       { { id = "scopes", size = 0.5 }, { id = "stacks", size = 0.5 } },
-      config.sidebar().elements
+      config.layouts()[1].elements
     )
   end)
 end)
