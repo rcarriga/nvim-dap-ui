@@ -56,6 +56,9 @@ describe("checking hover", function()
         remove_watch = function(value)
           data.watches[value] = nil
         end,
+        is_monitored = function(value)
+          return data.monitored[value]
+        end,
         watches = function(_)
           return {
             [expression] = {
