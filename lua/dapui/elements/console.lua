@@ -2,6 +2,10 @@ local api = vim.api
 local dap = require("dap")
 
 local console_buf = -1
+local function create_buf()
+  console_buf = api.nvim_create_buf(false, true)
+  api.nvim_buf_set_option(console_buf, "filetype", "dapui_console")
+end
 
 ---@type Element
 return {
@@ -11,7 +15,7 @@ return {
   setup = function()
     dap.defaults.fallback.terminal_win_cmd = function()
       if not vim.api.nvim_buf_is_valid(console_buf) then
-        console_buf = api.nvim_create_buf(false, true)
+        create_buf()
       end
       -- TODO: Create a temp window so nvim-dap gets the width and height for the PTY.
       -- Should make this configurable but the neovim terminal doesn't reflow so resizing looks bad.
@@ -34,7 +38,7 @@ return {
   end,
   setup_buffer = function(buf)
     if not vim.api.nvim_buf_is_valid(console_buf) then
-      console_buf = api.nvim_create_buf(false, true)
+      create_buf()
     end
     local win = vim.fn.bufwinid(buf)
     vim.api.nvim_win_set_buf(win, console_buf)
