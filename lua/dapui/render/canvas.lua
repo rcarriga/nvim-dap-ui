@@ -99,7 +99,7 @@ end
 ---Add a mapping for a specific line
 ---@param action string Name of mapping action to use key for
 ---@param callback function Callback for when mapping is used
----@param opts table Optional extra arguments
+---@param opts? table Optional extra arguments
 -- Extra arguments currently accepts:
 --   `line` Line to map to, defaults to last in state
 function Canvas:add_mapping(action, callback, opts)

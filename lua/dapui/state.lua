@@ -74,15 +74,21 @@ function UIState:attach(dap, listener_id)
           function() end
         )
       end
-      for ref, _ in pairs(self._monitored_vars) do
-        session:request("variables", { variablesReference = ref }, function() end)
-      end
       self:_refresh_watches(session)
     end
   end
 
   dap.listeners.after.variables[listener_id] = function(session, err, response, request)
     if not err then
+      for _, variable in pairs(response.variables) do
+        if self._monitored_vars[variable.variablesReference] then
+          session:request(
+            "variables",
+            { variablesReference = variable.variablesReference },
+            function() end
+          )
+        end
+      end
       self._variables[request.variablesReference] = response.variables
       self:_emit_refreshed(session)
     end
@@ -182,7 +188,7 @@ end
 
 function UIState:stop_monitor(var_ref)
   self._monitored_vars[var_ref] = (self._monitored_vars[var_ref] or 1) - 1
-  if self._monitored_vars[var_ref] then
+  if self._monitored_vars[var_ref] == 0 then
     self._monitored_vars[var_ref] = nil
     util.with_session(function(session)
       self:_emit_refreshed(session)

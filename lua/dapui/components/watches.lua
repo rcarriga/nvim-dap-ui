@@ -142,9 +142,6 @@ function Watches:render(canvas)
 
       if self.var_components[i] and self.expanded[i] then
         local child_vars = self.state:variables(var_ref) or {}
-        if not self.state:is_monitored(var_ref) then
-          self.state:monitor(var_ref)
-        end
         self.var_components[i]:render(canvas, var_ref, child_vars, config.windows().indent)
       end
       if self.rendered_step ~= self.state:step_number() then
