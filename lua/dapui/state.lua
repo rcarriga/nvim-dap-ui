@@ -88,8 +88,8 @@ function UIState:attach(dap, listener_id)
             function() end
           )
         end
-      end
       self._variables[request.variablesReference] = response.variables
+      end
       self:_emit_refreshed(session)
     end
   end
