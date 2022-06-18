@@ -79,6 +79,10 @@ function UIState:attach(dap, listener_id)
   end
 
   dap.listeners.after.variables[listener_id] = function(session, err, response, request)
+    if not request then
+      -- Session has been closed since request was made.
+      return
+    end
     if not err then
       for _, variable in pairs(response.variables) do
         if self._monitored_vars[variable.variablesReference] then
