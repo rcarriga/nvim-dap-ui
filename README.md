@@ -66,25 +66,31 @@ require("dapui").setup({
   -- Expand lines larger than the window
   -- Requires >= 0.7
   expand_lines = vim.fn.has("nvim-0.7"),
-  sidebar = {
-    -- You can change the order of elements in the sidebar
-    elements = {
-      -- Provide as ID strings or tables with "id" and "size" keys
-      {
-        id = "scopes",
-        size = 0.25, -- Can be float or integer > 1
+  -- Layouts define sections of the screen to place windows.
+  -- The position can be "left", "right", "top" or "bottom".
+  -- The size specifies the height/width depending on position.
+  -- Elements are the elements shown in the layout (in order).
+  -- Layouts are opened in order so that earlier layouts take priority in window sizing.
+  layouts = {
+    {
+      elements = {
+      -- Elements can be strings or table with id and size keys.
+        { id = "scopes", size = 0.25 },
+        "breakpoints",
+        "stacks",
+        "watches",
       },
-      { id = "breakpoints", size = 0.25 },
-      { id = "stacks", size = 0.25 },
-      { id = "watches", size = 00.25 },
+      size = 40,
+      position = "left",
     },
-    size = 40,
-    position = "left", -- Can be "left", "right", "top", "bottom"
-  },
-  tray = {
-    elements = { "repl", "console" },
-    size = 10,
-    position = "bottom", -- Can be "left", "right", "top", "bottom"
+    {
+      elements = {
+        "repl",
+        "console",
+      },
+      size = 10,
+      position = "bottom",
+    },
   },
   floating = {
     max_height = nil, -- These can be integers or a float between 0 and 1.
@@ -95,7 +101,7 @@ require("dapui").setup({
     },
   },
   windows = { indent = 1 },
-  render = { 
+  render = {
     max_type_length = nil, -- Can be integer or nil.
   }
 })

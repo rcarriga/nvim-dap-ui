@@ -8,10 +8,8 @@ local WindowLayout = require("dapui.windows.layout")
 
 local float_windows = {}
 
----@type dapui.WindowLayout
-M.sidebar = nil
----@type dapui.WindowLayout
-M.tray = nil
+---@type dapui.WindowLayout[]
+M.layouts = {}
 
 local function register_elements(elements)
   local win_configs = {}
@@ -27,7 +25,7 @@ local function register_elements(elements)
   return win_configs
 end
 
-local function tray_layout(height, position, win_configs)
+local function horizontal_layout(height, position, win_configs)
   local open_cmd = position == "top" and "topleft" or "botright"
 
   local function open_tray_win(index)
@@ -46,7 +44,7 @@ local function tray_layout(height, position, win_configs)
   })
 end
 
-local function side_layout(width, position, win_configs)
+local function vertical_layout(width, position, win_configs)
   local open_cmd = position == "left" and "topleft" or "botright"
   local function open_side_win(index)
     vim.cmd(index == 1 and open_cmd .. " " .. "vsplit" or "split")
@@ -68,18 +66,19 @@ local function area_layout(size, position, elements)
   local win_configs = register_elements(elements)
   local layout_func
   if position == "top" or position == "bottom" then
-    layout_func = tray_layout
+    layout_func = horizontal_layout
   else
-    layout_func = side_layout
+    layout_func = vertical_layout
   end
   return layout_func(size, position, win_configs)
 end
 
 function M.setup()
-  local tray_config = config.tray()
-  M.tray = area_layout(tray_config.size, tray_config.position, tray_config.elements)
-  local sidebar_config = config.sidebar()
-  M.sidebar = area_layout(sidebar_config.size, sidebar_config.position, sidebar_config.elements)
+  local layout_configs = config.layouts()
+  M.layouts = {}
+  for i, layout in ipairs(layout_configs) do
+    M.layouts[i] = area_layout(layout.size, layout.position, layout.elements)
+  end
   vim.cmd([[
     augroup DapuiWindowsSetup
       au!
@@ -89,8 +88,9 @@ function M.setup()
 end
 
 function M._force_buffers()
-  M.tray:force_buffers()
-  M.sidebar:force_buffers()
+  for _, layout in ipairs(M.layouts) do
+    layout:force_buffers()
+  end
 end
 
 function M.open_float(element, position, settings)
