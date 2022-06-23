@@ -30,6 +30,8 @@ function WindowLayout:open()
     return
   end
   local cur_win = api.nvim_get_current_win()
+  local initial_width = api.nvim_win_get_width(cur_win)
+  local initial_height = api.nvim_win_get_height(cur_win)
   for i, win_state in pairs(self.win_states) do
     local element = win_state.element
     local bufnr = api.nvim_create_buf(false, true)
@@ -43,7 +45,7 @@ function WindowLayout:open()
     -- REPL changes the buffer
     self.win_bufs[win_id] = api.nvim_win_get_buf(win_id)
   end
-  self:resize()
+  self:resize(initial_height, initial_width)
   api.nvim_set_current_win(cur_win)
   self.has_initial_open = true
 end
@@ -82,10 +84,23 @@ function WindowLayout:_area_size()
   return 0
 end
 
-function WindowLayout:resize()
+function WindowLayout:resize(width, height)
   if not self:is_open() then
     return
   end
+
+  -- Detecting whether self.area_state.size is a float or int
+  local num, fraction = math.modf(self.area_state.size)
+  if num == 0 and fraction > 0 then
+    if self.layout_type == 'vertical' then
+      self.area_state.size = math.floor(height * self.area_state.size)
+    elseif self.layout_type == 'horizontal' then
+      self.area_state.size = math.floor(width * self.area_state.size)
+    else
+      error('Unknown layout type')
+    end
+  end
+
   self.set_area_size(self.opened_wins[1], self.area_state.size)
   local total_size = self:_total_size()
   for i, win_state in pairs(self.win_states) do

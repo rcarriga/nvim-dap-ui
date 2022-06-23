@@ -33,6 +33,7 @@ local function horizontal_layout(height, position, win_configs)
   end
 
   return WindowLayout({
+    layout_type = 'horizontal',
     area_state = { size = height },
     win_states = win_configs,
     get_win_size = api.nvim_win_get_width,
@@ -51,6 +52,7 @@ local function vertical_layout(width, position, win_configs)
   end
 
   return WindowLayout({
+    layout_type = 'vertical',
     area_state = { size = width },
     win_states = win_configs,
     get_win_size = api.nvim_win_get_height,
