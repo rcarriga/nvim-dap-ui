@@ -14,6 +14,7 @@ local util = require("dapui.util")
 ---@field win_bufs table<integer, integer>
 ---@field win_states table<integer,dapui.WinState>
 ---@field area_state dapui.AreaState
+---@field layout_type "horizontal" | "vertical"
 --
 ---@field open_index fun(index: number)
 ---@field get_win_size fun(win_id: integer): integer
