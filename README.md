@@ -68,7 +68,9 @@ require("dapui").setup({
   expand_lines = vim.fn.has("nvim-0.7"),
   -- Layouts define sections of the screen to place windows.
   -- The position can be "left", "right", "top" or "bottom".
-  -- The size specifies the height/width depending on position.
+  -- The size specifies the height/width depending on position. It can be an Int
+  -- or a Float. Integer specifies height/width directly (i.e. 20 lines/columns) while
+  -- Float value specifies percentage (i.e. 0.3 - 30% of available lines/columns)
   -- Elements are the elements shown in the layout (in order).
   -- Layouts are opened in order so that earlier layouts take priority in window sizing.
   layouts = {
@@ -80,7 +82,7 @@ require("dapui").setup({
         "stacks",
         "watches",
       },
-      size = 40,
+      size = 40, -- 40 columns
       position = "left",
     },
     {
@@ -88,7 +90,7 @@ require("dapui").setup({
         "repl",
         "console",
       },
-      size = 10,
+      size = 0.25, -- 25% of total lines
       position = "bottom",
     },
   },

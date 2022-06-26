@@ -14,6 +14,7 @@ local util = require("dapui.util")
 ---@field win_bufs table<integer, integer>
 ---@field win_states table<integer,dapui.WinState>
 ---@field area_state dapui.AreaState
+---@field layout_type "horizontal" | "vertical"
 --
 ---@field open_index fun(index: number)
 ---@field get_win_size fun(win_id: integer): integer
@@ -86,6 +87,22 @@ function WindowLayout:resize()
   if not self:is_open() then
     return
   end
+
+  -- Detecting whether self.area_state.size is a float or int
+  if self.area_state.size < 1 then
+    if self.layout_type == "vertical" then
+      local left = 1
+      local right = vim.opt.columns:get()
+      self.area_state.size = math.floor((right - left) * self.area_state.size)
+    elseif self.layout_type == "horizontal" then
+      local top = vim.opt.tabline:get() == "" and 0 or 1
+      local bottom = vim.opt.lines:get() - (vim.opt.laststatus:get() > 0 and 2 or 1)
+      self.area_state.size = math.floor((bottom - top) * self.area_state.size)
+    else
+      error('Unknown layout type')
+    end
+  end
+
   self.set_area_size(self.opened_wins[1], self.area_state.size)
   local total_size = self:_total_size()
   for i, win_state in pairs(self.win_states) do
