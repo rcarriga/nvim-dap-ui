@@ -68,6 +68,20 @@ local default_config = {
       [M.FLOAT_MAPPINGS.CLOSE] = { "q", "<Esc>" },
     },
   },
+  controls = {
+    enabled = vim.fn.exists("+winbar") == 1,
+    element = M.elements.REPL,
+    icons = {
+      pause = "",
+      play = "",
+      step_into = "",
+      step_over = "",
+      step_out = "",
+      step_back = "",
+      run_last = "↻",
+      terminate = "□",
+    },
+  },
   windows = { indent = 1 },
   render = {
     max_type_length = nil, -- Can be integer or nil.
@@ -201,5 +215,11 @@ end
 function M.expand_lines()
   return user_config.expand_lines
 end
+
+setmetatable(M, {
+  __index = function(_, key)
+    return user_config[key]
+  end,
+})
 
 return M

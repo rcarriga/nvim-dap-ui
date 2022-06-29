@@ -47,7 +47,8 @@ function WindowLayout:open()
     self.win_bufs[win_id] = api.nvim_win_get_buf(win_id)
   end
   self:resize()
-  api.nvim_set_current_win(cur_win)
+  -- Fails if cur win was floating that closed
+  pcall(api.nvim_set_current_win, cur_win)
   self.has_initial_open = true
 end
 

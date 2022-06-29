@@ -22,6 +22,14 @@ function M.setup()
   vim.cmd("hi default link DapUIBreakpointsLine DapUILineNumber")
   vim.cmd("hi default DapUIBreakpointsDisabledLine guifg=#424242")
   vim.cmd("hi default link DapUICurrentFrameName DapUIBreakpointsCurrentLine")
+  vim.cmd("hi default DapUIStepOver guifg=#00f1f5")
+  vim.cmd("hi default DapUIStepInto guifg=#00f1f5")
+  vim.cmd("hi default DapUIStepBack guifg=#00f1f5")
+  vim.cmd("hi default DapUIStepOut guifg=#00f1f5")
+  vim.cmd("hi default DapUIStop guifg=#F70067")
+  vim.cmd("hi default DapUIPlayPause guifg=#A9FF68")
+  vim.cmd("hi default DapUIRestart guifg=#A9FF68")
+  vim.cmd("hi default DapUIUnavailable guifg=#424242")
 end
 
 vim.cmd([[
