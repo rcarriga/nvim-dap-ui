@@ -76,6 +76,9 @@ local function area_layout(size, position, elements)
 end
 
 function M.setup()
+  for _, layout in ipairs(M.layouts) do
+    layout:close()
+  end
   local layout_configs = config.layouts()
   M.layouts = {}
   for i, layout in ipairs(layout_configs) do

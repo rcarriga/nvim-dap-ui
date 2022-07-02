@@ -23,6 +23,10 @@ M.EVENTS = { RENDER = "render", CLOSE = "close" }
 ---@type table <string, ElementCanvasState>
 local canvas_states = {}
 
+function M.clear()
+  canvas_states = {}
+end
+
 ---@param element Element
 function M.register_element(element)
   canvas_states[element.name] = {
