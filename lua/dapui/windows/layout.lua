@@ -153,7 +153,8 @@ function WindowLayout:close()
         vim.cmd("stopinsert") -- Prompt buffers act poorly when closed in insert mode, see #33
       end
       pcall(api.nvim_win_close, win, true)
-      if vim.fn.bufname(buf) ~= "[dap-repl]"
+      if
+        vim.fn.bufname(buf) ~= "[dap-repl]"
         and api.nvim_buf_get_option(buf, "buftype") ~= "terminal"
       then
         api.nvim_buf_delete(buf, { force = true, unload = false })
