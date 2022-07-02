@@ -143,8 +143,15 @@ function dapui.setup(user_config)
 end
 
 ---Close one or all of the window layouts
----@param layout number|nil: Index of layout in config
-function dapui.close(layout)
+---@param opts table
+---@field layout number|nil: Index of layout in config
+function dapui.close(opts)
+  opts = opts or {}
+  if type(opts) == "number" then
+    opts = { layout = opts }
+  end
+  local layout = opts.layout
+
   for _, win_layout in ipairs(windows.layouts) do
     win_layout:update_sizes()
   end
@@ -171,8 +178,16 @@ local function reverse(list)
 end
 
 ---Open one or all of the window layouts
----@param layout number|nil: Index of layout in config
-function dapui.open(layout)
+---@param opts table
+---@field layout number|nil: Index of layout in config
+---@field reset boolean: Reset windows to original size
+function dapui.open(opts)
+  opts = opts or {}
+  if type(opts) == "number" then
+    opts = { layout = opts }
+  end
+  local layout = opts.layout
+
   for _, win_layout in ipairs(windows.layouts) do
     win_layout:update_sizes()
   end
@@ -199,13 +214,21 @@ function dapui.open(layout)
   end
 
   for _, win_layout in ipairs(windows.layouts) do
-    win_layout:resize()
+    win_layout:resize(opts)
   end
 end
 
 ---Toggle one or all of the window layouts.
----@param layout number|nil: Index of layout in config
-function dapui.toggle(layout)
+---@param opts table
+---@field layout number|nil: Index of layout in config
+---@field reset boolean: Reset windows to original size
+function dapui.toggle(opts)
+  opts = opts or {}
+  if type(opts) == "number" then
+    opts = { layout = opts }
+  end
+  local layout = opts.layout
+
   for _, win_layout in reverse(windows.layouts) do
     win_layout:update_sizes()
   end
@@ -231,7 +254,7 @@ function dapui.toggle(layout)
   end
 
   for _, win_layout in ipairs(windows.layouts) do
-    win_layout:resize()
+    win_layout:resize(opts)
   end
 end
 

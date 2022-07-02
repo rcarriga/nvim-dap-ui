@@ -42,28 +42,39 @@ dapui.eval({expr}, {settings})                                  *dapui.eval()*
         {enter}   (boolean)  Whether or not to enter the window after opening
 
 
-dapui.close({component})                                       *dapui.close()*
-    Close either or both the tray and sidebar
+dapui.close({opts})                                            *dapui.close()*
+    Close one or all of the window layouts
 
 
     Parameters: ~
-        {component} (string)  "tray" or "sidebar"
+        {opts} (table)
+
+    Fields: ~
+        {layout} (number|nil)  Index of layout in config
 
 
-dapui.open({component})                                         *dapui.open()*
-    Open either or both the tray and sidebar
-
-
-    Parameters: ~
-        {component} (string)  "tray" or "sidebar"
-
-
-dapui.toggle({component})                                     *dapui.toggle()*
-    Toggle either or both the tray and sidebar
+dapui.open({opts})                                              *dapui.open()*
+    Open one or all of the window layouts
 
 
     Parameters: ~
-        {component} (string)  "tray" or "sidebar"
+        {opts} (table)
+
+    Fields: ~
+        {layout} (number|nil)  Index of layout in config
+        {reset}  (boolean)     Reset windows to original size
+
+
+dapui.toggle({opts})                                          *dapui.toggle()*
+    Toggle one or all of the window layouts.
+
+
+    Parameters: ~
+        {opts} (table)
+
+    Fields: ~
+        {layout} (number|nil)  Index of layout in config
+        {reset}  (boolean)     Reset windows to original size
 
 
 

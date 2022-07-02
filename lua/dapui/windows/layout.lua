@@ -4,9 +4,11 @@ local util = require("dapui.util")
 ---@class dapui.WinState
 ---@field id string
 ---@field size number
+---@field init_size number
 ---@field element Element
 
 ---@class dapui.AreaState
+---@field init_size number
 ---@field size number
 
 ---@class dapui.WindowLayout
@@ -83,7 +85,11 @@ function WindowLayout:_area_size()
   return 0
 end
 
-function WindowLayout:resize()
+function WindowLayout:resize(opts)
+  opts = opts or {}
+  if opts.reset then
+    self.area_state.size = self.area_state.init_size
+  end
   if not self:is_open() then
     return
   end
@@ -99,14 +105,14 @@ function WindowLayout:resize()
       local bottom = vim.opt.lines:get() - (vim.opt.laststatus:get() > 0 and 2 or 1)
       self.area_state.size = math.floor((bottom - top) * self.area_state.size)
     else
-      error('Unknown layout type')
+      error("Unknown layout type")
     end
   end
 
   self.set_area_size(self.opened_wins[1], self.area_state.size)
   local total_size = self:_total_size()
   for i, win_state in pairs(self.win_states) do
-    local win_size = win_state.size
+    local win_size = opts.reset and win_state.init_size or win_state.size
     win_size = util.round(win_size * total_size)
     if win_size == 0 then
       win_size = 1
@@ -147,8 +153,7 @@ function WindowLayout:close()
         vim.cmd("stopinsert") -- Prompt buffers act poorly when closed in insert mode, see #33
       end
       pcall(api.nvim_win_close, win, true)
-      if
-        vim.fn.bufname(buf) ~= "[dap-repl]"
+      if vim.fn.bufname(buf) ~= "[dap-repl]"
         and api.nvim_buf_get_option(buf, "buftype") ~= "terminal"
       then
         api.nvim_buf_delete(buf, { force = true, unload = false })

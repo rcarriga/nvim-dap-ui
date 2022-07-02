@@ -11,18 +11,19 @@ local float_windows = {}
 ---@type dapui.WindowLayout[]
 M.layouts = {}
 
-local function register_elements(elements)
-  local win_configs = {}
-  for _, win_config in pairs(elements) do
-    local exists, element = pcall(require, "dapui.elements." .. win_config.id)
+local function create_win_states(win_configs)
+  local win_states = {}
+  for _, win_state in pairs(win_configs) do
+    local exists, element = pcall(require, "dapui.elements." .. win_state.id)
     if exists then
-      win_config.element = element
-      win_configs[#win_configs + 1] = win_config
+      win_state.element = element
+      win_state.init_size = win_state.size
+      win_states[#win_states + 1] = win_state
     else
-      vim.notify("nvim-dap-ui: Element " .. win_config.id .. " does not exist")
+      vim.notify("nvim-dap-ui: Element " .. win_state.id .. " does not exist")
     end
   end
-  return win_configs
+  return win_states
 end
 
 local function horizontal_layout(height, position, win_configs)
@@ -33,8 +34,8 @@ local function horizontal_layout(height, position, win_configs)
   end
 
   return WindowLayout({
-    layout_type = 'horizontal',
-    area_state = { size = height },
+    layout_type = "horizontal",
+    area_state = { size = height, init_size = height },
     win_states = win_configs,
     get_win_size = api.nvim_win_get_width,
     get_area_size = api.nvim_win_get_height,
@@ -52,8 +53,8 @@ local function vertical_layout(width, position, win_configs)
   end
 
   return WindowLayout({
-    layout_type = 'vertical',
-    area_state = { size = width },
+    layout_type = "vertical",
+    area_state = { size = width, init_size = width },
     win_states = win_configs,
     get_win_size = api.nvim_win_get_height,
     get_area_size = api.nvim_win_get_width,
@@ -64,15 +65,15 @@ local function vertical_layout(width, position, win_configs)
   })
 end
 
-local function area_layout(size, position, elements)
-  local win_configs = register_elements(elements)
+local function area_layout(size, position, win_configs)
+  local win_states = create_win_states(win_configs)
   local layout_func
   if position == "top" or position == "bottom" then
     layout_func = horizontal_layout
   else
     layout_func = vertical_layout
   end
-  return layout_func(size, position, win_configs)
+  return layout_func(size, position, win_states)
 end
 
 function M.setup()
