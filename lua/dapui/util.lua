@@ -97,9 +97,8 @@ function M.jump_to_frame(frame, session, set_frame)
     column = 1
   end
 
-  local bufnr = vim.uri_to_bufnr(
-    M.is_uri(path) and path or vim.uri_from_fname(vim.fn.fnamemodify(path, ":p"))
-  )
+  local bufnr =
+    vim.uri_to_bufnr(M.is_uri(path) and path or vim.uri_from_fname(vim.fn.fnamemodify(path, ":p")))
   vim.fn.bufload(bufnr)
   M.open_buf(bufnr, line, column)
 end

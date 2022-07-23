@@ -142,25 +142,35 @@ function dapui.setup(user_config)
   end)
 end
 
+local function keep_cmdheight(cb)
+  local cmd_height = vim.o.cmdheight
+
+  cb()
+
+  vim.o.cmdheight = cmd_height
+end
+
 ---Close one or all of the window layouts
 ---@param opts table
 ---@field layout number|nil: Index of layout in config
 function dapui.close(opts)
-  opts = opts or {}
-  if type(opts) == "number" then
-    opts = { layout = opts }
-  end
-  local layout = opts.layout
-
-  for _, win_layout in ipairs(windows.layouts) do
-    win_layout:update_sizes()
-  end
-  for i, win_layout in ipairs(windows.layouts) do
-    if not layout or layout == i then
-      win_layout:update_sizes()
-      win_layout:close()
+  keep_cmdheight(function()
+    opts = opts or {}
+    if type(opts) == "number" then
+      opts = { layout = opts }
     end
-  end
+    local layout = opts.layout
+
+    for _, win_layout in ipairs(windows.layouts) do
+      win_layout:update_sizes()
+    end
+    for i, win_layout in ipairs(windows.layouts) do
+      if not layout or layout == i then
+        win_layout:update_sizes()
+        win_layout:close()
+      end
+    end
+  end)
 end
 
 ---@generic T
@@ -182,40 +192,42 @@ end
 ---@field layout number|nil: Index of layout in config
 ---@field reset boolean: Reset windows to original size
 function dapui.open(opts)
-  opts = opts or {}
-  if type(opts) == "number" then
-    opts = { layout = opts }
-  end
-  local layout = opts.layout
+  keep_cmdheight(function()
+    opts = opts or {}
+    if type(opts) == "number" then
+      opts = { layout = opts }
+    end
+    local layout = opts.layout
 
-  for _, win_layout in ipairs(windows.layouts) do
-    win_layout:update_sizes()
-  end
-  local closed = {}
-  if layout then
-    for i = 1, (layout and layout - 1) or #windows.layouts, 1 do
-      if windows.layouts[i]:is_open() then
-        closed[#closed + 1] = i
-        windows.layouts[i]:close()
+    for _, win_layout in ipairs(windows.layouts) do
+      win_layout:update_sizes()
+    end
+    local closed = {}
+    if layout then
+      for i = 1, (layout and layout - 1) or #windows.layouts, 1 do
+        if windows.layouts[i]:is_open() then
+          closed[#closed + 1] = i
+          windows.layouts[i]:close()
+        end
       end
     end
-  end
 
-  for i, win_layout in reverse(windows.layouts) do
-    if not layout or layout == i then
-      win_layout:open()
+    for i, win_layout in reverse(windows.layouts) do
+      if not layout or layout == i then
+        win_layout:open()
+      end
     end
-  end
 
-  if #closed > 0 then
-    for _, i in ipairs(closed) do
-      windows.layouts[i]:open()
+    if #closed > 0 then
+      for _, i in ipairs(closed) do
+        windows.layouts[i]:open()
+      end
     end
-  end
 
-  for _, win_layout in ipairs(windows.layouts) do
-    win_layout:resize(opts)
-  end
+    for _, win_layout in ipairs(windows.layouts) do
+      win_layout:resize(opts)
+    end
+  end)
 end
 
 ---Toggle one or all of the window layouts.
@@ -223,39 +235,41 @@ end
 ---@field layout number|nil: Index of layout in config
 ---@field reset boolean: Reset windows to original size
 function dapui.toggle(opts)
-  opts = opts or {}
-  if type(opts) == "number" then
-    opts = { layout = opts }
-  end
-  local layout = opts.layout
+  keep_cmdheight(function()
+    opts = opts or {}
+    if type(opts) == "number" then
+      opts = { layout = opts }
+    end
+    local layout = opts.layout
 
-  for _, win_layout in reverse(windows.layouts) do
-    win_layout:update_sizes()
-  end
+    for _, win_layout in reverse(windows.layouts) do
+      win_layout:update_sizes()
+    end
 
-  local closed = {}
-  if layout then
-    for i = 1, (layout and layout - 1) or #windows.layouts, 1 do
-      if windows.layouts[i]:is_open() then
-        closed[#closed + 1] = i
-        windows.layouts[i]:close()
+    local closed = {}
+    if layout then
+      for i = 1, (layout and layout - 1) or #windows.layouts, 1 do
+        if windows.layouts[i]:is_open() then
+          closed[#closed + 1] = i
+          windows.layouts[i]:close()
+        end
       end
     end
-  end
 
-  for i, win_layout in reverse(windows.layouts) do
-    if not layout or layout == i then
-      win_layout:toggle()
+    for i, win_layout in reverse(windows.layouts) do
+      if not layout or layout == i then
+        win_layout:toggle()
+      end
     end
-  end
 
-  for _, i in reverse(closed) do
-    windows.layouts[i]:open()
-  end
+    for _, i in reverse(closed) do
+      windows.layouts[i]:open()
+    end
 
-  for _, win_layout in ipairs(windows.layouts) do
-    win_layout:resize(opts)
-  end
+    for _, win_layout in ipairs(windows.layouts) do
+      win_layout:resize(opts)
+    end
+  end)
 end
 
 return dapui
