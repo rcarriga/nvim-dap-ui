@@ -14,14 +14,19 @@ local function create_buffer(content)
   return buf_nr
 end
 
-local function auto_close(win_id, buf_id, orig_line)
+local function auto_close(win_id, buf_id, orig_line, orig_text)
   if not api.nvim_win_is_valid(win_id) then
     return
   end
   local group = api.nvim_create_augroup("DAPUILongLineExpand" .. buf_id, { clear = true })
   api.nvim_create_autocmd({ "WinEnter", "TabClosed", "CursorMoved" }, {
     callback = function()
-      if api.nvim_get_current_buf() == buf_id and vim.fn.line(".") == orig_line then
+      local cur_line = vim.fn.line(".")
+      if
+        api.nvim_get_current_buf() == buf_id
+        and orig_line == cur_line
+        and vim.api.nvim_buf_get_lines(buf_id, cur_line - 1, cur_line, false)[1] == orig_text
+      then
         auto_close(win_id, buf_id, orig_line)
         return
       end
@@ -103,7 +108,12 @@ function M.show()
     end
   end
 
-  auto_close(window_id, buffer, orig_line)
+  auto_close(
+    window_id,
+    buffer,
+    orig_line,
+    api.nvim_buf_get_lines(buffer, orig_line - 1, orig_line, false)[1]
+  )
 end
 
 return M
