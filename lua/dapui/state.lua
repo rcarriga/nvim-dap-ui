@@ -176,7 +176,6 @@ function UIState:_emit_refreshed(session)
 end
 
 function UIState:monitor(var_ref)
-  print("monitor", vim.inspect(var_ref))
   if var_ref then
     self._monitored_vars[var_ref] = (self._monitored_vars[var_ref] or 0) + 1
     util.with_session(function(session)
