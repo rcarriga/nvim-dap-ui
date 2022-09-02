@@ -177,10 +177,12 @@ end
 
 function UIState:monitor(var_ref)
   print("monitor", vim.inspect(var_ref))
-  self._monitored_vars[var_ref] = (self._monitored_vars[var_ref] or 0) + 1
-  util.with_session(function(session)
-    session:request("variables", { variablesReference = var_ref }, function() end)
-  end)
+  if var_ref then
+    self._monitored_vars[var_ref] = (self._monitored_vars[var_ref] or 0) + 1
+    util.with_session(function(session)
+      session:request("variables", { variablesReference = var_ref }, function() end)
+    end)
+  end
 end
 
 function UIState:step_number()
