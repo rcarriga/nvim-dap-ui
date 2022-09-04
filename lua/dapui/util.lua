@@ -201,4 +201,33 @@ function M.render_type(maybe_type)
   return string.sub(maybe_type, 1, byte_length) .. "..."
 end
 
+---@param value_start integer
+---@param value string
+---@return string[]
+function M.format_value(value_start, value)
+  local formatted = {}
+  local max_lines = config.render().max_value_lines
+  local i = 0
+  --- Use gsplit instead of split because adapters can returns very long values
+  --- and we want to avoid creating thousands of substrings that we won't use.
+  for line in vim.gsplit(value, "\n") do
+    i = i + 1
+
+    if max_lines and i > max_lines then
+      local line_count = 1
+      for _ in value:gmatch("\n") do
+        line_count = line_count + 1
+      end
+
+      formatted[i - 1] = formatted[i - 1] .. ((" ... [%s more lines]"):format(line_count - i + 1))
+      break
+    end
+    if i > 1 then
+      line = string.rep(" ", value_start - 2) .. line
+    end
+    formatted[i] = line
+  end
+  return formatted
+end
+
 return M

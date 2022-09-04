@@ -72,10 +72,7 @@ function Hover:render(canvas)
     val_start = canvas:line_width()
     value = evaluated.result
   end
-  for j, line in ipairs(vim.split(value, "\n")) do
-    if j > 1 then
-      canvas:write(string.rep(" ", val_start - 2))
-    end
+  for _, line in ipairs(util.format_value(val_start, value)) do
     canvas:write(line, { group = "DapUIValue" })
     if not hover_expr.error then
       canvas:add_mapping(config.actions.EXPAND, function()

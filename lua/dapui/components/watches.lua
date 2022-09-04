@@ -122,10 +122,7 @@ function Watches:render(canvas)
         var_group = "DapUIModifiedValue"
       end
 
-      for j, line in pairs(vim.split(value, "\n")) do
-        if j > 1 then
-          canvas:write(string.rep(" ", val_start - 2))
-        end
+      for _, line in ipairs(util.format_value(val_start, value)) do
         canvas:write(line, { group = var_group })
         canvas:add_mapping(config.actions.REMOVE, partial(self.remove_expr, self, i))
         canvas:add_mapping(config.actions.EDIT, function()

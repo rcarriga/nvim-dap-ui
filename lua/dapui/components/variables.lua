@@ -92,10 +92,7 @@ function Variables:render(canvas, parent_ref, variables, indent)
       local value_start = #canvas.lines[canvas:length()]
       local value = variable.value
 
-      for i, line in pairs(vim.split(value, "\n")) do
-        if i > 1 then
-          line = string.rep(" ", value_start - 2) .. line
-        end
+      for _, line in ipairs(util.format_value(value_start, value)) do
         add_var_line(line)
       end
     else
