@@ -12,6 +12,9 @@ describe("checking threads", function()
     stopped_thread = function()
       return { id = 1, name = "Thread 1" }
     end,
+    current_frame = function()
+      return { id = 1001 }
+    end,
     frames = function(_, id)
       if id == 1 then
         return {
@@ -78,7 +81,7 @@ describe("checking threads", function()
     local expected = {
       "Thread 1:",
       " test_1 test_a.py:6",
-      " test_2 test_b.py:1193",
+      "▸ test_2 test_b.py:1193",
       "",
       "Thread 2:",
       " test_3 test_c.py:1371",
@@ -96,9 +99,9 @@ describe("checking threads", function()
       { "DapUIFrameName", { 2, 2, 6 } },
       { "DapUISource", { 2, 9, 9 } },
       { "DapUILineNumber", { 2, 19, 1 } },
-      { "DapUIFrameName", { 3, 2, 6 } },
-      { "DapUISource", { 3, 9, 9 } },
-      { "DapUILineNumber", { 3, 19, 4 } },
+      { "DapUICurrentFrameName", { 3, 5, 6 } },
+      { "DapUISource", { 3, 12, 9 } },
+      { "DapUILineNumber", { 3, 22, 4 } },
       { "DapUIThread", { 5, 1, 8 } },
       { "DapUIFrameName", { 6, 2, 6 } },
       { "DapUISource", { 6, 9, 9 } },
@@ -139,8 +142,8 @@ describe("checking threads", function()
       local expected = {
         "Thread 1:",
         " test_1 test_a.py:6",
-        " test_2 test_b.py:1193",
-        " test_3 test_c.py:200",
+        "▸ test_2 test_b.py:1193",
+        "▸ test_3 test_c.py:200",
         "",
         "Thread 2:",
         " test_3 test_c.py:1371",
@@ -157,12 +160,12 @@ describe("checking threads", function()
         { "DapUIFrameName", { 2, 2, 6 } },
         { "DapUISource", { 2, 9, 9 } },
         { "DapUILineNumber", { 2, 19, 1 } },
-        { "DapUIFrameName", { 3, 2, 6 } },
-        { "DapUISource", { 3, 9, 9 } },
-        { "DapUILineNumber", { 3, 19, 4 } },
-        { "DapUIFrameName", { 4, 2, 6 } },
-        { "DapUISource", { 4, 9, 9 } },
-        { "DapUILineNumber", { 4, 19, 3 } },
+        { "DapUICurrentFrameName", { 3, 5, 6 } },
+        { "DapUISource", { 3, 12, 9 } },
+        { "DapUILineNumber", { 3, 22, 4 } },
+        { "DapUICurrentFrameName", { 4, 5, 6 } },
+        { "DapUISource", { 4, 12, 9 } },
+        { "DapUILineNumber", { 4, 22, 3 } },
         { "DapUIThread", { 6, 1, 8 } },
         { "DapUIFrameName", { 7, 2, 6 } },
         { "DapUISource", { 7, 9, 9 } },

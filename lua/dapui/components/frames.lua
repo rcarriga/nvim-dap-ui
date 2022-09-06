@@ -19,11 +19,18 @@ local function open_frame(frame)
 end
 
 ---@param canvas dapui.Canvas
-function StackFrames:render(canvas, frames, indent)
+function StackFrames:render(canvas, frames, indent, current_frame_id)
   indent = indent or 0
   for i, frame in ipairs(frames) do
-    canvas:write(string.rep(" ", indent))
-    canvas:write(frame.name, { group = "DapUIFrameName" })
+    local is_current = frame.id == current_frame_id
+    canvas:write(string.rep(" ", is_current and (indent - 1) or indent))
+    if is_current then
+      canvas:write(config.icons().current_frame .. " ")
+    end
+    canvas:write(
+      frame.name,
+      { group = frame.id == current_frame_id and "DapUICurrentFrameName" or "DapUIFrameName" }
+    )
     canvas:write(" ")
 
     if frame.source ~= nil then

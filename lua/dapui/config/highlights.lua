@@ -21,6 +21,7 @@ function M.setup()
   vim.cmd("hi default DapUIBreakpointsCurrentLine guifg=#A9FF68 gui=bold")
   vim.cmd("hi default link DapUIBreakpointsLine DapUILineNumber")
   vim.cmd("hi default DapUIBreakpointsDisabledLine guifg=#424242")
+  vim.cmd("hi default link DapUICurrentFrameName DapUIBreakpointsCurrentLine")
 end
 
 vim.cmd([[

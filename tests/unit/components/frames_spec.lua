@@ -4,6 +4,10 @@ local StackFrames = require("dapui.components.frames")
 local render = require("dapui.render")
 
 describe("checking stack frames", function()
+  assert:add_formatter(vim.inspect)
+  before_each(function()
+    require("dapui.config").setup({})
+  end)
   local frames = {
     {
       column = 0,
@@ -44,10 +48,10 @@ describe("checking stack frames", function()
     local canvas = render.new_canvas()
     local component = StackFrames()
 
-    component:render(canvas, frames, 1)
+    component:render(canvas, frames, 1, 1001)
     local expected = {
       " test_1 test_a.py:6",
-      " test_2 test_b.py:1193",
+      "▸ test_2 test_b.py:1193",
       " test_3 test_c.py:1371",
     }
     assert.are.same(expected, canvas.lines)
@@ -57,14 +61,14 @@ describe("checking stack frames", function()
     local canvas = render.new_canvas()
     local component = StackFrames()
 
-    component:render(canvas, frames, 1)
+    component:render(canvas, frames, 1, 1001)
     local expected = {
       { "DapUIFrameName", { 1, 2, 6 } },
       { "DapUISource", { 1, 9, 9 } },
       { "DapUILineNumber", { 1, 19, 1 } },
-      { "DapUIFrameName", { 2, 2, 6 } },
-      { "DapUISource", { 2, 9, 9 } },
-      { "DapUILineNumber", { 2, 19, 4 } },
+      { "DapUICurrentFrameName", { 2, 5, 6 } },
+      { "DapUISource", { 2, 12, 9 } },
+      { "DapUILineNumber", { 2, 22, 4 } },
       { "DapUIFrameName", { 3, 2, 6 } },
       { "DapUISource", { 3, 9, 9 } },
       { "DapUILineNumber", { 3, 19, 4 } },
@@ -76,7 +80,7 @@ describe("checking stack frames", function()
     local canvas = render.new_canvas()
     local component = StackFrames()
 
-    component:render(canvas, frames, 1)
+    component:render(canvas, frames, 1, 1001)
     assert.equal(3, #canvas.mappings["open"])
   end)
 
@@ -91,7 +95,7 @@ describe("checking stack frames", function()
     local canvas = render.new_canvas()
     local component = StackFrames()
 
-    component:render(canvas, frames, 1)
+    component:render(canvas, frames, 1, 1001)
 
     canvas.mappings["open"][1][1]()
 

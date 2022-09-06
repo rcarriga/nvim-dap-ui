@@ -24,7 +24,7 @@ M.FLOAT_MAPPINGS = {
 }
 
 local default_config = {
-  icons = { expanded = "▾", collapsed = "▸" },
+  icons = { expanded = "▾", collapsed = "▸", current_frame = "▸" },
   mappings = {
     -- Use a table to apply multiple mappings
     [M.actions.EXPAND] = { "<CR>", "<2-LeftMouse>" },
