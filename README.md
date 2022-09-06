@@ -8,7 +8,7 @@ changes!
 A UI for [nvim-dap](https://github.com/mfussenegger/nvim-dap) which provides a
 good out of the box configuration.
 
-![Preview](https://user-images.githubusercontent.com/24252670/126842672-de9c6b78-eec2-4187-b48e-977686ec4080.png)
+![preview](https://user-images.githubusercontent.com/24252670/188723096-db9711a2-330c-49f4-a66d-909be24b301e.png)
 
 ## Installation
 
@@ -53,7 +53,7 @@ Default settings:
 
 ```lua
 require("dapui").setup({
-  icons = { expanded = "▾", collapsed = "▸" },
+  icons = { expanded = "▾", collapsed = "▸", current_frame = "▸" },
   mappings = {
     -- Use a table to apply multiple mappings
     expand = { "<CR>", "<2-LeftMouse>" },
