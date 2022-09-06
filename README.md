@@ -1,8 +1,5 @@
 # nvim-dap-ui
 
-This is still early stage software. Bugs are expected and there may be breaking
-changes!
-
 ## Introduction
 
 A UI for [nvim-dap](https://github.com/mfussenegger/nvim-dap) which provides a
