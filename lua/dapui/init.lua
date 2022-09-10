@@ -111,7 +111,6 @@ function dapui.eval(expr, settings)
   end)
 end
 
-
 function dapui._dump_state()
   local data = vim.inspect(ui_state)
   local buf = vim.api.nvim_create_buf(false, true)
@@ -159,7 +158,9 @@ function dapui.setup(user_config)
 
     refresh_control_panel = function()
       if win then
-        vim.api.nvim_win_set_option(win, "winbar", dapui.controls())
+        if not pcall(vim.api.nvim_win_set_option, win, "winbar", dapui.controls()) then
+          win = nil
+        end
       end
     end
 
