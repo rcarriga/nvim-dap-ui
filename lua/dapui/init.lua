@@ -104,6 +104,13 @@ function dapui.eval(expr, settings)
   end)
 end
 
+function dapui._dump_state()
+  local data = vim.inspect(ui_state)
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(data, "\n"))
+  vim.cmd("sb " .. buf)
+end
+
 function dapui.setup(user_config)
   local dap = require("dap")
   local render = require("dapui.render")
