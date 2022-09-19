@@ -65,6 +65,8 @@ function dapui.float_element(elem_name, settings)
   end)
 end
 
+local prev_expr = nil
+
 ---Open a floating window containing the result of evaluting an expression
 ---
 ---If no fixed dimensions are given, the window will expand to fit the contents
@@ -77,10 +79,6 @@ end
 ---@field enter boolean: Whether or not to enter the window after opening
 function dapui.eval(expr, settings)
   settings = settings or {}
-  if open_float then
-    open_float:jump_to()
-    return
-  end
   if not expr then
     if vim.fn.mode() == "v" then
       local start = vim.fn.getpos("v")
@@ -91,6 +89,15 @@ function dapui.eval(expr, settings)
       expr = expr or vim.fn.expand("<cexpr>")
     end
   end
+  if open_float then
+    if prev_expr == expr then
+      open_float:jump_to()
+      return
+    else
+      open_float:close()
+    end
+  end
+  prev_expr = expr
   local elem = require("dapui.elements.hover")
   elem.set_expression(expr, settings.context)
   vim.schedule(function()
