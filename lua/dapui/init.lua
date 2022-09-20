@@ -118,6 +118,8 @@ function dapui._dump_state()
   vim.cmd("sb " .. buf)
 end
 
+local refresh_control_panel = function() end
+
 function dapui.setup(user_config)
   local dap = require("dap")
   local render = require("dapui.render")
@@ -135,8 +137,10 @@ function dapui.setup(user_config)
   ui_state = UIState()
   ui_state:attach(dap)
 
+  local buf_name_map = {}
   for _, module in pairs(config.elements) do
     local elem = element(module)
+    buf_name_map[module] = elem.name ~= "DAP REPL" and elem.name or "\\[dap-repl\\]"
     elem.setup(ui_state)
     render.loop.register_element(elem)
     for _, event in pairs(elem.dap_after_listeners or {}) do
@@ -144,6 +148,55 @@ function dapui.setup(user_config)
         render.loop.run(elem.name)
       end
     end
+  end
+
+  if config.controls.enabled then
+    local buf_name = buf_name_map[config.controls.element]
+
+    local group = vim.api.nvim_create_augroup("DAPUIControls", {})
+    local win
+
+    refresh_control_panel = function()
+      if win then
+        if not pcall(vim.api.nvim_win_set_option, win, "winbar", dapui.controls()) then
+          win = nil
+        end
+      end
+    end
+
+    local list_id = "dapui_controls"
+    local events = {
+      "event_terminated",
+      "disconnect",
+      "event_exited",
+      "event_stopped",
+      "threads",
+      "event_continued",
+    }
+    for _, event in ipairs(events) do
+      dap.listeners.after[event][list_id] = refresh_control_panel
+    end
+
+    vim.api.nvim_create_autocmd("BufWinEnter", {
+      pattern = buf_name,
+      group = group,
+      callback = function()
+        if win then
+          return
+        end
+
+        win = vim.fn.bufwinid(buf_name)
+        refresh_control_panel()
+        vim.api.nvim_create_autocmd({ "WinClosed", "BufWinLeave" }, {
+          group = group,
+          callback = function()
+            if win and not vim.api.nvim_win_is_valid(win) then
+              win = nil
+            end
+          end,
+        })
+      end,
+    })
   end
 
   windows.setup()
@@ -242,6 +295,7 @@ function dapui.open(opts)
       win_layout:resize(opts)
     end
   end)
+  refresh_control_panel()
 end
 
 ---Toggle one or all of the window layouts.
@@ -284,6 +338,65 @@ function dapui.toggle(opts)
       win_layout:resize(opts)
     end
   end)
+  refresh_control_panel()
+end
+
+local dap = require("dap")
+
+_G._dapui = {
+  play = function()
+    local session = dap.session()
+    if not session or session.stopped_thread_id then
+      dap.continue()
+    else
+      dap.pause()
+    end
+  end,
+}
+setmetatable(_dapui, {
+  __index = function(_, key)
+    return function()
+      return dap[key]()
+    end
+  end,
+})
+
+function dapui.controls()
+  local session = dap.session()
+
+  local running = (session and not session.stopped_thread_id)
+
+  local avail_hl = function(group, allow_running)
+    if not session or (not allow_running and running) then
+      return "DapUIUnavailable"
+    end
+    return group
+  end
+
+  local icons = config.controls.icons
+  local elems = {
+    {
+      func = "play",
+      icon = running and icons.pause or icons.play,
+      hl = "DapUIPlayPause",
+    },
+    { func = "step_into", hl = avail_hl("DapUIStepInto") },
+    { func = "step_over", "", hl = avail_hl("DapUIStepOver") },
+    { func = "step_out", "", hl = avail_hl("DapUIStepOut") },
+    { func = "step_back", "", hl = avail_hl("DapUIStepBack") },
+    { func = "run_last", "↻", hl = "DapUIRestart" },
+    { func = "terminate", "□", hl = avail_hl("DapUIStop", true) },
+  }
+  local bar = ""
+  for _, elem in ipairs(elems) do
+    bar = bar
+      .. ("  %%#%s#%%0@v:lua._dapui.%s@%s%%#0#"):format(
+        elem.hl,
+        elem.func,
+        elem.icon or icons[elem.func]
+      )
+  end
+  return bar
 end
 
 return dapui
