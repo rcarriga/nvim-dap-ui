@@ -108,7 +108,7 @@ function UIState:attach(dap, listener_id)
   end
 
   dap.listeners.after.stackTrace[listener_id] = function(session, err, response, request)
-    if not err then
+    if not err and request ~= nil then
       self._frames[request.threadId] = response.stackFrames
       self:_emit_refreshed(session)
     end
