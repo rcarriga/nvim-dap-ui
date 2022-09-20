@@ -5,7 +5,7 @@
 A UI for [nvim-dap](https://github.com/mfussenegger/nvim-dap) which provides a
 good out of the box configuration.
 
-![preview](https://user-images.githubusercontent.com/24252670/188723096-db9711a2-330c-49f4-a66d-909be24b301e.png)
+![preview](https://user-images.githubusercontent.com/24252670/191198389-a1321363-c0f1-4ff1-b663-ab1350d2b393.png)
 
 ## Installation
 
