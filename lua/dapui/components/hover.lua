@@ -25,10 +25,11 @@ function Hover:new(expression, state)
   return hover
 end
 
-function Hover:set_var(hover_expr, value)
-  self.state:set_variable(nil, hover_expr.evaluated, value)
+function Hover:set_expr(hover_expr)
+  self.state:remove_watch(self.expression)
+  self.expression = hover_expr
   self.mode = nil
-  loop.run()
+  self.state:add_watch(self.expression)
 end
 
 ---@param canvas dapui.Canvas
@@ -38,13 +39,8 @@ function Hover:render(canvas)
     canvas:write(" \n")
     return
   end
-  if hover_expr.evaluated and self.mode == "set" then
-    hover_expr.evaluated.evaluateName = self.expression
-    canvas:set_prompt(
-      "> ",
-      partial(self.set_var, self, hover_expr),
-      { fill = hover_expr.evaluated.result }
-    )
+  if self.mode == "set" then
+    canvas:set_prompt("> ", partial(self.set_expr, self), { fill = self.expression })
   end
   local var_ref = hover_expr.evaluated and hover_expr.evaluated.variablesReference
   local prefix
@@ -80,11 +76,11 @@ function Hover:render(canvas)
         loop.run()
       end)
       canvas:add_mapping(config.actions.REPL, util.partial(util.send_to_repl, self.expression))
-      canvas:add_mapping(config.actions.EDIT, function()
-        self.mode = "set"
-        loop.run()
-      end)
     end
+    canvas:add_mapping(config.actions.EDIT, function()
+      self.mode = "set"
+      loop.run()
+    end)
     canvas:write("\n")
   end
 

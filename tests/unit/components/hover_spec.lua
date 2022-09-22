@@ -13,6 +13,7 @@ describe("checking hover", function()
 
   local mock_state
   local monitored
+  local watched = {}
   before_each(function()
     monitored = {}
     mock_state = {
@@ -20,6 +21,13 @@ describe("checking hover", function()
       monitor = function(_, ref)
         monitored[ref] = true
       end,
+      add_watch = function(_, expr)
+        watched[expr] = true
+      end,
+      remove_watch = function(_, expr)
+        watched[expr] = false
+      end,
+
       watch = function(_, expr)
         if expr == expression then
           return {
@@ -37,8 +45,6 @@ describe("checking hover", function()
             evaluated = nil,
           }
         end
-
-        assert(false, "Invalid watch expression")
       end,
       step_number = function()
         return 1
@@ -222,47 +228,35 @@ describe("checking hover", function()
   describe("in set mode", function()
     local canvas
     local component
-    local updated
-    before_each(function()
+    local function setup()
       canvas = render.new_canvas()
       component = Hover(expression, mock_state)
-      updated = {}
 
       component:render(canvas)
       canvas.mappings["edit"][1][1]()
       canvas = render.new_canvas()
       component:render(canvas)
-
-      mock_state.set_variable = function(_, container_ref, variable, value)
-        updated[#updated + 1] = { container_ref, variable, value }
-      end
-    end)
+    end
 
     it("adds edit prompt", function()
+      setup()
       assert.Not.Nil(canvas.prompt)
     end)
 
-    it("fills prompt with current value", function()
-      assert.equal("[0, 1, [2, 3, 4, 5]]", canvas.prompt.fill)
+    it("fills prompt with current expresssion", function()
+      setup()
+      assert.equal("expr", canvas.prompt.fill)
     end)
 
-    it("updates variable value", function()
-      canvas.prompt.callback("new_value")
-      assert.are.same({
-        nil,
-        {
-          evaluateName = "expr",
-          presentationHint = {},
-          result = "[0, 1, [2, 3, 4, 5]]",
-          type = "list",
-          variablesReference = 1,
-        },
-        "new_value",
-      }, updated[1])
+    it("updates expression", function()
+      setup()
+      canvas.prompt.callback("new_expr")
+      assert.True(watched.new_expr)
     end)
 
     it("component resets mode", function()
-      canvas.prompt.callback("new_value")
+      setup()
+      canvas.prompt.callback("new_expr")
       canvas = render.new_canvas()
       component:render(canvas)
       assert.Nil(component.mode)
