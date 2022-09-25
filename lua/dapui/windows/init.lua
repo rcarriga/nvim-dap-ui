@@ -114,7 +114,12 @@ function M.open_float(element, position, settings)
   local listener_id = element.name .. buf .. "float"
   render.loop.register_listener(listener_id, element.name, "render", function(rendered_buf, canvas)
     if rendered_buf == buf then
-      float_win:resize(settings.width or canvas:width(), settings.height or canvas:length())
+      local width = settings.width or canvas:width()
+      local height = settings.height or canvas:length()
+      if width <= 0 or height <= 0 then
+        return
+      end
+      float_win:resize(width, height)
     end
   end)
   render.loop.register_listener(listener_id, element.name, "close", function(closed_buf)

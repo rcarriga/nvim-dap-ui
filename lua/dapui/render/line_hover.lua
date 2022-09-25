@@ -60,6 +60,8 @@ function M.show()
     return
   end
 
+  if content_width <= 0 then return end
+
   local extmarks = api.nvim_buf_get_extmarks(
     buffer,
     namespace,
