@@ -124,7 +124,7 @@ function dapui.setup(user_config)
   local dap = require("dap")
   local render = require("dapui.render")
   if ui_state then
-    vim.notify("Setup called twice", "warn", {
+    vim.notify("Setup called twice", "debug", {
       title = "nvim-dap-ui",
       icon = " ",
     })
