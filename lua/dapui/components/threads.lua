@@ -37,7 +37,7 @@ function Threads:render(canvas, indent)
       canvas,
       frames,
       indent + config.windows().indent,
-      self.state:current_frame().id
+      self.state:current_frame() and self.state:current_frame().id
     )
     local last_line = canvas:length()
 
