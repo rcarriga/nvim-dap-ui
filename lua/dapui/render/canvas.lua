@@ -233,7 +233,7 @@ function M._mapping(action)
   local line = vim.fn.line(".")
   local callbacks = _mappings[buffer][action][line]
   if not callbacks then
-    vim.notify("No " .. action .. " action for current line", "INFO")
+    vim.notify("No " .. action .. " action for current line", vim.log.levels.INFO)
     return
   end
   for _, callback in pairs(callbacks) do
