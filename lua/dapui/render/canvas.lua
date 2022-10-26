@@ -138,7 +138,7 @@ end
 ---Apply a render.canvas to a buffer
 ---@param state dapui.Canvas
 ---@param buffer number
-function M.render_buffer(state, buffer)
+function M.render_buffer(state, buffer, element)
   local success, _ = pcall(api.nvim_buf_set_option, buffer, "modifiable", true)
   if not success then
     return false
@@ -151,7 +151,7 @@ function M.render_buffer(state, buffer)
   _mappings[buffer] = state.mappings
   for action, _ in pairs(state.mappings) do
     util.apply_mapping(
-      config.mappings()[action],
+      config.element_mapping(element, action),
       "<cmd>lua require('dapui.render.canvas')._mapping('" .. action .. "')<CR>",
       buffer
     )

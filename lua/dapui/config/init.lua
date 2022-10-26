@@ -34,6 +34,7 @@ local default_config = {
     [M.actions.REPL] = "r",
     [M.actions.TOGGLE] = "t",
   },
+  element_mappings = {},
   expand_lines = vim.fn.has("nvim-0.7") == 1,
   layouts = {
     {
@@ -171,6 +172,13 @@ require('dapui').setup(
     filled.layouts = config.layouts
   end
   filled.mappings = fill_mappings(filled.mappings)
+
+  local element_mappings = {}
+  for elem, mappings in pairs(filled.element_mappings) do
+    element_mappings[elem] = fill_mappings(mappings)
+  end
+
+  filled.element_mappings = element_mappings
   filled.floating.mappings = fill_mappings(filled.floating.mappings)
   for i, layout in ipairs(filled.layouts) do
     filled.layouts[i] = fill_elements(layout)
@@ -214,6 +222,11 @@ end
 
 function M.expand_lines()
   return user_config.expand_lines
+end
+
+function M.element_mapping(element, action)
+  return (user_config.element_mappings[element] and user_config.element_mappings[element][action])
+    or user_config.mappings[action]
 end
 
 setmetatable(M, {

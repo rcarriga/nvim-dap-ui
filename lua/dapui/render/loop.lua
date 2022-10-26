@@ -95,6 +95,7 @@ end
 function M.run(element_names)
   element_names = get_elements(element_names)
   for _, elem_name in pairs(element_names) do
+    local elem_id = string.gsub(string.lower(elem_name), "dap ", "")
     local canvas_state = canvas_states[elem_name]
     if not vim.tbl_isempty(canvas_state.buffers) then
       local canvas = Canvas.new()
@@ -102,7 +103,7 @@ function M.run(element_names)
       canvas_state.element.render(canvas)
       if canvas.valid then
         for _, buf in pairs(canvas_state.buffers) do
-          local rendered = Canvas.render_buffer(canvas, buf)
+          local rendered = Canvas.render_buffer(canvas, buf, elem_id)
           if rendered then
             for _, listener in pairs(canvas_state.listeners[M.EVENTS.RENDER] or {}) do
               listener(buf, canvas)
