@@ -76,7 +76,7 @@ function M.jump_to_frame(frame, session, set_frame)
         return
       end
       if not response.body.content then
-        vim.notify("No source available for frame", "WARN")
+        vim.notify("No source available for frame", vim.log.levels.WARN)
         return
       end
       vim.api.nvim_buf_set_lines(buf, 0, 0, true, vim.split(response.body.content, "\n"))
@@ -88,7 +88,7 @@ function M.jump_to_frame(frame, session, set_frame)
   end
 
   if not source.path then
-    vim.notify("No source available for frame", "WARN")
+    vim.notify("No source available for frame", vim.log.levels.WARN)
   end
 
   local path = source.path

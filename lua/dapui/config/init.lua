@@ -116,7 +116,7 @@ local function dep_warning(message)
   vim.schedule(function()
     if not dep_warnings[message] then
       dep_warnings[message] = true
-      vim.notify(message, "warn", {
+      vim.notify(message, vim.log.levels.WARN, {
         title = "nvim-dap-ui",
         on_open = function(win)
           vim.api.nvim_buf_set_option(vim.api.nvim_win_get_buf(win), "filetype", "markdown")

@@ -249,7 +249,8 @@ function UIState:set_variable(container_ref, variable, value)
       )
     else
       vim.notify(
-        "Debug server doesn't support setting " .. (variable.evaluateName or variable.name)
+        "Debug server doesn't support setting " .. (variable.evaluateName or variable.name),
+        vim.log.levels.WARN
       )
     end
   end)
