@@ -9,7 +9,7 @@ M.EVENTS = { RENDER = "render", CLOSE = "close" }
 ---@class Element
 ---@field render fun(canvas: dapui.Canvas) Fill a given canvas
 ---@field name string
----@field buf_options string
+---@field buf_options table<string, any>
 ---@field dap_after_listeners table<number, string>
 ---@field setup fun(state: UIState)
 ---@field setup_buffer fun(buf: number)

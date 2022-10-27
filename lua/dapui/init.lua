@@ -177,25 +177,35 @@ function dapui.setup(user_config)
       dap.listeners.after[event][list_id] = refresh_control_panel
     end
 
+    local cb = function(opts)
+      if win then
+        return
+      end
+
+      win = vim.fn.bufwinid(opts.buf)
+      if win == -1 then
+        win = nil
+        return
+      end
+      refresh_control_panel()
+      vim.api.nvim_create_autocmd({ "WinClosed", "BufWinLeave" }, {
+        group = group,
+        callback = function()
+          if win and not vim.api.nvim_win_is_valid(win) then
+            win = nil
+          end
+        end,
+      })
+    end
+    vim.api.nvim_create_autocmd({ "FileType" }, {
+      pattern = element(config.controls.element).buf_options.filetype,
+      group = group,
+      callback = cb,
+    })
     vim.api.nvim_create_autocmd("BufWinEnter", {
       pattern = buf_name,
       group = group,
-      callback = function()
-        if win then
-          return
-        end
-
-        win = vim.fn.bufwinid(buf_name)
-        refresh_control_panel()
-        vim.api.nvim_create_autocmd({ "WinClosed", "BufWinLeave" }, {
-          group = group,
-          callback = function()
-            if win and not vim.api.nvim_win_is_valid(win) then
-              win = nil
-            end
-          end,
-        })
-      end,
+      callback = cb,
     })
   end
 
