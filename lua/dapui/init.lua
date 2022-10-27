@@ -150,7 +150,7 @@ function dapui.setup(user_config)
     end
   end
 
-  if config.controls.enabled then
+  if config.controls.enabled and config.controls.element ~= '' then
     local buf_name = buf_name_map[config.controls.element]
 
     local group = vim.api.nvim_create_augroup("DAPUIControls", {})
