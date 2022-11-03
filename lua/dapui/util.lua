@@ -12,6 +12,20 @@ function M.round(num)
   end
 end
 
+function M.notify(msg, level, opts)
+  return vim.notify(
+    msg,
+    level or vim.log.levels.INFO,
+    vim.tbl_extend("keep", opts or {}, {
+      title = "nvim-dap-ui",
+      icon = "",
+      on_open = function(win)
+        vim.api.nvim_buf_set_option(vim.api.nvim_win_get_buf(win), "filetype", "markdown")
+      end,
+    })
+  )
+end
+
 function M.is_uri(path)
   local scheme = path:match("^([a-z]+)://.*")
   if scheme then
@@ -76,7 +90,7 @@ function M.jump_to_frame(frame, session, set_frame)
         return
       end
       if not response.body.content then
-        vim.notify("No source available for frame", vim.log.levels.WARN)
+        M.notify("No source available for frame", vim.log.levels.WARN)
         return
       end
       vim.api.nvim_buf_set_lines(buf, 0, 0, true, vim.split(response.body.content, "\n"))
@@ -88,7 +102,7 @@ function M.jump_to_frame(frame, session, set_frame)
   end
 
   if not source.path then
-    vim.notify("No source available for frame", vim.log.levels.WARN)
+    M.notify("No source available for frame", vim.log.levels.WARN)
   end
 
   local path = source.path

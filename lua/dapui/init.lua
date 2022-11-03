@@ -1,8 +1,11 @@
 ---@tag nvim-dap-ui
+
+local dap = require("dap")
 local dapui = {}
 
 local windows = require("dapui.windows")
 local config = require("dapui.config")
+local util = require("dapui.util")
 local ui_state
 
 ---@return Element
@@ -78,12 +81,16 @@ local prev_expr = nil
 ---@field height integer: Fixed height of window
 ---@field enter boolean: Whether or not to enter the window after opening
 function dapui.eval(expr, settings)
+  if not dap.session() then
+    util.notify("No active debug session", vim.log.levels.WARN)
+    return
+  end
   settings = settings or {}
   if not expr then
     if vim.fn.mode() == "v" then
       local start = vim.fn.getpos("v")
       local finish = vim.fn.getpos(".")
-      local lines = require("dapui.util").get_selection(start, finish)
+      local lines = util.get_selection(start, finish)
       expr = table.concat(lines, "\n")
     else
       expr = expr or vim.fn.expand("<cexpr>")
@@ -121,13 +128,9 @@ end
 local refresh_control_panel = function() end
 
 function dapui.setup(user_config)
-  local dap = require("dap")
   local render = require("dapui.render")
   if ui_state then
-    vim.notify("Setup called twice", vim.log.levels.DEBUG, {
-      title = "nvim-dap-ui",
-      icon = " ",
-    })
+    util.notify("Setup called twice", vim.log.levels.DEBUG)
   end
   render.loop.clear()
 
@@ -150,7 +153,7 @@ function dapui.setup(user_config)
     end
   end
 
-  if config.controls.enabled and config.controls.element ~= '' then
+  if config.controls.enabled and config.controls.element ~= "" then
     local buf_name = buf_name_map[config.controls.element]
 
     local group = vim.api.nvim_create_augroup("DAPUIControls", {})
@@ -350,8 +353,6 @@ function dapui.toggle(opts)
   end)
   refresh_control_panel()
 end
-
-local dap = require("dap")
 
 _G._dapui = {
   play = function()

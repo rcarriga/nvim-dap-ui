@@ -233,7 +233,7 @@ function UIState:set_variable(container_ref, variable, value)
         { expression = variable.evaluateName, value = value, frameId = frame_id },
         function(err)
           if err then
-            vim.notify(util.format_error(err))
+            util.notify(util.format_error(err))
           end
         end
       )
@@ -243,12 +243,12 @@ function UIState:set_variable(container_ref, variable, value)
         { variablesReference = container_ref, name = variable.name, value = value },
         function(err)
           if err then
-            vim.notify(util.format_error(err))
+            util.notify(util.format_error(err))
           end
         end
       )
     else
-      vim.notify(
+      util.notify(
         "Debug server doesn't support setting " .. (variable.evaluateName or variable.name),
         vim.log.levels.WARN
       )

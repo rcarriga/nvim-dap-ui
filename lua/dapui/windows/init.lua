@@ -20,7 +20,7 @@ local function create_win_states(win_configs)
       win_state.init_size = win_state.size
       win_states[#win_states + 1] = win_state
     else
-      vim.notify("nvim-dap-ui: Element " .. win_state.id .. " does not exist", vim.log.levels.WARN)
+      util.notify("nvim-dap-ui: Element " .. win_state.id .. " does not exist", vim.log.levels.WARN)
     end
   end
   return win_states
