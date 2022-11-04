@@ -13,9 +13,13 @@ function M.round(num)
 end
 
 function M.notify(msg, level, opts)
+  level = level or vim.log.levels.INFO
+  if not require("vim.lsp.log").should_log(level) then
+    return
+  end
   return vim.notify(
     msg,
-    level or vim.log.levels.INFO,
+    level,
     vim.tbl_extend("keep", opts or {}, {
       title = "nvim-dap-ui",
       icon = "",
