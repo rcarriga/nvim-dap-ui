@@ -215,6 +215,10 @@ function M.render()
   return user_config.render
 end
 
+function M.update_render(update)
+  user_config.render = vim.tbl_deep_extend("keep", update, user_config.render)
+end
+
 function M.expand_lines()
   return user_config.expand_lines
 end

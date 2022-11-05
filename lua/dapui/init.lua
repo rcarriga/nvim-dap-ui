@@ -222,6 +222,14 @@ function dapui.setup(user_config)
   end)
 end
 
+---Update the config.render settings and re-render windows
+---@param update table: Updated settings, from the `render` table of the config
+function dapui.update_render(update)
+  config.update_render(update)
+  local render = require("dapui.render")
+  render.loop.run()
+end
+
 local function keep_cmdheight(cb)
   local cmd_height = vim.o.cmdheight
 

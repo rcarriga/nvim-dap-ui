@@ -1,5 +1,5 @@
 ================================================================================
-                                                                   *nvim-dap-ui*
+NVIM-DAP-UI                                                        *nvim-dap-ui*
 
 dapui.float_element({elem_name}, {settings})           *dapui.float_element()*
     Open a floating window containing the desired element.
@@ -40,6 +40,15 @@ dapui.eval({expr}, {settings})                                  *dapui.eval()*
         {width}   (integer)  Fixed width of window
         {height}  (integer)  Fixed height of window
         {enter}   (boolean)  Whether or not to enter the window after opening
+
+
+dapui.update_render({update})                          *dapui.update_render()*
+    Update the config.render settings and re-render windows
+
+
+    Parameters: ~
+        {update} (table)  Updated settings, from the `render` table of the
+                          config
 
 
 dapui.close({opts})                                            *dapui.close()*

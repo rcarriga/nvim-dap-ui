@@ -201,7 +201,7 @@ function M.render_type(maybe_type)
     return ""
   end
   local max_length = config.render().max_type_length
-  if not max_length then
+  if not max_length or max_length == -1 then
     return maybe_type
   end
   if max_length == 0 then
