@@ -46,11 +46,15 @@ Elements can also be displayed temporarily in a floating window.
 You can supply an object to the `require("dapui").setup()` function to
 configure the elements.
 
+The default icons use [codicons](https://github.com/microsoft/vscode-codicons)
+It's recommended to use this [fork](https://github.com/ChristianChiarulli/neovim-codicons) which fixes alignment issues
+for the terminal.
+
 Default settings:
 
 ```lua
 require("dapui").setup({
-  icons = { expanded = "▾", collapsed = "▸", current_frame = "▸" },
+  icons = { expanded = "", collapsed = "", current_frame = "" },
   mappings = {
     -- Use a table to apply multiple mappings
     expand = { "<CR>", "<2-LeftMouse>" },

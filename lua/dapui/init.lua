@@ -400,11 +400,11 @@ function dapui.controls()
       hl = "DapUIPlayPause",
     },
     { func = "step_into", hl = avail_hl("DapUIStepInto") },
-    { func = "step_over", "", hl = avail_hl("DapUIStepOver") },
-    { func = "step_out", "", hl = avail_hl("DapUIStepOut") },
-    { func = "step_back", "", hl = avail_hl("DapUIStepBack") },
-    { func = "run_last", "", hl = "DapUIRestart" },
-    { func = "terminate", "", hl = avail_hl("DapUIStop", true) },
+    { func = "step_over", hl = avail_hl("DapUIStepOver") },
+    { func = "step_out", hl = avail_hl("DapUIStepOut") },
+    { func = "step_back", hl = avail_hl("DapUIStepBack") },
+    { func = "run_last", hl = "DapUIRestart" },
+    { func = "terminate", hl = avail_hl("DapUIStop", true) },
   }
   local bar = ""
   for _, elem in ipairs(elems) do
