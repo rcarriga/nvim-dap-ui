@@ -73,8 +73,8 @@ local default_config = {
     enabled = vim.fn.exists("+winbar") == 1,
     element = M.elements.REPL,
     icons = {
-      pause = "",
-      play = "",
+      pause = "",
+      play = "",
       step_into = "",
       step_over = "",
       step_out = "",
