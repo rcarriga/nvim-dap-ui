@@ -75,6 +75,10 @@ function M.setup()
       }
     end
     patch_background()
+  else
+    for _, hl_group in pairs(control_hl_groups) do
+      vim.cmd(string.format("hi default link %sNC %s", hl_group))
+    end
   end
 end
 
