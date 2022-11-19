@@ -101,14 +101,16 @@ def safe_name(name: str) -> str:
         return "goto_"
     return name
 
-def prepare_doc(doc: str):
+def prepare_doc(doc: str, multiline: bool):
     lines = doc.strip().splitlines()
     if len(lines) == 1:
         return lines[0]
-    return f"{lines[0]}\n" + "\n".join(f"---{line.strip()}" for line in lines[1:])
+    if multiline:
+        return f"{lines[0]}\n" + "\n".join(f"---{line.strip()}" for line in lines[1:])
+    return " ".join(line.strip() for line in lines)
 
 def field_annotation(field: ModelField) -> str:
-    description = field.field_info.description and prepare_doc(field.field_info.description)
+    description = field.field_info.description and prepare_doc(field.field_info.description, multiline=False)
     return f"---@field {field.name}{'?' if not field.required else ''} {type_name(field.outer_type_)} {description or ''}"
 
 
@@ -124,7 +126,7 @@ def create_class(t, class_name: str | None = None) -> list[str]:
                 sub_classes += field_sub_classes
                 sub_classes.append("")
             lines.append(field_annotation(field))
-        class_prefix = [ f"---{prepare_doc(t.__doc__)}" ] if t.__doc__ else []
+        class_prefix = [ f"---{prepare_doc(t.__doc__, multiline=True)}" ] if t.__doc__ else []
         class_prefix.append(f"---@class {t_name}")
         lines = [
             *class_prefix,
