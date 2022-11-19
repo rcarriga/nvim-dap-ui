@@ -14,7 +14,7 @@ function M.patch_background(template_group)
   for _, hl_group in ipairs(control_hl_groups) do
     vim.cmd {
       cmd = "highlight",
-      args = {hl_group, string.format("guibg=#%06x", guibg)}
+      args = {hl_group, guibg and string.format("guibg=#%06x", guibg) or "guibg=NONE"}
     }
   end
 end
