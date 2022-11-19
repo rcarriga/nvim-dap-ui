@@ -10,7 +10,13 @@ local control_hl_groups = {
 ---@param template_group string  Name of highlight group
 ---@return nil
 function M.patch_background(template_group)
-  local guibg = vim.api.nvim_get_hl_by_name(template_group, true).background
+  -- Only exists for >= 0.8
+  local exists, hl = pcall(vim.api.nvim_get_hl_by_name, template_group, true)
+  if not exists then
+    return
+  end
+
+  local guibg = hl.background
   for _, hl_group in ipairs(control_hl_groups) do
     vim.cmd {
       cmd = "highlight",
