@@ -32,9 +32,11 @@ def create_module():
     _, output_path = tf.mkstemp()
     output_path = Path(output_path)
 
-    d.generate(input_=protocol_path, output=output_path)
+    d.generate(input_=protocol_path, output=output_path, use_schema_description=True)
     with open(output_path) as f:
         data = f.readlines()
+    with open("model.py", "w") as x:
+        x.writelines(data)
     # Remove the update_forward_refs calls which cause errors
     with open(output_path, "w") as f:
         f.writelines(data[:-2])
@@ -99,11 +101,14 @@ def safe_name(name: str) -> str:
         return "goto_"
     return name
 
+def prepare_doc(doc: str):
+    lines = doc.strip().splitlines()
+    if len(lines) == 1:
+        return lines[0]
+    return f"{lines[0]}\n" + "\n".join(f"---{line.strip()}" for line in lines[1:])
 
 def field_annotation(field: ModelField) -> str:
-    description = field.field_info.description and field.field_info.description.replace(
-        "\n", "\n---"
-    )
+    description = field.field_info.description and prepare_doc(field.field_info.description)
     return f"---@field {field.name}{'?' if not field.required else ''} {type_name(field.outer_type_)} {description or ''}"
 
 
@@ -119,7 +124,12 @@ def create_class(t, class_name: str | None = None) -> list[str]:
                 sub_classes += field_sub_classes
                 sub_classes.append("")
             lines.append(field_annotation(field))
-        lines = [f"---@class {t_name}", *lines]
+        class_prefix = [ f"---{prepare_doc(t.__doc__)}" ] if t.__doc__ else []
+        class_prefix.append(f"---@class {t_name}")
+        lines = [
+            *class_prefix,
+            *lines,
+        ]
     else:
         try:
             sub_classes = [
@@ -127,7 +137,10 @@ def create_class(t, class_name: str | None = None) -> list[str]:
             ]
         except TypeError:
             ...
-    return [*sub_classes, *lines]
+    return [
+        *sub_classes,
+        *lines,
+    ]
 
 
 def create_request(
@@ -143,7 +156,9 @@ def create_request(
         f"---@param args {arg_class_name} {arg_field.field_info.description or ''}",
     ]
 
-    if (body_field := response_cls.__fields__.get("body")) and is_model(body_field.outer_type_):
+    if (body_field := response_cls.__fields__.get("body")) and is_model(
+        body_field.outer_type_
+    ):
         response_body_class = body_field.outer_type_
         response_class_name = type_name(response_cls)
 

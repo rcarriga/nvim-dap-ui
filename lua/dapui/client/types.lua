@@ -10,16 +10,20 @@ DAPUIClient = {
     request = DAPUIRequestsClient,
     listen = DAPUIEventListenerClient,
 }
+---Arguments for `attach` request. Additional attributes are implementation specific.
 ---@class dapui.types.AttachRequestArguments
 
 ---@async
 ---@param args dapui.types.AttachRequestArguments 
 function DAPUIRequestsClient.attach(args) end
 
+---The checksum of an item calculated by the specified algorithm.
 ---@class dapui.types.Checksum
 ---@field algorithm "MD5" The algorithm used to calculate this checksum.
 ---@field checksum string Value of the checksum, encoded as a hexadecimal value.
 
+---A `Source` is a descriptor for source code.
+---It is returned from the debug adapter as part of a `StackFrame` and it is used by clients when specifying breakpoints.
 ---@class dapui.types.Source
 ---@field name? string The short name of the source. Every source returned from the debug adapter has a name.
 ---When sending a source to the debug adapter this name is optional.
@@ -36,6 +40,7 @@ function DAPUIRequestsClient.attach(args) end
 ---The client should leave the data intact and persist it across sessions. The client should not interpret the data.
 ---@field checksums? dapui.types.Checksum[] The checksums associated with this file.
 
+---Arguments for `breakpointLocations` request.
 ---@class dapui.types.BreakpointLocationsArguments
 ---@field source dapui.types.Source The source location of the breakpoints; either `source.path` or `source.reference` must be specified.
 ---@field line integer Start line of range to search possible breakpoint locations in. If only the line is specified, the request returns all possible locations in that line.
@@ -43,6 +48,7 @@ function DAPUIRequestsClient.attach(args) end
 ---@field endLine? integer End line of range to search possible breakpoint locations in. If no end line is given, then the end line is assumed to be the start line.
 ---@field endColumn? integer End position within `endLine` to search possible breakpoint locations in. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based. If no end column is given, the last position in the end line is assumed.
 
+---Properties of a breakpoint location returned from the `breakpointLocations` request.
 ---@class dapui.types.BreakpointLocation
 ---@field line integer Start line of breakpoint location.
 ---@field column? integer The start position of a breakpoint location. Position is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.
@@ -57,6 +63,7 @@ function DAPUIRequestsClient.attach(args) end
 ---@return dapui.types.BreakpointLocationsResponse
 function DAPUIRequestsClient.breakpointLocations(args) end
 
+---Arguments for `cancel` request.
 ---@class dapui.types.CancelArguments
 ---@field requestId? integer The ID (attribute `seq`) of the request to cancel. If missing no request is cancelled.
 ---Both a `requestId` and a `progressId` can be specified in one request.
@@ -67,12 +74,14 @@ function DAPUIRequestsClient.breakpointLocations(args) end
 ---@param args dapui.types.CancelArguments 
 function DAPUIRequestsClient.cancel(args) end
 
+---Arguments for `completions` request.
 ---@class dapui.types.CompletionsArguments
 ---@field frameId? integer Returns completions in the scope of this stack frame. If not specified, the completions are returned for the global scope.
 ---@field text string One or more source lines. Typically this is the text users have typed into the debug console before they asked for completion.
 ---@field column integer The position within `text` for which to determine the completion proposals. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.
 ---@field line? integer A line for which to determine the completion proposals. If missing the first line of the text is assumed.
 
+---`CompletionItems` are the suggestions returned from the `completions` request.
 ---@class dapui.types.CompletionItem
 ---@field label string The label of this completion item. By default this is also the text that is inserted when selecting this completion.
 ---@field text? string If text is returned and not an empty string, then it is inserted instead of the label.
@@ -92,12 +101,14 @@ function DAPUIRequestsClient.cancel(args) end
 ---@return dapui.types.CompletionsResponse
 function DAPUIRequestsClient.completions(args) end
 
+---Arguments for `configurationDone` request.
 ---@class dapui.types.ConfigurationDoneArguments
 
 ---@async
 ---@param args dapui.types.ConfigurationDoneArguments 
 function DAPUIRequestsClient.configurationDone(args) end
 
+---Arguments for `continue` request.
 ---@class dapui.types.ContinueArguments
 ---@field threadId integer Specifies the active thread. If the debug adapter supports single thread execution (see `supportsSingleThreadExecutionRequests`) and the argument `singleThread` is true, only the thread with this ID is resumed.
 ---@field singleThread? boolean If this flag is true, execution is resumed only for the thread with given `threadId`.
@@ -110,6 +121,7 @@ function DAPUIRequestsClient.configurationDone(args) end
 ---@return dapui.types.ContinueResponse
 function DAPUIRequestsClient.continue_(args) end
 
+---Arguments for `dataBreakpointInfo` request.
 ---@class dapui.types.DataBreakpointInfoArguments
 ---@field variablesReference? integer Reference to the variable container if the data breakpoint is requested for a child of the container.
 ---@field name string The name of the variable's child to obtain data breakpoint information for.
@@ -126,6 +138,7 @@ function DAPUIRequestsClient.continue_(args) end
 ---@return dapui.types.DataBreakpointInfoResponse
 function DAPUIRequestsClient.dataBreakpointInfo(args) end
 
+---Arguments for `disassemble` request.
 ---@class dapui.types.DisassembleArguments
 ---@field memoryReference string Memory reference to the base location containing the instructions to disassemble.
 ---@field offset? integer Offset (in bytes) to be applied to the reference location before disassembling. Can be negative.
@@ -134,6 +147,7 @@ function DAPUIRequestsClient.dataBreakpointInfo(args) end
 ---An adapter must return exactly this number of instructions - any unavailable instructions should be replaced with an implementation-defined 'invalid instruction' value.
 ---@field resolveSymbols? boolean If true, the adapter should attempt to resolve memory addresses and other values to symbolic names.
 
+---Represents a single disassembled instruction.
 ---@class dapui.types.DisassembledInstruction
 ---@field address string The address of the instruction. Treated as a hex value if prefixed with `0x`, or as a decimal value otherwise.
 ---@field instructionBytes? string Raw bytes representing the instruction and its operands, in an implementation-defined format.
@@ -155,6 +169,7 @@ function DAPUIRequestsClient.dataBreakpointInfo(args) end
 ---@return dapui.types.DisassembleResponse
 function DAPUIRequestsClient.disassemble(args) end
 
+---Arguments for `disconnect` request.
 ---@class dapui.types.DisconnectArguments
 ---@field restart? boolean A value of true indicates that this `disconnect` request is part of a restart sequence.
 ---@field terminateDebuggee? boolean Indicates whether the debuggee should be terminated when the debugger is disconnected.
@@ -168,9 +183,11 @@ function DAPUIRequestsClient.disassemble(args) end
 ---@param args dapui.types.DisconnectArguments 
 function DAPUIRequestsClient.disconnect(args) end
 
+---Provides formatting information for a value.
 ---@class dapui.types.ValueFormat
 ---@field hex? boolean Display the value in hex.
 
+---Arguments for `evaluate` request.
 ---@class dapui.types.EvaluateArguments
 ---@field expression string The expression to evaluate.
 ---@field frameId? integer Evaluate the expression in the scope of this stack frame. If not specified, the expression is evaluated in the global scope.
@@ -178,6 +195,7 @@ function DAPUIRequestsClient.disconnect(args) end
 ---@field format? dapui.types.ValueFormat Specifies details on how to format the result.
 ---The attribute is only honored by a debug adapter if the corresponding capability `supportsValueFormattingOptions` is true.
 
+---Properties of a variable that can be used to determine how to render the variable in the UI.
 ---@class dapui.types.VariablePresentationHint
 ---@field kind? string The kind of variable. Before introducing additional values, try to use the listed values.
 ---@field attributes? string[] Set of attributes represented as an array of strings. Before introducing additional values, try to use the listed values.
@@ -208,9 +226,11 @@ function DAPUIRequestsClient.disconnect(args) end
 ---@return dapui.types.EvaluateResponse
 function DAPUIRequestsClient.evaluate(args) end
 
+---Arguments for `exceptionInfo` request.
 ---@class dapui.types.ExceptionInfoArguments
 ---@field threadId integer Thread for which exception information should be retrieved.
 
+---Detailed information about an exception that has occurred.
 ---@class dapui.types.ExceptionDetails
 ---@field message? string Message contained in the exception.
 ---@field typeName? string Short type name of the exception object.
@@ -230,6 +250,7 @@ function DAPUIRequestsClient.evaluate(args) end
 ---@return dapui.types.ExceptionInfoResponse
 function DAPUIRequestsClient.exceptionInfo(args) end
 
+---Arguments for `goto` request.
 ---@class dapui.types.GotoArguments
 ---@field threadId integer Set the goto target for this thread.
 ---@field targetId integer The location where the debuggee will continue to run.
@@ -238,11 +259,14 @@ function DAPUIRequestsClient.exceptionInfo(args) end
 ---@param args dapui.types.GotoArguments 
 function DAPUIRequestsClient.goto_(args) end
 
+---Arguments for `gotoTargets` request.
 ---@class dapui.types.GotoTargetsArguments
 ---@field source dapui.types.Source The source location for which the goto targets are determined.
 ---@field line integer The line location for which the goto targets are determined.
 ---@field column? integer The position within `line` for which the goto targets are determined. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.
 
+---A `GotoTarget` describes a code location that can be used as a target in the `goto` request.
+---The possible goto targets can be determined via the `gotoTargets` request.
 ---@class dapui.types.GotoTarget
 ---@field id integer Unique identifier for a goto target. This is used in the `goto` request.
 ---@field label string The name of the goto target (shown in the UI).
@@ -260,6 +284,7 @@ function DAPUIRequestsClient.goto_(args) end
 ---@return dapui.types.GotoTargetsResponse
 function DAPUIRequestsClient.gotoTargets(args) end
 
+---Arguments for `initialize` request.
 ---@class dapui.types.InitializeRequestArguments
 ---@field clientID? string The ID of the client using this adapter.
 ---@field clientName? string The human-readable name of the client using this adapter.
@@ -278,6 +303,7 @@ function DAPUIRequestsClient.gotoTargets(args) end
 ---@field supportsArgsCanBeInterpretedByShell? boolean Client supports the `argsCanBeInterpretedByShell` attribute on the `runInTerminal` request.
 ---@field supportsStartDebuggingRequest? boolean Client supports the `startDebugging` request.
 
+---An `ExceptionBreakpointsFilter` is shown in the UI as an filter option for configuring how exceptions are dealt with.
 ---@class dapui.types.ExceptionBreakpointsFilter
 ---@field filter string The internal ID of the filter option. This value is passed to the `setExceptionBreakpoints` request.
 ---@field label string The name of the filter option. This is shown in the UI.
@@ -286,6 +312,9 @@ function DAPUIRequestsClient.gotoTargets(args) end
 ---@field supportsCondition? boolean Controls whether a condition can be specified for this filter option. If false or missing, a condition can not be set.
 ---@field conditionDescription? string A help text providing information about the condition. This string is shown as the placeholder text for a text box and can be translated.
 
+---A `ColumnDescriptor` specifies what module attribute to show in a column of the modules view, how to format it,
+---and what the column's label should be.
+---It is only used if the underlying UI actually supports this level of customization.
 ---@class dapui.types.ColumnDescriptor
 ---@field attributeName string Name of the attribute rendered in this column.
 ---@field label string Header UI label of column.
@@ -293,6 +322,7 @@ function DAPUIRequestsClient.gotoTargets(args) end
 ---@field type? "string" Datatype of values in this column. Defaults to `string` if not specified.
 ---@field width? integer Width of this column in characters (hint only).
 
+---Information about the capabilities of a debug adapter.
 ---@class dapui.types.InitializeResponse
 ---@field supportsConfigurationDoneRequest? boolean The debug adapter supports the `configurationDone` request.
 ---@field supportsFunctionBreakpoints? boolean The debug adapter supports function breakpoints.
@@ -339,6 +369,7 @@ function DAPUIRequestsClient.gotoTargets(args) end
 ---@return dapui.types.InitializeResponse
 function DAPUIRequestsClient.initialize(args) end
 
+---Arguments for `launch` request. Additional attributes are implementation specific.
 ---@class dapui.types.LaunchRequestArguments
 ---@field noDebug? boolean If true, the launch request should launch the program without enabling debugging.
 
@@ -346,6 +377,7 @@ function DAPUIRequestsClient.initialize(args) end
 ---@param args dapui.types.LaunchRequestArguments 
 function DAPUIRequestsClient.launch(args) end
 
+---Arguments for `loadedSources` request.
 ---@class dapui.types.LoadedSourcesArguments
 
 ---@class dapui.types.LoadedSourcesResponse
@@ -356,10 +388,18 @@ function DAPUIRequestsClient.launch(args) end
 ---@return dapui.types.LoadedSourcesResponse
 function DAPUIRequestsClient.loadedSources(args) end
 
+---Arguments for `modules` request.
 ---@class dapui.types.ModulesArguments
 ---@field startModule? integer The index of the first module to return; if omitted modules start at 0.
 ---@field moduleCount? integer The number of modules to return. If `moduleCount` is not specified or 0, all modules are returned.
 
+---A Module object represents a row in the modules view.
+---The `id` attribute identifies a module in the modules view and is used in a `module` event for identifying a module for adding, updating or deleting.
+---The `name` attribute is used to minimally render the module in the UI.
+---
+---Additional attributes can be added to the module. They show up in the module view if they have a corresponding `ColumnDescriptor`.
+---
+---To avoid an unnecessary proliferation of additional attributes with similar semantics but different names, we recommend to re-use attributes from the 'recommended' list below first, and only introduce new attributes if nothing appropriate could be found.
 ---@class dapui.types.Module
 ---@field id integer | string Unique identifier for the module.
 ---@field name string A name of the module.
@@ -381,6 +421,7 @@ function DAPUIRequestsClient.loadedSources(args) end
 ---@return dapui.types.ModulesResponse
 function DAPUIRequestsClient.modules(args) end
 
+---Arguments for `next` request.
 ---@class dapui.types.NextArguments
 ---@field threadId integer Specifies the thread for which to resume execution for one step (of the given granularity).
 ---@field singleThread? boolean If this flag is true, all other suspended threads are not resumed.
@@ -390,6 +431,7 @@ function DAPUIRequestsClient.modules(args) end
 ---@param args dapui.types.NextArguments 
 function DAPUIRequestsClient.next(args) end
 
+---Arguments for `pause` request.
 ---@class dapui.types.PauseArguments
 ---@field threadId integer Pause execution for this thread.
 
@@ -397,6 +439,7 @@ function DAPUIRequestsClient.next(args) end
 ---@param args dapui.types.PauseArguments 
 function DAPUIRequestsClient.pause(args) end
 
+---Arguments for `readMemory` request.
 ---@class dapui.types.ReadMemoryArguments
 ---@field memoryReference string Memory reference to the base location from which data should be read.
 ---@field offset? integer Offset (in bytes) to be applied to the reference location before reading data. Can be negative.
@@ -414,6 +457,7 @@ function DAPUIRequestsClient.pause(args) end
 ---@return dapui.types.ReadMemoryResponse
 function DAPUIRequestsClient.readMemory(args) end
 
+---Arguments for `restartFrame` request.
 ---@class dapui.types.RestartFrameArguments
 ---@field frameId integer Restart this stackframe.
 
@@ -421,6 +465,7 @@ function DAPUIRequestsClient.readMemory(args) end
 ---@param args dapui.types.RestartFrameArguments 
 function DAPUIRequestsClient.restartFrame(args) end
 
+---Arguments for `restart` request.
 ---@class dapui.types.RestartArguments
 ---@field arguments? dapui.types.LaunchRequestArguments | dapui.types.AttachRequestArguments The latest version of the `launch` or `attach` configuration.
 
@@ -428,6 +473,7 @@ function DAPUIRequestsClient.restartFrame(args) end
 ---@param args dapui.types.RestartArguments 
 function DAPUIRequestsClient.restart(args) end
 
+---Arguments for `reverseContinue` request.
 ---@class dapui.types.ReverseContinueArguments
 ---@field threadId integer Specifies the active thread. If the debug adapter supports single thread execution (see `supportsSingleThreadExecutionRequests`) and the `singleThread` argument is true, only the thread with this ID is resumed.
 ---@field singleThread? boolean If this flag is true, backward execution is resumed only for the thread with given `threadId`.
@@ -436,6 +482,7 @@ function DAPUIRequestsClient.restart(args) end
 ---@param args dapui.types.ReverseContinueArguments 
 function DAPUIRequestsClient.reverseContinue(args) end
 
+---Arguments for `runInTerminal` request.
 ---@class dapui.types.RunInTerminalRequestArguments
 ---@field kind? "integrated" What kind of terminal to launch.
 ---@field title? string Title of the terminal.
@@ -453,9 +500,11 @@ function DAPUIRequestsClient.reverseContinue(args) end
 ---@return dapui.types.RunInTerminalResponse
 function DAPUIRequestsClient.runInTerminal(args) end
 
+---Arguments for `scopes` request.
 ---@class dapui.types.ScopesArguments
 ---@field frameId integer Retrieve the scopes for this stackframe.
 
+---A `Scope` is a named container for variables. Optionally a scope can map to a source or a range within a source.
 ---@class dapui.types.Scope
 ---@field name string Name of the scope such as 'Arguments', 'Locals', or 'Registers'. This string is shown in the UI as is and can be translated.
 ---@field presentationHint? string A hint for how to present this scope in the UI. If this attribute is missing, the scope is shown with a generic UI.
@@ -479,6 +528,7 @@ function DAPUIRequestsClient.runInTerminal(args) end
 ---@return dapui.types.ScopesResponse
 function DAPUIRequestsClient.scopes(args) end
 
+---Properties of a breakpoint or logpoint passed to the `setBreakpoints` request.
 ---@class dapui.types.SourceBreakpoint
 ---@field line integer The source line of the breakpoint or logpoint.
 ---@field column? integer Start position within source line of the breakpoint or logpoint. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.
@@ -491,12 +541,14 @@ function DAPUIRequestsClient.scopes(args) end
 ---but log the message instead. Expressions within `{}` are interpolated.
 ---The attribute is only honored by a debug adapter if the corresponding capability `supportsLogPoints` is true.
 
+---Arguments for `setBreakpoints` request.
 ---@class dapui.types.SetBreakpointsArguments
 ---@field source dapui.types.Source The source location of the breakpoints; either `source.path` or `source.sourceReference` must be specified.
 ---@field breakpoints? dapui.types.SourceBreakpoint[] The code locations of the breakpoints.
 ---@field lines? integer[] Deprecated: The code locations of the breakpoints.
 ---@field sourceModified? boolean A value of true indicates that the underlying source has been modified which results in new breakpoint locations.
 
+---Information about a breakpoint created in `setBreakpoints`, `setFunctionBreakpoints`, `setInstructionBreakpoints`, or `setDataBreakpoints` requests.
 ---@class dapui.types.Breakpoint
 ---@field id? integer The identifier for the breakpoint. It is needed if breakpoint events are used to update or remove breakpoints.
 ---@field verified boolean If true, the breakpoint could be set (but not necessarily at the desired location).
@@ -521,6 +573,7 @@ function DAPUIRequestsClient.scopes(args) end
 ---@return dapui.types.SetBreakpointsResponse
 function DAPUIRequestsClient.setBreakpoints(args) end
 
+---Properties of a data breakpoint passed to the `setDataBreakpoints` request.
 ---@class dapui.types.DataBreakpoint
 ---@field dataId string An id representing the data. This id is returned from the `dataBreakpointInfo` request.
 ---@field accessType? "read" The access type of the data.
@@ -528,6 +581,7 @@ function DAPUIRequestsClient.setBreakpoints(args) end
 ---@field hitCondition? string An expression that controls how many hits of the breakpoint are ignored.
 ---The debug adapter is expected to interpret the expression as needed.
 
+---Arguments for `setDataBreakpoints` request.
 ---@class dapui.types.SetDataBreakpointsArguments
 ---@field breakpoints dapui.types.DataBreakpoint[] The contents of this array replaces all existing data breakpoints. An empty array clears all data breakpoints.
 
@@ -539,20 +593,25 @@ function DAPUIRequestsClient.setBreakpoints(args) end
 ---@return dapui.types.SetDataBreakpointsResponse
 function DAPUIRequestsClient.setDataBreakpoints(args) end
 
+---An `ExceptionFilterOptions` is used to specify an exception filter together with a condition for the `setExceptionBreakpoints` request.
 ---@class dapui.types.ExceptionFilterOptions
 ---@field filterId string ID of an exception filter returned by the `exceptionBreakpointFilters` capability.
 ---@field condition? string An expression for conditional exceptions.
 ---The exception breaks into the debugger if the result of the condition is true.
 
+---An `ExceptionPathSegment` represents a segment in a path that is used to match leafs or nodes in a tree of exceptions.
+---If a segment consists of more than one name, it matches the names provided if `negate` is false or missing, or it matches anything except the names provided if `negate` is true.
 ---@class dapui.types.ExceptionPathSegment
 ---@field negate? boolean If false or missing this segment matches the names provided, otherwise it matches anything except the names provided.
 ---@field names string[] Depending on the value of `negate` the names that should match or not match.
 
+---An `ExceptionOptions` assigns configuration options to a set of exceptions.
 ---@class dapui.types.ExceptionOptions
 ---@field path? dapui.types.ExceptionPathSegment[] A path that selects a single or multiple exceptions in a tree. If `path` is missing, the whole tree is selected.
 ---By convention the first segment of the path is a category that is used to group exceptions in the UI.
 ---@field breakMode "never" Condition when a thrown exception should result in a break.
 
+---Arguments for `setExceptionBreakpoints` request.
 ---@class dapui.types.SetExceptionBreakpointsArguments
 ---@field filters string[] Set of exception filters specified by their ID. The set of all possible exception filters is defined by the `exceptionBreakpointFilters` capability. The `filter` and `filterOptions` sets are additive.
 ---@field filterOptions? dapui.types.ExceptionFilterOptions[] Set of exception filters and their options. The set of all possible exception filters is defined by the `exceptionBreakpointFilters` capability. This attribute is only honored by a debug adapter if the corresponding capability `supportsExceptionFilterOptions` is true. The `filter` and `filterOptions` sets are additive.
@@ -568,6 +627,7 @@ function DAPUIRequestsClient.setDataBreakpoints(args) end
 ---@return dapui.types.SetExceptionBreakpointsResponse
 function DAPUIRequestsClient.setExceptionBreakpoints(args) end
 
+---Arguments for `setExpression` request.
 ---@class dapui.types.SetExpressionArguments
 ---@field expression string The l-value expression to assign to.
 ---@field value string The value expression to assign to the l-value expression.
@@ -593,6 +653,7 @@ function DAPUIRequestsClient.setExceptionBreakpoints(args) end
 ---@return dapui.types.SetExpressionResponse
 function DAPUIRequestsClient.setExpression(args) end
 
+---Properties of a breakpoint passed to the `setFunctionBreakpoints` request.
 ---@class dapui.types.FunctionBreakpoint
 ---@field name string The name of the function.
 ---@field condition? string An expression for conditional breakpoints.
@@ -601,6 +662,7 @@ function DAPUIRequestsClient.setExpression(args) end
 ---The debug adapter is expected to interpret the expression as needed.
 ---The attribute is only honored by a debug adapter if the corresponding capability `supportsHitConditionalBreakpoints` is true.
 
+---Arguments for `setFunctionBreakpoints` request.
 ---@class dapui.types.SetFunctionBreakpointsArguments
 ---@field breakpoints dapui.types.FunctionBreakpoint[] The function names of the breakpoints.
 
@@ -612,6 +674,7 @@ function DAPUIRequestsClient.setExpression(args) end
 ---@return dapui.types.SetFunctionBreakpointsResponse
 function DAPUIRequestsClient.setFunctionBreakpoints(args) end
 
+---Properties of a breakpoint passed to the `setInstructionBreakpoints` request
 ---@class dapui.types.InstructionBreakpoint
 ---@field instructionReference string The instruction reference of the breakpoint.
 ---This should be a memory or instruction pointer reference from an `EvaluateResponse`, `Variable`, `StackFrame`, `GotoTarget`, or `Breakpoint`.
@@ -623,6 +686,7 @@ function DAPUIRequestsClient.setFunctionBreakpoints(args) end
 ---The debug adapter is expected to interpret the expression as needed.
 ---The attribute is only honored by a debug adapter if the corresponding capability `supportsHitConditionalBreakpoints` is true.
 
+---Arguments for `setInstructionBreakpoints` request
 ---@class dapui.types.SetInstructionBreakpointsArguments
 ---@field breakpoints dapui.types.InstructionBreakpoint[] The instruction references of the breakpoints
 
@@ -634,6 +698,7 @@ function DAPUIRequestsClient.setFunctionBreakpoints(args) end
 ---@return dapui.types.SetInstructionBreakpointsResponse
 function DAPUIRequestsClient.setInstructionBreakpoints(args) end
 
+---Arguments for `setVariable` request.
 ---@class dapui.types.SetVariableArguments
 ---@field variablesReference integer The reference of the variable container.
 ---@field name string The name of the variable in the container.
@@ -657,6 +722,7 @@ function DAPUIRequestsClient.setInstructionBreakpoints(args) end
 ---@return dapui.types.SetVariableResponse
 function DAPUIRequestsClient.setVariable(args) end
 
+---Arguments for `source` request.
 ---@class dapui.types.SourceArguments
 ---@field source? dapui.types.Source Specifies the source content to load. Either `source.path` or `source.sourceReference` must be specified.
 ---@field sourceReference integer The reference to the source. This is the same as `source.sourceReference`.
@@ -681,6 +747,7 @@ function DAPUIRequestsClient.source(args) end
 ---@field module? boolean Displays the module of the stack frame.
 ---@field includeAll? boolean Includes all stack frames, including those the debug adapter might otherwise hide.
 
+---Arguments for `stackTrace` request.
 ---@class dapui.types.StackTraceArguments
 ---@field threadId integer Retrieve the stacktrace for this thread.
 ---@field startFrame? integer The index of the first frame to return; if omitted frames start at 0.
@@ -688,6 +755,7 @@ function DAPUIRequestsClient.source(args) end
 ---@field format? dapui.types.StackFrameFormat Specifies details on how to format the stack frames.
 ---The attribute is only honored by a debug adapter if the corresponding capability `supportsValueFormattingOptions` is true.
 
+---A Stackframe contains the source location.
 ---@class dapui.types.StackFrame
 ---@field id integer An identifier for the stack frame. It must be unique across all threads.
 ---This id can be used to retrieve the scopes of the frame with the `scopes` request or to restart the execution of a stackframe.
@@ -713,6 +781,7 @@ function DAPUIRequestsClient.source(args) end
 ---@return dapui.types.StackTraceResponse
 function DAPUIRequestsClient.stackTrace(args) end
 
+---Arguments for `startDebugging` request.
 ---@class dapui.types.StartDebuggingRequestArguments
 ---@field configuration table<string,any> Arguments passed to the new debug session. The arguments must only contain properties understood by the `launch` or `attach` requests of the debug adapter and they must not contain any client-specific properties (e.g. `type`) or client-specific features (e.g. substitutable 'variables').
 ---@field request "launch" Indicates whether the new debug session should be started with a `launch` or `attach` request.
@@ -721,6 +790,7 @@ function DAPUIRequestsClient.stackTrace(args) end
 ---@param args dapui.types.StartDebuggingRequestArguments 
 function DAPUIRequestsClient.startDebugging(args) end
 
+---Arguments for `stepBack` request.
 ---@class dapui.types.StepBackArguments
 ---@field threadId integer Specifies the thread for which to resume execution for one step backwards (of the given granularity).
 ---@field singleThread? boolean If this flag is true, all other suspended threads are not resumed.
@@ -730,6 +800,7 @@ function DAPUIRequestsClient.startDebugging(args) end
 ---@param args dapui.types.StepBackArguments 
 function DAPUIRequestsClient.stepBack(args) end
 
+---Arguments for `stepIn` request.
 ---@class dapui.types.StepInArguments
 ---@field threadId integer Specifies the thread for which to resume execution for one step-into (of the given granularity).
 ---@field singleThread? boolean If this flag is true, all other suspended threads are not resumed.
@@ -740,9 +811,11 @@ function DAPUIRequestsClient.stepBack(args) end
 ---@param args dapui.types.StepInArguments 
 function DAPUIRequestsClient.stepIn(args) end
 
+---Arguments for `stepInTargets` request.
 ---@class dapui.types.StepInTargetsArguments
 ---@field frameId integer The stack frame for which to retrieve the possible step-in targets.
 
+---A `StepInTarget` can be used in the `stepIn` request and determines into which single target the `stepIn` request should step.
 ---@class dapui.types.StepInTarget
 ---@field id integer Unique identifier for a step-in target.
 ---@field label string The name of the step-in target (shown in the UI).
@@ -759,6 +832,7 @@ function DAPUIRequestsClient.stepIn(args) end
 ---@return dapui.types.StepInTargetsResponse
 function DAPUIRequestsClient.stepInTargets(args) end
 
+---Arguments for `stepOut` request.
 ---@class dapui.types.StepOutArguments
 ---@field threadId integer Specifies the thread for which to resume execution for one step-out (of the given granularity).
 ---@field singleThread? boolean If this flag is true, all other suspended threads are not resumed.
@@ -768,6 +842,7 @@ function DAPUIRequestsClient.stepInTargets(args) end
 ---@param args dapui.types.StepOutArguments 
 function DAPUIRequestsClient.stepOut(args) end
 
+---Arguments for `terminate` request.
 ---@class dapui.types.TerminateArguments
 ---@field restart? boolean A value of true indicates that this `terminate` request is part of a restart sequence.
 
@@ -775,6 +850,7 @@ function DAPUIRequestsClient.stepOut(args) end
 ---@param args dapui.types.TerminateArguments 
 function DAPUIRequestsClient.terminate(args) end
 
+---Arguments for `terminateThreads` request.
 ---@class dapui.types.TerminateThreadsArguments
 ---@field threadIds? integer[] Ids of threads to be terminated.
 
@@ -783,6 +859,7 @@ function DAPUIRequestsClient.terminate(args) end
 function DAPUIRequestsClient.terminateThreads(args) end
 
 
+---A Thread
 ---@class dapui.types.Thread
 ---@field id integer Unique identifier for the thread.
 ---@field name string The name of the thread.
@@ -795,6 +872,7 @@ function DAPUIRequestsClient.terminateThreads(args) end
 ---@return dapui.types.ThreadsResponse
 function DAPUIRequestsClient.threads(args) end
 
+---Arguments for `variables` request.
 ---@class dapui.types.VariablesArguments
 ---@field variablesReference integer The Variable reference.
 ---@field filter? "indexed" Filter to limit the child variables to either named or indexed. If omitted, both types are fetched.
@@ -803,6 +881,12 @@ function DAPUIRequestsClient.threads(args) end
 ---@field format? dapui.types.ValueFormat Specifies details on how to format the Variable values.
 ---The attribute is only honored by a debug adapter if the corresponding capability `supportsValueFormattingOptions` is true.
 
+---A Variable is a name/value pair.
+---The `type` attribute is shown if space permits or when hovering over the variable's name.
+---The `kind` attribute is used to render additional properties of the variable, e.g. different icons can be used to indicate that a variable is public or private.
+---If the value is structured (has children), a handle is provided to retrieve the children with the `variables` request.
+---If the number of named or indexed children is large, the numbers should be returned via the `namedVariables` and `indexedVariables` attributes.
+---The client can use this information to present the children in a paged UI and fetch them in chunks.
 ---@class dapui.types.Variable
 ---@field name string The variable's name.
 ---@field value string The variable's value.
@@ -829,6 +913,7 @@ function DAPUIRequestsClient.threads(args) end
 ---@return dapui.types.VariablesResponse
 function DAPUIRequestsClient.variables(args) end
 
+---Arguments for `writeMemory` request.
 ---@class dapui.types.WriteMemoryArguments
 ---@field memoryReference string Memory reference to the base location to which data should be written.
 ---@field offset? integer Offset (in bytes) to be applied to the reference location before writing data. Can be negative.
@@ -852,6 +937,7 @@ function DAPUIRequestsClient.writeMemory(args) end
 ---@param listener fun(args: dapui.types.BreakpointEventArgs)
 function DAPUIEventListenerClient.breakpoint(listener) end
 
+---Information about the capabilities of a debug adapter.
 ---@class dapui.types.Capabilities
 ---@field supportsConfigurationDoneRequest? boolean The debug adapter supports the `configurationDone` request.
 ---@field supportsFunctionBreakpoints? boolean The debug adapter supports function breakpoints.
