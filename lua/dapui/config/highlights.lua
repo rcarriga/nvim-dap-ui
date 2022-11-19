@@ -1,5 +1,24 @@
 local M = {}
 
+local control_hl_groups = {
+  'DapUIPlayPause', 'DapUIRestart', 'DapUIStop', 'DapUIUnavailable',
+  'DapUIStepOver', 'DapUIStepInto', 'DapUIStepBack', 'DapUIStepOut',
+}
+
+---Applies the background color from the template highlight group to all
+---control icon highlight groups.
+---@param template_group string  Name of highlight group
+---@return nil
+function M.patch_background(template_group)
+  local guibg = vim.api.nvim_get_hl_by_name(template_group, true).background
+  for _, hl_group in ipairs(control_hl_groups) do
+    vim.cmd {
+      cmd = "highlight",
+      args = {hl_group, guibg and string.format("guibg=#%06x", guibg) or "guibg=NONE"}
+    }
+  end
+end
+
 function M.setup()
   vim.cmd("hi default link DapUIVariable Normal")
   vim.cmd("hi default DapUIScope guifg=#00F1F5")
@@ -31,12 +50,17 @@ function M.setup()
   vim.cmd("hi default DapUIPlayPause guifg=#A9FF68")
   vim.cmd("hi default DapUIRestart guifg=#A9FF68")
   vim.cmd("hi default DapUIUnavailable guifg=#424242")
+
+  M.patch_background("WinBar")
 end
+
 
 vim.cmd([[
   augroup DAPUIRefreshHighlights
     autocmd!
     autocmd ColorScheme * lua require('dapui.config.highlights').setup()
+    autocmd WinEnter *dap-repl* lua require('dapui.config.highlights').patch_background('WinBar')
+    autocmd WinLeave *dap-repl* lua require('dapui.config.highlights').patch_background('WinBarNC')
   augroup END
 ]])
 
