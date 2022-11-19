@@ -14,7 +14,7 @@ local function patch_background()
   if not vim.fn.has("nvim-0.8") then return end
 
   for _, suffix in pairs({"", "NC"}) do
-  	local template_group = string.format("WinBar%s", suffix)
+    local template_group = string.format("WinBar%s", suffix)
     local exists, hl = pcall(vim.api.nvim_get_hl_by_name, template_group, true)
 
     if exists then
@@ -64,17 +64,17 @@ function M.setup()
 
   -- Generate *NC variants of the control highlight groups
   if vim.fn.has("nvim-0.8") then
-  	for _, hl_group in pairs(control_hl_groups) do
+    for _, hl_group in pairs(control_hl_groups) do
       local guifg = vim.api.nvim_get_hl_by_name(hl_group, true).foreground
       vim.cmd {
-      	cmd = "highlight",
-      	args = {
+        cmd = "highlight",
+        args = {
           "default",
           string.format("%sNC", hl_group),
           string.format("guifg=#%06x", guifg)}
       }
-  	end
-  	patch_background()
+    end
+    patch_background()
   end
 end
 
