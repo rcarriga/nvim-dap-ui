@@ -161,7 +161,8 @@ function dapui.setup(user_config)
 
     refresh_control_panel = function()
       if win then
-        if not pcall(vim.api.nvim_win_set_option, win, "winbar", dapui.controls()) then
+        local is_current = win == vim.fn.win_getid()
+        if not pcall(vim.api.nvim_win_set_option, win, "winbar", dapui.controls(is_current)) then
           win = nil
         end
       end
@@ -209,6 +210,22 @@ function dapui.setup(user_config)
       pattern = buf_name,
       group = group,
       callback = cb,
+    })
+    vim.api.nvim_create_autocmd("WinEnter", {
+      pattern = buf_name,
+      group = group,
+      callback = function()
+        local winbar = dapui.controls(true)
+        vim.api.nvim_win_set_option(vim.api.nvim_get_current_win(), "winbar", winbar)
+      end
+    })
+    vim.api.nvim_create_autocmd("WinLeave", {
+      pattern = buf_name,
+      group = group,
+      callback = function()
+        local winbar = dapui.controls(false)
+        vim.api.nvim_win_set_option(vim.api.nvim_get_current_win(), "winbar", winbar)
+      end
     })
   end
 
@@ -380,14 +397,14 @@ setmetatable(_dapui, {
   end,
 })
 
-function dapui.controls()
+function dapui.controls(is_active)
   local session = dap.session()
 
   local running = (session and not session.stopped_thread_id)
 
   local avail_hl = function(group, allow_running)
     if not session or (not allow_running and running) then
-      return "DapUIUnavailable"
+      return is_active and "DapUIUnavailable" or "DapUIUnavailableNC"
     end
     return group
   end
@@ -397,14 +414,14 @@ function dapui.controls()
     {
       func = "play",
       icon = running and icons.pause or icons.play,
-      hl = "DapUIPlayPause",
+      hl = is_active and "DapUIPlayPause" or "DapUIPlayPauseNC",
     },
-    { func = "step_into", hl = avail_hl("DapUIStepInto") },
-    { func = "step_over", hl = avail_hl("DapUIStepOver") },
-    { func = "step_out", hl = avail_hl("DapUIStepOut") },
-    { func = "step_back", hl = avail_hl("DapUIStepBack") },
-    { func = "run_last", hl = "DapUIRestart" },
-    { func = "terminate", hl = avail_hl("DapUIStop", true) },
+    { func = "step_into", hl = avail_hl(is_active and "DapUIStepInto" or "DapUIStepIntoNC") },
+    { func = "step_over", hl = avail_hl(is_active and "DapUIStepOver" or "DapUIStepOverNC") },
+    { func = "step_out", hl = avail_hl(is_active and "DapUIStepOut" or "DapUIStepOutNC") },
+    { func = "step_back", hl = avail_hl(is_active and "DapUIStepBack" or "DapUIStepBackNC") },
+    { func = "run_last", hl = is_active and "DapUIRestart" or "DapUIRestartNC" },
+    { func = "terminate", hl = avail_hl(is_active and "DapUIStop" or "DapUIStopNC", true) },
   }
   local bar = ""
   for _, elem in ipairs(elems) do
