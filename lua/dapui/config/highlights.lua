@@ -1,27 +1,32 @@
 local M = {}
 
 local control_hl_groups = {
-  'DapUIPlayPause', 'DapUIRestart', 'DapUIStop', 'DapUIUnavailable',
-  'DapUIStepOver', 'DapUIStepInto', 'DapUIStepBack', 'DapUIStepOut',
+  "DapUIPlayPause", "DapUIRestart", "DapUIStop", "DapUIUnavailable",
+  "DapUIStepOver", "DapUIStepInto", "DapUIStepBack", "DapUIStepOut",
 }
 
 ---Applies the background color from the template highlight group to all
 ---control icon highlight groups.
----@param template_group string  Name of highlight group
 ---@return nil
-function M.patch_background(template_group)
-  -- Only exists for >= 0.8
-  local exists, hl = pcall(vim.api.nvim_get_hl_by_name, template_group, true)
-  if not exists then
-    return
-  end
+local function patch_background()
+  -- API function 'nvim_get_hl_by_name' and the ability to pass a table to
+  -- 'vim.cmd' only exist for >= 0.8
+  if not vim.fn.has("nvim-0.8") then return end
 
-  local guibg = hl.background
-  for _, hl_group in ipairs(control_hl_groups) do
-    vim.cmd {
-      cmd = "highlight",
-      args = {hl_group, guibg and string.format("guibg=#%06x", guibg) or "guibg=NONE"}
-    }
+  for _, suffix in pairs({"", "NC"}) do
+    local template_group = string.format("WinBar%s", suffix)
+    local exists, hl = pcall(vim.api.nvim_get_hl_by_name, template_group, true)
+
+    if exists then
+      local guibg = hl.background and string.format("guibg=#%06x", hl.background) or "guibg=NONE"
+
+      for _, hl_group in ipairs(control_hl_groups) do
+        vim.cmd {
+          cmd = "highlight",
+          args = {string.format("%s%s", hl_group, suffix), guibg}
+        }
+      end
+    end
   end
 end
 
@@ -57,7 +62,24 @@ function M.setup()
   vim.cmd("hi default DapUIRestart guifg=#A9FF68")
   vim.cmd("hi default DapUIUnavailable guifg=#424242")
 
-  M.patch_background("WinBar")
+  -- Generate *NC variants of the control highlight groups
+  if vim.fn.has("nvim-0.8") then
+    for _, hl_group in pairs(control_hl_groups) do
+      local guifg = vim.api.nvim_get_hl_by_name(hl_group, true).foreground
+      vim.cmd {
+        cmd = "highlight",
+        args = {
+          "default",
+          string.format("%sNC", hl_group),
+          string.format("guifg=#%06x", guifg)}
+      }
+    end
+    patch_background()
+  else
+    for _, hl_group in pairs(control_hl_groups) do
+      vim.cmd(string.format("hi default link %sNC %s", hl_group))
+    end
+  end
 end
 
 
@@ -65,8 +87,6 @@ vim.cmd([[
   augroup DAPUIRefreshHighlights
     autocmd!
     autocmd ColorScheme * lua require('dapui.config.highlights').setup()
-    autocmd WinEnter *dap-repl* lua require('dapui.config.highlights').patch_background('WinBar')
-    autocmd WinLeave *dap-repl* lua require('dapui.config.highlights').patch_background('WinBarNC')
   augroup END
 ]])
 
