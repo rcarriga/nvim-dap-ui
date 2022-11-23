@@ -63,7 +63,7 @@ function M.setup()
   vim.cmd("hi default DapUIUnavailable guifg=#424242")
 
   -- Generate *NC variants of the control highlight groups
-  if vim.fn.has("nvim-0.8") then
+  if vim.fn.has("nvim-0.8") == 1 then
     for _, hl_group in pairs(control_hl_groups) do
       local guifg = vim.api.nvim_get_hl_by_name(hl_group, true).foreground
       vim.cmd {
