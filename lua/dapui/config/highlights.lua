@@ -40,7 +40,7 @@ function M.setup()
   ]])
 
   -- Generate *NC variants of the control highlight groups
-  if vim.fn.has("nvim-0.8") then
+  if vim.fn.has("nvim-0.8") == 1 then
     local bg, bgNC
     local exists, hl = pcall(vim.api.nvim_get_hl_by_name, "WinBar", true)
     if exists then bg = hl.background end
