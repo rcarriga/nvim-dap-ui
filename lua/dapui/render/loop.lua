@@ -6,19 +6,15 @@ local config = require("dapui.config")
 
 M.EVENTS = { RENDER = "render", CLOSE = "close" }
 
----@class Element
----@field render fun(canvas: dapui.Canvas) Fill a given canvas
----@field name string
----@field buf_options table<string, any>
----@field dap_after_listeners table<number, string>
----@field setup fun(state: UIState)
----@field setup_buffer fun(buf: number)
----@field float_defaults table
+---@class dapui.Element
+---@field render fun()
+---@field float_defaults? fun(): table
+---@field buffer fun(): integer
 
 ---@class ElementCanvasState
 ---@field buffers table<number, number>
 ---@field listeners table<string, table<number, fun(buffer: number)>>
----@field element Element
+---@field element dapui.Element
 
 ---@type table <string, ElementCanvasState>
 local canvas_states = {}
@@ -27,7 +23,7 @@ function M.clear()
   canvas_states = {}
 end
 
----@param element Element
+---@param element dapui.Element
 function M.register_element(element)
   canvas_states[element.name] = {
     element = element,

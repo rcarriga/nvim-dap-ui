@@ -1,3 +1,4 @@
+local async = require("dapui.async")
 local config = require("dapui.config")
 
 local M = {}
@@ -112,7 +113,7 @@ function M.jump_to_frame(frame, session, set_frame)
   end
 
   local bufnr =
-    vim.uri_to_bufnr(M.is_uri(path) and path or vim.uri_from_fname(vim.fn.fnamemodify(path, ":p")))
+  vim.uri_to_bufnr(M.is_uri(path) and path or vim.uri_from_fname(vim.fn.fnamemodify(path, ":p")))
   vim.fn.bufload(bufnr)
   M.open_buf(bufnr, line, column)
 end
@@ -136,7 +137,11 @@ end
 
 function M.apply_mapping(mappings, func, buffer)
   for _, key in pairs(mappings) do
-    vim.api.nvim_buf_set_keymap(buffer, "n", key, func, { noremap = true })
+    if type(func) == "string" then
+      vim.api.nvim_buf_set_keymap(buffer, "n", key, "", { noremap = true, callback = func })
+    else
+      vim.api.nvim_buf_set_keymap(buffer, "n", key, func, { noremap = true })
+    end
   end
 end
 

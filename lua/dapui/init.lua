@@ -6,10 +6,11 @@ local dapui = {}
 local windows = require("dapui.windows")
 local config = require("dapui.config")
 local util = require("dapui.util")
+local lib = require("dapui.lib")
 local ui_state
 
----@return Element
-local function element(name)
+---@return fun(client, send_ready): dapui.Element
+local function get_element(name)
   return require("dapui.elements." .. name)
 end
 
@@ -53,7 +54,7 @@ function dapui.float_element(elem_name, settings)
       if not elem_name then
         return
       end
-      local elem = element(elem_name)
+      local elem = get_element(elem_name)
       local settings = vim.tbl_deep_extend("keep", settings or {}, elem.float_defaults or {})
       open_float = require("dapui.windows").open_float(elem, position, settings)
       open_float:listen("close", function()
@@ -127,34 +128,23 @@ end
 
 local refresh_control_panel = function() end
 
-function dapui.setup(user_config)
-  local render = require("dapui.render")
-  if ui_state then
-    util.notify("Setup called twice", vim.log.levels.DEBUG)
-  end
-  render.loop.clear()
+local elements = {}
 
+function dapui.setup(user_config)
   config.setup(user_config)
 
-  local UIState = require("dapui.state")
-  ui_state = UIState()
-  ui_state:attach(dap)
+  local client = require("dapui.client")(dap.session)
 
-  local buf_name_map = {}
+  ---@type table<string, dapui.Element>
   for _, module in pairs(config.elements) do
-    local elem = element(module)
-    buf_name_map[module] = elem.name ~= "DAP REPL" and elem.name or "\\[dap-repl\\]"
-    elem.setup(ui_state)
-    render.loop.register_element(elem)
-    for _, event in pairs(elem.dap_after_listeners or {}) do
-      dap.listeners.after[event]["DapUI " .. elem.name] = function()
-        render.loop.run(elem.name)
-      end
-    end
+    local elem = get_element(module)(client)
+
+    -- TODO: Fix this
+    elements[module] = elem
   end
 
   if config.controls.enabled and config.controls.element ~= "" then
-    local buf_name = buf_name_map[config.controls.element]
+    local buffer = elements[config.controls.element].buffer()
 
     local group = vim.api.nvim_create_augroup("DAPUIControls", {})
     local win
@@ -194,6 +184,7 @@ function dapui.setup(user_config)
       refresh_control_panel()
       vim.api.nvim_create_autocmd({ "WinClosed", "BufWinLeave" }, {
         group = group,
+        buffer = buffer,
         callback = function()
           if win and not vim.api.nvim_win_is_valid(win) then
             win = nil
@@ -201,18 +192,13 @@ function dapui.setup(user_config)
         end,
       })
     end
-    vim.api.nvim_create_autocmd({ "FileType" }, {
-      pattern = element(config.controls.element).buf_options.filetype,
-      group = group,
-      callback = cb,
-    })
     vim.api.nvim_create_autocmd("BufWinEnter", {
-      pattern = buf_name,
+      buffer = buffer,
       group = group,
       callback = cb,
     })
     vim.api.nvim_create_autocmd("WinEnter", {
-      pattern = buf_name,
+      buffer = buffer,
       group = group,
       callback = function()
         local winbar = dapui.controls(true)
@@ -220,7 +206,7 @@ function dapui.setup(user_config)
       end,
     })
     vim.api.nvim_create_autocmd("WinLeave", {
-      pattern = buf_name,
+      buffer = buffer,
       group = group,
       callback = function()
         local winbar = dapui.controls(false)
@@ -229,14 +215,11 @@ function dapui.setup(user_config)
     })
   end
 
-  windows.setup()
-
-  ui_state:on_refresh(function()
-    render.loop.run()
-  end)
-  ui_state:on_clear(function()
-    render.loop.run()
-  end)
+  local element_buffers = {}
+  for name, elem in pairs(elements) do
+    element_buffers[name] = elem.buffer
+  end
+  windows.setup(element_buffers)
 end
 
 ---Update the config.render settings and re-render windows

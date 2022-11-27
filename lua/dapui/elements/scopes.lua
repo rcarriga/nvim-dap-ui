@@ -1,13 +1,28 @@
-local scopes
+local config = require("dapui.config")
+local lib = require("dapui.lib")
+local Canvas = require("dapui.render.canvas")
 
----@type Element
-return {
-  name = "DAP Scopes",
-  buf_options = { filetype = "dapui_scopes" },
-  setup = function(state)
-    scopes = require("dapui.components.scopes")(state)
-  end,
-  render = function(canvas)
-    scopes:render(canvas)
-  end,
-}
+return function(client)
+  local dapui = { scopes = {} }
+  local send_ready = lib.create_render_loop(function()
+    dapui.scopes.render()
+  end)
+
+  local scopes = require("dapui.components.scopes")(client, send_ready)
+
+  local buf = lib.create_buffer("DAP Scopes", {
+    filetype = "dapui_scopes",
+  })
+
+  function dapui.scopes.render()
+    local canvas = Canvas.new()
+    scopes.render(canvas)
+    canvas:render_buffer(buf, config.element_mapping("scopes"))
+  end
+
+  function dapui.scopes.buffer()
+    return buf
+  end
+
+  return dapui.scopes
+end

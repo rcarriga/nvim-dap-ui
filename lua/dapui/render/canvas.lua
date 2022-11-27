@@ -136,9 +136,8 @@ function Canvas:set_expand_lines(value)
 end
 
 ---Apply a render.canvas to a buffer
----@param state dapui.Canvas
 ---@param buffer number
-function M.render_buffer(state, buffer, element)
+function Canvas:render_buffer(buffer, action_keys)
   local success, _ = pcall(api.nvim_buf_set_option, buffer, "modifiable", true)
   if not success then
     return false
@@ -148,17 +147,17 @@ function M.render_buffer(state, buffer, element)
     return false
   end
 
-  _mappings[buffer] = state.mappings
-  for action, _ in pairs(state.mappings) do
+  _mappings[buffer] = self.mappings
+  for action, _ in pairs(self.mappings) do
     util.apply_mapping(
-      config.element_mapping(element, action),
+      action_keys[action],
       "<cmd>lua require('dapui.render.canvas')._mapping('" .. action .. "')<CR>",
       buffer
     )
   end
 
-  local lines = state.lines
-  local matches = state.matches
+  local lines = self.lines
+  local matches = self.matches
   api.nvim_buf_clear_namespace(buffer, M.namespace, 0, -1)
   api.nvim_buf_set_lines(buffer, 0, #lines, false, lines)
   local last_line = vim.fn.getbufinfo(buffer)[1].linecount
@@ -167,15 +166,17 @@ function M.render_buffer(state, buffer, element)
   end
   for _, match in pairs(matches) do
     local pos = match[2]
-    api.nvim_buf_set_extmark(
+    if not pcall(api.nvim_buf_set_extmark,
       buffer,
       M.namespace,
       pos[1] - 1,
       (pos[2] or 1) - 1,
       { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
-    )
+    ) then
+    P({pos, match})
   end
-  if state.expand_lines then
+  end
+  if self.expand_lines then
     local group = api.nvim_create_augroup(
       "DAPUIExpandLongLinesFor" .. vim.fn.bufname(buffer):gsub("DAP ", ""),
       { clear = true }
@@ -188,15 +189,15 @@ function M.render_buffer(state, buffer, element)
       end,
     })
   end
-  if state.prompt then
+  if self.prompt then
     api.nvim_buf_set_option(buffer, "buftype", "prompt")
-    vim.fn.prompt_setprompt(buffer, state.prompt.text)
+    vim.fn.prompt_setprompt(buffer, self.prompt.text)
     vim.fn.prompt_setcallback(buffer, function(value)
       vim.cmd("stopinsert")
-      state.prompt.callback(value)
+      self.prompt.callback(value)
     end)
-    if state.prompt.fill then
-      vim.cmd("normal i" .. state.prompt.fill)
+    if self.prompt.fill then
+      vim.cmd("normal i" .. self.prompt.fill)
       api.nvim_input("A")
     end
     api.nvim_buf_set_option(buffer, "modified", false)

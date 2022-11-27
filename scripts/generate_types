@@ -3,56 +3,25 @@
 import importlib.machinery
 import importlib.util
 import inspect as i
+import json
 import logging
 import re
 import tempfile as tf
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Union, get_args, get_origin
 
 import datamodel_code_generator as d
 import requests
+from pydantic import BaseModel
 from pydantic.fields import ModelField
 
 logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
-
-def create_module():
-    protocol_path = Path("/tmp/dap-protocol.json")
-    if not protocol_path.exists():
-        logger.info("Downloading protocol")
-        protocol_path.write_bytes(
-            requests.get(
-                "https://raw.githubusercontent.com/microsoft/debug-adapter-protocol/gh-pages/debugAdapterProtocol.json"
-            ).content
-        )
-
-    _, output_path = tf.mkstemp()
-    output_path = Path(output_path)
-
-    d.generate(input_=protocol_path, output=output_path, use_schema_description=True)
-    with open(output_path) as f:
-        data = f.readlines()
-    with open("model.py", "w") as x:
-        x.writelines(data)
-    # Remove the update_forward_refs calls which cause errors
-    with open(output_path, "w") as f:
-        f.writelines(data[:-2])
-
-    # Import mymodule
-    loader = importlib.machinery.SourceFileLoader("models", str(output_path))
-    spec = importlib.util.spec_from_loader("models", loader)
-    mymodule = importlib.util.module_from_spec(spec)
-    loader.exec_module(mymodule)
-    return mymodule
-
-
-m = create_module()
-
-all_members = {name: value for name, value in i.getmembers(m)}
-
+# Name conversion patterns
 pat1 = re.compile("(.)([A-Z][a-z]+)")
 pat2 = re.compile("([a-z0-9])([A-Z])")
 
@@ -62,192 +31,256 @@ def camel_to_snake(name):
     return pat2.sub(r"\1_\2", name).lower()
 
 
-known_types = set()
+class DAPTypesGenerator:
+    def __init__(self) -> None:
+        self.known_types = set()
+        self.create_module()
 
+    def create_module(self):
+        protocol_path = Path("/tmp/dap-protocol.json")
+        if not protocol_path.exists():
+            logger.info("Downloading protocol")
+            protocol_path.write_bytes(
+                requests.get(
+                    "https://raw.githubusercontent.com/microsoft/debug-adapter-protocol/gh-pages/debugAdapterProtocol.json"
+                ).content
+            )
 
-def is_model(t) -> bool:
-    return i.isclass(t) and issubclass(t, m.BaseModel)
+        self.schema = json.loads(protocol_path.read_bytes().decode())
+        _, output_path = tf.mkstemp()
+        output_path = Path(output_path)
 
+        d.generate(
+            input_=protocol_path, output=output_path, use_schema_description=True
+        )
+        with open(output_path) as f:
+            data = f.readlines()
+        # Remove the update_forward_refs calls which cause errors
+        with open(output_path, "w") as f:
+            f.writelines(data[:-2])
 
-def type_name(t) -> str:
-    if is_model(t):
-        return f"dapui.types.{t.__name__}"
-    if t is int:
-        return "integer"
-    if t is float:
-        return "number"
-    if t is str:
-        return "string"
-    if t is bool:
-        return "boolean"
-    if i.isclass(t) and issubclass(t, Enum):
-        return f'"{list(t.__members__.values())[0].value}"'
-    if get_origin(t) is Union:
-        # Account for Optional with ? on field
-        return " | ".join(type_name(a) for a in get_args(t) if a is not type(None))
-    if get_origin(t) is list:
-        return f"{type_name(get_args(t)[0])}[]"
-    if get_origin(t) is dict:
-        return f"table<{type_name(get_args(t)[0])},{type_name(get_args(t)[1])}>"
-    if t is Any:
-        return "any"
-    if t is type(None):
-        return "nil"
-    raise Exception(f"Unknown type {t}")
+        # Import mymodule
+        loader = importlib.machinery.SourceFileLoader("models", str(output_path))
+        spec = importlib.util.spec_from_loader("models", loader)
+        models_module = importlib.util.module_from_spec(spec)
+        loader.exec_module(models_module)
+        self.models = models_module
 
+    def is_model(self, t) -> bool:
+        return i.isclass(t) and issubclass(t, BaseModel)
 
-def safe_name(name: str) -> str:
-    if name == "goto":
-        return "goto_"
-    return name
+    def type_name(self, t) -> str:
+        if self.is_model(t):
+            return f"dapui.types.{t.__name__}"
+        if t is int:
+            return "integer"
+        if t is float:
+            return "number"
+        if t is str:
+            return "string"
+        if t is bool:
+            return "boolean"
+        if i.isclass(t) and issubclass(t, Enum):
+            return f'"{list(t.__members__.values())[0].value}"'
+        if get_origin(t) is Union:
+            # Account for Optional with ? on field
+            return " | ".join(
+                self.type_name(a) for a in get_args(t) if a is not type(None)
+            )
+        if get_origin(t) is list:
+            return f"{self.type_name(get_args(t)[0])}[]"
+        if get_origin(t) is dict:
+            return f"table<{self.type_name(get_args(t)[0])},{self.type_name(get_args(t)[1])}>"
+        if t is Any:
+            return "any"
+        if t is type(None):
+            return "nil"
+        raise Exception(f"Unknown type {t}")
 
-def prepare_doc(doc: str, multiline: bool):
-    lines = doc.strip().splitlines()
-    if len(lines) == 1:
-        return lines[0]
-    if multiline:
-        return f"{lines[0]}\n" + "\n".join(f"---{line.strip()}" for line in lines[1:])
-    return " ".join(line.strip() for line in lines)
+    def safe_name(self, name: str) -> str:
+        if name == "goto":
+            return "goto_"
+        return name
 
-def field_annotation(field: ModelField) -> str:
-    description = field.field_info.description and prepare_doc(field.field_info.description, multiline=False)
-    return f"---@field {field.name}{'?' if not field.required else ''} {type_name(field.outer_type_)} {description or ''}"
+    def prepare_doc(self, doc: str, multiline: bool):
+        lines = doc.strip().splitlines()
+        if len(lines) == 1:
+            return lines[0]
+        if multiline:
+            return f"{lines[0]}\n" + "\n".join(
+                f"---{line.strip()}" for line in lines[1:]
+            )
+        return " ".join(line.strip() for line in lines)
 
+    def field_annotation(self, field: ModelField) -> str:
+        description = field.field_info.description and self.prepare_doc(
+            field.field_info.description, multiline=False
+        )
+        return f"---@field {field.name}{'?' if not field.required else ''} {self.type_name(field.outer_type_)} {description or ''}"
 
-def create_class(t, class_name: str | None = None) -> list[str]:
-    # model.update_forward_refs(**all_members)
-    sub_classes = []
-    lines = []
-    t_name = class_name or type_name(t)
-    if is_model(t) and t_name not in known_types:
-        known_types.add(t_name)
-        for field in t.__fields__.values():
-            if field_sub_classes := create_class(field.outer_type_):
-                sub_classes += field_sub_classes
-                sub_classes.append("")
-            lines.append(field_annotation(field))
-        class_prefix = [ f"---{prepare_doc(t.__doc__, multiline=True)}" ] if t.__doc__ else []
-        class_prefix.append(f"---@class {t_name}")
-        lines = [
-            *class_prefix,
+    def class_doc(self, model_cls: type[BaseModel]) -> str | None:
+        if model_cls.__doc__:
+            return model_cls.__doc__
+        cls_schema = self.schema["definitions"].get(model_cls.__name__)
+        if not cls_schema:
+            return
+        if sub_types := cls_schema.get("allOf"):
+            for definition in sub_types:
+                if sub_desc := definition.get("description"):
+                    return sub_desc
+
+    def create_class(self, t, class_name: str | None = None) -> list[str]:
+        sub_classes = []
+        lines = []
+        t_name = class_name or self.type_name(t)
+        if self.is_model(t) and t_name not in self.known_types:
+            self.known_types.add(t_name)
+            for field in t.__fields__.values():
+                if field_sub_classes := self.create_class(field.outer_type_):
+                    sub_classes += field_sub_classes
+                    sub_classes.append("")
+                lines.append(self.field_annotation(field))
+            class_doc = self.class_doc(t)
+            class_prefix = (
+                [f"---{self.prepare_doc(class_doc, multiline=True)}"]
+                if class_doc
+                else []
+            )
+            class_prefix.append(f"---@class {t_name}")
+            lines = [
+                *class_prefix,
+                *lines,
+            ]
+        else:
+            try:
+                sub_classes = [
+                    line
+                    for sub_type in get_args(t)
+                    for line in self.create_class(sub_type)
+                ]
+            except TypeError:
+                ...
+        return [
+            *sub_classes,
             *lines,
         ]
-    else:
-        try:
-            sub_classes = [
-                line for sub_type in get_args(t) for line in create_class(sub_type)
+
+    def create_request(
+        self, request_cls: type[BaseModel], response_cls: type[BaseModel]
+    ) -> list[str]:
+        (command,) = list(request_cls.__fields__["command"].outer_type_.__members__)
+
+        arg_field = request_cls.__fields__["arguments"]
+        arg_class = arg_field.outer_type_
+        arg_class_name = self.type_name(arg_class)
+        types = []
+        signature = []
+        if doc_string := self.class_doc(request_cls):
+            signature.append(f"---{self.prepare_doc(doc_string, multiline=True)}")
+        signature.append("---@async")
+        if self.is_model(arg_class):
+            types = self.create_class(arg_class)
+            signature += [
+                f"---@param args {arg_class_name} {arg_field.field_info.description or ''}",
+                f"function DAPUIRequestsClient.{self.safe_name(command)}(args) end",
             ]
-        except TypeError:
-            ...
-    return [
-        *sub_classes,
-        *lines,
-    ]
+        else:
+            signature += [
+                f"function DAPUIRequestsClient.{self.safe_name(command)}() end",
+            ]
 
+        if (body_field := response_cls.__fields__.get("body")) and self.is_model(
+            body_field.outer_type_
+        ):
+            response_body_class = body_field.outer_type_
+            response_class_name = self.type_name(response_cls)
 
-def create_request(
-    request_cls: type[m.Request], response_cls: type[m.Response]
-) -> list[str]:
-    (command,) = list(request_cls.__fields__["command"].outer_type_.__members__)
+            types.append("")
+            types += self.create_class(response_body_class, response_class_name)
+            signature.insert(-1, f"---@return {response_class_name}")
 
-    arg_field = request_cls.__fields__["arguments"]
-    arg_class = arg_field.outer_type_
-    arg_class_name = type_name(arg_class)
-    types = create_class(arg_class)
-    signature = [
-        f"---@param args {arg_class_name} {arg_field.field_info.description or ''}",
-    ]
+        x = [
+            *types,
+            "",
+            *signature,
+            "",
+            "",
+        ]
+        return x
 
-    if (body_field := response_cls.__fields__.get("body")) and is_model(
-        body_field.outer_type_
-    ):
-        response_body_class = body_field.outer_type_
-        response_class_name = type_name(response_cls)
+    def create_event(self, event_cls: type[BaseModel]) -> list[str]:
+        (event,) = list(event_cls.__fields__["event"].outer_type_.__members__)
+        body_field = event_cls.__fields__["body"]
+        body_class = body_field.outer_type_
+        types = []
+        signature = []
+        if doc_string := self.class_doc(event_cls):
+            signature.append(f"---{self.prepare_doc(doc_string, multiline=True)}")
+        if self.is_model(body_class):
+            body_class_name = f"{self.type_name(event_cls)}Args"
+            types = self.create_class(body_class, body_class_name)
+            signature.append(f"---@param listener fun(args: {body_class_name})")
+        else:
+            signature.append(f"---@param listener fun()")
 
-        types.append("")
-        types += create_class(response_body_class, response_class_name)
-        signature.append(f"---@return {response_class_name}")
+        x = [
+            *types,
+            "",
+            *signature,
+            f"function DAPUIEventListenerClient.{self.safe_name(event)}(listener) end",
+            "",
+            "",
+        ]
+        return x
 
-    x = [
-        *types,
-        "",
-        "---@async",
-        *signature,
-        f"function DAPUIRequestsClient.{safe_name(command)}(args) end",
-        "",
-        "",
-    ]
-    return x
-
-
-def create_event(event_cls: type[m.Event]) -> list[str]:
-    (event,) = list(event_cls.__fields__["event"].outer_type_.__members__)
-    body_field = event_cls.__fields__["body"]
-    body_class = body_field.outer_type_
-    types = []
-    if is_model(body_class):
-        body_class_name = f"{type_name(event_cls)}Args"
-        types = create_class(body_class, body_class_name)
-        signature = [f"---@param listener fun(args: {body_class_name})"]
-    else:
-        signature = [f"---@param listener fun()"]
-
-    x = [
-        *types,
-        "",
-        *signature,
-        f"function DAPUIEventListenerClient.{safe_name(event)}(listener) end",
-        "",
-        "",
-    ]
-    return x
-
-
-PREFIX = """
+    PREFIX = """
 ---@class dapui.DAPRequestsClient
 local DAPUIRequestsClient = {}
 
 ---@class dapui.DAPEventListenerClient
 local DAPUIEventListenerClient = {}
-
----@class dapui.DAPClient
-DAPUIClient = {
-    request = DAPUIRequestsClient,
-    listen = DAPUIEventListenerClient,
-}
 """
 
+    def generate_types(self) -> str:
+        output = f"---Generated on {datetime.utcnow()}\n"
+        output += self.PREFIX
 
-def generate_types() -> str:
-    output = ""
-    output += PREFIX
+        member_names = dict(i.getmembers(self.models))
+        for _, member in i.getmembers(self.models, self.is_model):
+            member.update_forward_refs(**member_names)
+        for name, request in i.getmembers(
+            self.models,
+            lambda x: x is not self.models.Request
+            and i.isclass(x)
+            and issubclass(x, self.models.Request),
+        ):
+            try:
+                output += "\n".join(
+                    self.create_request(
+                        request,
+                        getattr(self.models, name.replace("Request", "Response")),
+                    )
+                )
+            except Exception as e:
+                logger.exception(f"Failed to create {name}: {e}")
 
-    member_names = dict(i.getmembers(m))
-    for _, member in i.getmembers(m, is_model):
-        member.update_forward_refs(**member_names)
-    for name, request in i.getmembers(
-        m, lambda x: x is not m.Request and i.isclass(x) and issubclass(x, m.Request)
-    ):
-        try:
-            output += "\n".join(
-                create_request(request, getattr(m, name.replace("Request", "Response")))
-            )
-        except Exception as e:
-            logger.exception(f"Failed to create {name}: {e}")
-
-    for name, event in i.getmembers(
-        m, lambda x: x is not m.Event and i.isclass(x) and issubclass(x, m.Event)
-    ):
-        try:
-            output += "\n".join(create_event(event))
-        except Exception as e:
-            logger.exception(f"Failed to create {name}: {e}")
-    return output
+        for name, event in i.getmembers(
+            self.models,
+            lambda x: x is not self.models.Event
+            and i.isclass(x)
+            and issubclass(x, self.models.Event),
+        ):
+            try:
+                output += "\n".join(self.create_event(event))
+            except Exception as e:
+                logger.exception(f"Failed to create {name}: {e}")
+        return output
 
 
+generator = DAPTypesGenerator()
 logger.info("Generating types")
 
-types = generate_types()
+types = generator.generate_types()
 
 logger.info("Outputting types")
 print(types)

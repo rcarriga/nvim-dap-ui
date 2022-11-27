@@ -5,7 +5,6 @@ local util = require("dapui.util")
 ---@field id string
 ---@field size number
 ---@field init_size number
----@field element Element
 
 ---@class dapui.AreaState
 ---@field init_size number
@@ -13,19 +12,18 @@ local util = require("dapui.util")
 
 ---@class dapui.WindowLayout
 ---@field opened_wins integer[]
----@field win_bufs table<integer, integer>
+---@field win_bufs table<integer, fun(): integer>
 ---@field win_states table<integer,dapui.WinState>
 ---@field area_state dapui.AreaState
 ---@field layout_type "horizontal" | "vertical"
 --
----@field open_index fun(index: number)
+---@field open_index fun(index: number): fun(): integer
 ---@field get_win_size fun(win_id: integer): integer
 ---@field get_area_size fun(win_id: integer): integer
 ---@field set_win_size fun(win_id: integer, size: integer, total_size: integer)
 ---@field set_area_size fun(win_id: integer, size: integer)
 --
 ---@field has_initial_open boolean
----@field loop RenderLoop
 local WindowLayout = {}
 
 function WindowLayout:open()
@@ -33,18 +31,13 @@ function WindowLayout:open()
     return
   end
   local cur_win = api.nvim_get_current_win()
-  for i, win_state in pairs(self.win_states) do
-    local element = win_state.element
-    local bufnr = api.nvim_create_buf(false, true)
-    self.open_index(i)
+  for i, _ in pairs(self.win_states) do
+    local get_buffer = self.open_index(i)
     local win_id = api.nvim_get_current_win()
-    api.nvim_set_current_buf(bufnr)
+    api.nvim_set_current_buf(get_buffer())
     self.opened_wins[i] = win_id
-    self.loop.register_buffer(element.name, bufnr)
     self:_init_win_settings(win_id)
-    self.loop.run(element.name)
-    -- REPL changes the buffer
-    self.win_bufs[win_id] = api.nvim_win_get_buf(win_id)
+    self.win_bufs[win_id] = get_buffer
   end
   self:resize()
   -- Fails if cur win was floating that closed
@@ -55,7 +48,8 @@ end
 function WindowLayout:force_buffers()
   local curwin = api.nvim_get_current_win()
   local curbuf = api.nvim_win_get_buf(curwin)
-  for win, bufnr in pairs(self.win_bufs) do
+  for win, get_buffer in pairs(self.win_bufs) do
+    local bufnr = get_buffer()
     if curwin == win and curbuf ~= bufnr then
       if api.nvim_buf_is_loaded(bufnr) and api.nvim_buf_is_valid(bufnr) then
         -- pcall necessary to avoid erroring with `mark not set` although no mark are set
@@ -147,19 +141,13 @@ end
 function WindowLayout:close()
   local current_win = api.nvim_get_current_win()
   for _, win in pairs(self.opened_wins) do
-    local win_exists, buf = pcall(api.nvim_win_get_buf, win)
+    local win_exists = api.nvim_win_is_valid(win)
 
     if win_exists then
       if win == current_win then
         vim.cmd("stopinsert") -- Prompt buffers act poorly when closed in insert mode, see #33
       end
       pcall(api.nvim_win_close, win, true)
-      if
-        vim.fn.bufname(buf) ~= "[dap-repl]"
-        and api.nvim_buf_get_option(buf, "buftype") ~= "terminal"
-      then
-        api.nvim_buf_delete(buf, { force = true, unload = false })
-      end
     end
   end
   self.opened_wins = {}

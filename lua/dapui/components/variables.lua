@@ -1,5 +1,4 @@
 local config = require("dapui.config")
-local loop = require("dapui.render.loop")
 local util = require("dapui.util")
 local partial = util.partial
 
@@ -13,131 +12,109 @@ local partial = util.partial
 ---@field rendered_vars table[] | nil
 local Variables = {}
 
-function Variables:new(state)
-  local elem = { expanded_children = {}, child_components = {}, state = state }
-  setmetatable(elem, self)
-  self.__index = self
-  return elem
-end
+---@param client dapui.DAPClient
+---@param send_ready function
+return function(client, send_ready)
+  local expanded_children = {}
 
-function Variables:toggle_reference(ref, name)
-  self.expanded_children[name] = not self.expanded_children[name]
-  if not self.expanded_children[name] then
-    self.state:stop_monitor(ref)
-  else
-    self.state:monitor(ref)
+  ---@type fun(value: string) | nil
+  local prompt_func
+  ---@type string | nil
+  local prompt_fill
+  local rendered_step = client.lib.step_number()
+  ---@type table<string, dapui.types.Variable>
+  local rendered_vars = {}
+
+  local function reference_prefix(path, variable)
+    if variable.variablesReference == 0 then
+      return " "
+    end
+    return config.icons()[expanded_children[path] and "expanded" or "collapsed"]
   end
-end
 
-function Variables:set_var(parent_ref, value)
-  self.state:set_variable(parent_ref, self.var_to_set, value)
-  self.mode = nil
-  self.var_to_set = nil
-  loop.run()
-end
-
----@param canvas dapui.Canvas
-function Variables:render(canvas, parent_ref, variables, indent)
-  if self.mode == "set" then
-    canvas:set_prompt(
-      "> ",
-      partial(self.set_var, self, parent_ref),
-      { fill = self.var_to_set.value }
-    )
+  ---@param path string
+  local function rendered_value(path)
+    return rendered_vars[path] and rendered_vars[path].value
   end
-  indent = indent or 0
-  for var_index, variable in pairs(variables) do
-    canvas:write(string.rep(" ", indent))
-    local prefix = self:_reference_prefix(variable)
-    canvas:write(prefix, { group = "DapUIDecoration" })
-    canvas:write(" ")
-    canvas:write(variable.name, { group = "DapUIVariable" })
 
-    local var_type = util.render_type(variable.type)
-    if #var_type > 0 then
+  ---@param canvas dapui.Canvas
+  ---@param parent_path string
+  ---@param parent_ref integer
+  ---@param indent integer
+  local function render(canvas, parent_path, parent_ref, indent)
+    if not canvas.prompt and prompt_func then
+      canvas:set_prompt("> ", prompt_func, { fill = prompt_fill })
+    end
+    indent = indent or 0
+    local variables = client.request.variables({ variablesReference = parent_ref }).variables
+    for _, variable in pairs(variables) do
+      local var_path = parent_path .. "." .. variable.name
+
+      canvas:write(string.rep(" ", indent))
+      local prefix = reference_prefix(var_path, variable)
+      canvas:write(prefix, { group = "DapUIDecoration" })
       canvas:write(" ")
-      canvas:write(var_type, { group = "DapUIType" })
-    end
+      canvas:write(variable.name, { group = "DapUIVariable" })
 
-    local var_group
-    if
-      not self.rendered_vars
-      or not self.rendered_vars[var_index]
-      or self.rendered_vars[var_index].value == variable.value
-    then
-      var_group = "DapUIValue"
-    else
-      var_group = "DapUIModifiedValue"
-    end
-    local function add_var_line(line)
-      if variable.variablesReference > 0 then
-        canvas:add_mapping(
-          config.actions.EXPAND,
-          partial(Variables.toggle_reference, self, variable.variablesReference, variable.name)
-        )
-        if variable.evaluateName then
-          canvas:add_mapping(config.actions.REPL, partial(util.send_to_repl, variable.evaluateName))
-        end
+      local var_type = util.render_type(variable.type)
+      if #var_type > 0 then
+        canvas:write(" ")
+        canvas:write(var_type, { group = "DapUIType" })
       end
-      canvas:add_mapping(config.actions.EDIT, function()
-        self.mode = "set"
-        self.var_to_set = variable
-        loop.run()
-      end)
-      canvas:write(line .. "\n", { group = var_group })
-    end
 
-    if #(variable.value or "") > 0 then
-      canvas:write(" = ")
-      local value_start = #canvas.lines[canvas:length()]
-      local value = variable.value
-
-      for _, line in ipairs(util.format_value(value_start, value)) do
-        add_var_line(line)
-      end
-    else
-      add_var_line(variable.value)
-    end
-
-    if self.expanded_children[variable.name] and variable.variablesReference ~= 0 then
-      local child_vars = self.state:variables(variable.variablesReference)
-      if not child_vars then
-        -- Happens when the parent component is collapsed and the variable
-        -- reference changes when re-opened.  The name is recorded as opened
-        -- but the variable reference is not yet monitored.
-        if not self.state:is_monitored(variable.variablesReference) then
-          self.state:monitor(variable.variablesReference)
-        end
-        return
+      local var_group
+      if rendered_value(var_path) == variable.value then
+        var_group = "DapUIValue"
       else
-        self
-          :_get_child_component(variable.name)
-          :render(canvas, variable.variablesReference, child_vars, indent + config.windows().indent)
+        var_group = "DapUIModifiedValue"
+      end
+      local function add_var_line(line)
+        if variable.variablesReference > 0 then
+          canvas:add_mapping(config.actions.EXPAND, function()
+            expanded_children[var_path] = not expanded_children[var_path]
+            send_ready()
+          end)
+          if variable.evaluateName then
+            canvas:add_mapping(
+              config.actions.REPL,
+              partial(util.send_to_repl, variable.evaluateName)
+            )
+          end
+        end
+        canvas:add_mapping(config.actions.EDIT, function()
+          prompt_func = function(new_value)
+            client.lib.set_variable(parent_ref, variable, new_value)
+            prompt_func = nil
+            prompt_fill = nil
+            send_ready()
+          end
+          prompt_fill = variable.value
+          send_ready()
+        end)
+        canvas:write(line .. "\n", { group = var_group })
+      end
+
+      if #(variable.value or "") > 0 then
+        canvas:write(" = ")
+        local value_start = #canvas.lines[canvas:length()]
+        local value = variable.value
+
+        for _, line in ipairs(util.format_value(value_start, value)) do
+          add_var_line(line)
+        end
+      else
+        add_var_line(variable.value)
+      end
+
+      if expanded_children[var_path] and variable.variablesReference ~= 0 then
+        render(canvas, var_path, variable.variablesReference, indent + config.windows().indent)
       end
     end
+    if client.lib.step_number() ~= rendered_step then
+      rendered_vars = variables
+      rendered_step = client.lib.step_number()
+    end
   end
-  if self.state:step_number() ~= self.rendered_step then
-    self.rendered_vars = variables
-    self.rendered_step = self.state:step_number()
-  end
-end
 
-function Variables:_get_child_component(name)
-  if not self.child_components[name] then
-    self.child_components[name] = Variables:new(self.state)
-  end
-  return self.child_components[name]
-end
-
-function Variables:_reference_prefix(variable)
-  if variable.variablesReference == 0 then
-    return " "
-  end
-  return config.icons()[self.expanded_children[variable.name] and "expanded" or "collapsed"]
-end
-
----@param state UIState
----@return Variables
-return function(state)
-  return Variables:new(state)
+  return { render = render }
 end

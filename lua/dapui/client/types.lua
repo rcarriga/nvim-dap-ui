@@ -1,3 +1,4 @@
+---Generated on 2022-11-19 18:14:04.192581
 
 ---@class dapui.DAPRequestsClient
 local DAPUIRequestsClient = {}
@@ -5,14 +6,11 @@ local DAPUIRequestsClient = {}
 ---@class dapui.DAPEventListenerClient
 local DAPUIEventListenerClient = {}
 
----@class dapui.DAPClient
-DAPUIClient = {
-    request = DAPUIRequestsClient,
-    listen = DAPUIEventListenerClient,
-}
 ---Arguments for `attach` request. Additional attributes are implementation specific.
 ---@class dapui.types.AttachRequestArguments
 
+---The `attach` request is sent from the client to the debug adapter to attach to a debuggee that is already running.
+---Since attaching is debugger/runtime specific, the arguments for this request are not part of this specification.
 ---@async
 ---@param args dapui.types.AttachRequestArguments 
 function DAPUIRequestsClient.attach(args) end
@@ -52,6 +50,8 @@ function DAPUIRequestsClient.attach(args) end
 ---@class dapui.types.BreakpointLocationsResponse
 ---@field breakpoints dapui.types.BreakpointLocation[] Sorted set of possible breakpoint locations.
 
+---The `breakpointLocations` request returns all possible locations for source breakpoints in a given range.
+---Clients should only call this request if the corresponding capability `supportsBreakpointLocationsRequest` is true.
 ---@async
 ---@param args dapui.types.BreakpointLocationsArguments 
 ---@return dapui.types.BreakpointLocationsResponse
@@ -62,6 +62,15 @@ function DAPUIRequestsClient.breakpointLocations(args) end
 ---@field requestId? integer The ID (attribute `seq`) of the request to cancel. If missing no request is cancelled. Both a `requestId` and a `progressId` can be specified in one request.
 ---@field progressId? string The ID (attribute `progressId`) of the progress to cancel. If missing no progress is cancelled. Both a `requestId` and a `progressId` can be specified in one request.
 
+---The `cancel` request is used by the client in two situations:
+---- to indicate that it is no longer interested in the result produced by a specific request issued earlier
+---- to cancel a progress sequence. Clients should only call this request if the corresponding capability `supportsCancelRequest` is true.
+---This request has a hint characteristic: a debug adapter can only be expected to make a 'best effort' in honoring this request but there are no guarantees.
+---The `cancel` request may return an error if it could not cancel an operation but a client should refrain from presenting this error to end users.
+---The request that got cancelled still needs to send a response back. This can either be a normal result (`success` attribute true) or an error response (`success` attribute false and the `message` set to `cancelled`).
+---Returning partial results from a cancelled request is possible but please note that a client has no generic way for detecting that a response is partial or not.
+---The progress that got cancelled still needs to send a `progressEnd` event back.
+---A client should not assume that progress just got cancelled after sending the `cancel` request.
 ---@async
 ---@param args dapui.types.CancelArguments 
 function DAPUIRequestsClient.cancel(args) end
@@ -88,6 +97,8 @@ function DAPUIRequestsClient.cancel(args) end
 ---@class dapui.types.CompletionsResponse
 ---@field targets dapui.types.CompletionItem[] The possible completions for .
 
+---Returns a list of possible completions for a given caret position and text.
+---Clients should only call this request if the corresponding capability `supportsCompletionsRequest` is true.
 ---@async
 ---@param args dapui.types.CompletionsArguments 
 ---@return dapui.types.CompletionsResponse
@@ -96,6 +107,9 @@ function DAPUIRequestsClient.completions(args) end
 ---Arguments for `configurationDone` request.
 ---@class dapui.types.ConfigurationDoneArguments
 
+---This request indicates that the client has finished initialization of the debug adapter.
+---So it is the last request in the sequence of configuration requests (which was started by the `initialized` event).
+---Clients should only call this request if the corresponding capability `supportsConfigurationDoneRequest` is true.
 ---@async
 ---@param args dapui.types.ConfigurationDoneArguments 
 function DAPUIRequestsClient.configurationDone(args) end
@@ -108,6 +122,7 @@ function DAPUIRequestsClient.configurationDone(args) end
 ---@class dapui.types.ContinueResponse
 ---@field allThreadsContinued? boolean The value true (or a missing property) signals to the client that all threads have been resumed. The value false indicates that not all threads were resumed.
 
+---The request resumes execution of all threads. If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true resumes only the specified thread. If not all threads were resumed, the `allThreadsContinued` attribute of the response should be set to false.
 ---@async
 ---@param args dapui.types.ContinueArguments 
 ---@return dapui.types.ContinueResponse
@@ -124,6 +139,8 @@ function DAPUIRequestsClient.continue_(args) end
 ---@field accessTypes? "read"[] Attribute lists the available access types for a potential data breakpoint. A UI client could surface this information.
 ---@field canPersist? boolean Attribute indicates that a potential data breakpoint could be persisted across sessions.
 
+---Obtains information on a possible data breakpoint that could be set on an expression or variable.
+---Clients should only call this request if the corresponding capability `supportsDataBreakpoints` is true.
 ---@async
 ---@param args dapui.types.DataBreakpointInfoArguments 
 ---@return dapui.types.DataBreakpointInfoResponse
@@ -152,6 +169,8 @@ function DAPUIRequestsClient.dataBreakpointInfo(args) end
 ---@class dapui.types.DisassembleResponse
 ---@field instructions dapui.types.DisassembledInstruction[] The list of disassembled instructions.
 
+---Disassembles code stored at the provided location.
+---Clients should only call this request if the corresponding capability `supportsDisassembleRequest` is true.
 ---@async
 ---@param args dapui.types.DisassembleArguments 
 ---@return dapui.types.DisassembleResponse
@@ -163,6 +182,9 @@ function DAPUIRequestsClient.disassemble(args) end
 ---@field terminateDebuggee? boolean Indicates whether the debuggee should be terminated when the debugger is disconnected. If unspecified, the debug adapter is free to do whatever it thinks is best. The attribute is only honored by a debug adapter if the corresponding capability `supportTerminateDebuggee` is true.
 ---@field suspendDebuggee? boolean Indicates whether the debuggee should stay suspended when the debugger is disconnected. If unspecified, the debuggee should resume execution. The attribute is only honored by a debug adapter if the corresponding capability `supportSuspendDebuggee` is true.
 
+---The `disconnect` request asks the debug adapter to disconnect from the debuggee (thus ending the debug session) and then to shut down itself (the debug adapter).
+---In addition, the debug adapter must terminate the debuggee if it was started with the `launch` request. If an `attach` request was used to connect to the debuggee, then the debug adapter must not terminate the debuggee.
+---This implicit behavior of when to terminate the debuggee can be overridden with the `terminateDebuggee` argument (which is only supported by a debug adapter if the corresponding capability `supportTerminateDebuggee` is true).
 ---@async
 ---@param args dapui.types.DisconnectArguments 
 function DAPUIRequestsClient.disconnect(args) end
@@ -194,6 +216,8 @@ function DAPUIRequestsClient.disconnect(args) end
 ---@field indexedVariables? integer The number of indexed child variables. The client can use this information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31-1).
 ---@field memoryReference? string A memory reference to a location appropriate for this result. For pointer type eval results, this is generally a reference to the memory address contained in the pointer. This attribute should be returned by a debug adapter if corresponding capability `supportsMemoryReferences` is true.
 
+---Evaluates the given expression in the context of the topmost stack frame.
+---The expression has access to any variables and arguments that are in scope.
 ---@async
 ---@param args dapui.types.EvaluateArguments 
 ---@return dapui.types.EvaluateResponse
@@ -218,6 +242,8 @@ function DAPUIRequestsClient.evaluate(args) end
 ---@field breakMode "never" Mode that caused the exception notification to be raised.
 ---@field details? dapui.types.ExceptionDetails Detailed information about the exception.
 
+---Retrieves the details of the exception that caused this event to be raised.
+---Clients should only call this request if the corresponding capability `supportsExceptionInfoRequest` is true.
 ---@async
 ---@param args dapui.types.ExceptionInfoArguments 
 ---@return dapui.types.ExceptionInfoResponse
@@ -228,6 +254,11 @@ function DAPUIRequestsClient.exceptionInfo(args) end
 ---@field threadId integer Set the goto target for this thread.
 ---@field targetId integer The location where the debuggee will continue to run.
 
+---The request sets the location where the debuggee will continue to run.
+---This makes it possible to skip the execution of code or to execute code again.
+---The code between the current location and the goto target is not executed but skipped.
+---The debug adapter first sends the response and then a `stopped` event with reason `goto`.
+---Clients should only call this request if the corresponding capability `supportsGotoTargetsRequest` is true (because only then goto targets exist that can be passed as arguments).
 ---@async
 ---@param args dapui.types.GotoArguments 
 function DAPUIRequestsClient.goto_(args) end
@@ -252,6 +283,9 @@ function DAPUIRequestsClient.goto_(args) end
 ---@class dapui.types.GotoTargetsResponse
 ---@field targets dapui.types.GotoTarget[] The possible goto targets of the specified location.
 
+---This request retrieves the possible goto targets for the specified source location.
+---These targets can be used in the `goto` request.
+---Clients should only call this request if the corresponding capability `supportsGotoTargetsRequest` is true.
 ---@async
 ---@param args dapui.types.GotoTargetsArguments 
 ---@return dapui.types.GotoTargetsResponse
@@ -337,6 +371,10 @@ function DAPUIRequestsClient.gotoTargets(args) end
 ---@field supportsExceptionFilterOptions? boolean The debug adapter supports `filterOptions` as an argument on the `setExceptionBreakpoints` request.
 ---@field supportsSingleThreadExecutionRequests? boolean The debug adapter supports the `singleThread` property on the execution requests (`continue`, `next`, `stepIn`, `stepOut`, `reverseContinue`, `stepBack`).
 
+---The `initialize` request is sent as the first request from the client to the debug adapter in order to configure it with client capabilities and to retrieve capabilities from the debug adapter.
+---Until the debug adapter has responded with an `initialize` response, the client must not send any additional requests or events to the debug adapter.
+---In addition the debug adapter is not allowed to send any requests or events to the client until it has responded with an `initialize` response.
+---The `initialize` request may only be sent once.
 ---@async
 ---@param args dapui.types.InitializeRequestArguments 
 ---@return dapui.types.InitializeResponse
@@ -346,6 +384,8 @@ function DAPUIRequestsClient.initialize(args) end
 ---@class dapui.types.LaunchRequestArguments
 ---@field noDebug? boolean If true, the launch request should launch the program without enabling debugging.
 
+---This launch request is sent from the client to the debug adapter to start the debuggee with or without debugging (if `noDebug` is true).
+---Since launching is debugger/runtime specific, the arguments for this request are not part of this specification.
 ---@async
 ---@param args dapui.types.LaunchRequestArguments 
 function DAPUIRequestsClient.launch(args) end
@@ -356,6 +396,8 @@ function DAPUIRequestsClient.launch(args) end
 ---@class dapui.types.LoadedSourcesResponse
 ---@field sources dapui.types.Source[] Set of loaded sources.
 
+---Retrieves the set of all sources currently loaded by the debugged process.
+---Clients should only call this request if the corresponding capability `supportsLoadedSourcesRequest` is true.
 ---@async
 ---@param args dapui.types.LoadedSourcesArguments 
 ---@return dapui.types.LoadedSourcesResponse
@@ -389,6 +431,8 @@ function DAPUIRequestsClient.loadedSources(args) end
 ---@field modules dapui.types.Module[] All modules or range of modules.
 ---@field totalModules? integer The total number of modules available.
 
+---Modules can be retrieved from the debug adapter with this request which can either return all modules or a range of modules to support paging.
+---Clients should only call this request if the corresponding capability `supportsModulesRequest` is true.
 ---@async
 ---@param args dapui.types.ModulesArguments 
 ---@return dapui.types.ModulesResponse
@@ -400,6 +444,9 @@ function DAPUIRequestsClient.modules(args) end
 ---@field singleThread? boolean If this flag is true, all other suspended threads are not resumed.
 ---@field granularity? "statement" Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.
 
+---The request executes one step (in the given granularity) for the specified thread and allows all other threads to run freely by resuming them.
+---If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true prevents other suspended threads from resuming.
+---The debug adapter first sends the response and then a `stopped` event (with reason `step`) after the step has completed.
 ---@async
 ---@param args dapui.types.NextArguments 
 function DAPUIRequestsClient.next(args) end
@@ -408,6 +455,8 @@ function DAPUIRequestsClient.next(args) end
 ---@class dapui.types.PauseArguments
 ---@field threadId integer Pause execution for this thread.
 
+---The request suspends the debuggee.
+---The debug adapter first sends the response and then a `stopped` event (with reason `pause`) after the thread has been paused successfully.
 ---@async
 ---@param args dapui.types.PauseArguments 
 function DAPUIRequestsClient.pause(args) end
@@ -423,6 +472,8 @@ function DAPUIRequestsClient.pause(args) end
 ---@field unreadableBytes? integer The number of unreadable bytes encountered after the last successfully read byte. This can be used to determine the number of bytes that should be skipped before a subsequent `readMemory` request succeeds.
 ---@field data? string The bytes read from memory, encoded using base64.
 
+---Reads bytes from memory at the provided location.
+---Clients should only call this request if the corresponding capability `supportsReadMemoryRequest` is true.
 ---@async
 ---@param args dapui.types.ReadMemoryArguments 
 ---@return dapui.types.ReadMemoryResponse
@@ -432,6 +483,9 @@ function DAPUIRequestsClient.readMemory(args) end
 ---@class dapui.types.RestartFrameArguments
 ---@field frameId integer Restart this stackframe.
 
+---The request restarts execution of the specified stackframe.
+---The debug adapter first sends the response and then a `stopped` event (with reason `restart`) after the restart has completed.
+---Clients should only call this request if the corresponding capability `supportsRestartFrame` is true.
 ---@async
 ---@param args dapui.types.RestartFrameArguments 
 function DAPUIRequestsClient.restartFrame(args) end
@@ -440,6 +494,8 @@ function DAPUIRequestsClient.restartFrame(args) end
 ---@class dapui.types.RestartArguments
 ---@field arguments? dapui.types.LaunchRequestArguments | dapui.types.AttachRequestArguments The latest version of the `launch` or `attach` configuration.
 
+---Restarts a debug session. Clients should only call this request if the corresponding capability `supportsRestartRequest` is true.
+---If the capability is missing or has the value false, a typical client emulates `restart` by terminating the debug adapter first and then launching it anew.
 ---@async
 ---@param args dapui.types.RestartArguments 
 function DAPUIRequestsClient.restart(args) end
@@ -449,6 +505,8 @@ function DAPUIRequestsClient.restart(args) end
 ---@field threadId integer Specifies the active thread. If the debug adapter supports single thread execution (see `supportsSingleThreadExecutionRequests`) and the `singleThread` argument is true, only the thread with this ID is resumed.
 ---@field singleThread? boolean If this flag is true, backward execution is resumed only for the thread with given `threadId`.
 
+---The request resumes backward execution of all threads. If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true resumes only the specified thread. If not all threads were resumed, the `allThreadsContinued` attribute of the response should be set to false.
+---Clients should only call this request if the corresponding capability `supportsStepBack` is true.
 ---@async
 ---@param args dapui.types.ReverseContinueArguments 
 function DAPUIRequestsClient.reverseContinue(args) end
@@ -466,6 +524,11 @@ function DAPUIRequestsClient.reverseContinue(args) end
 ---@field processId? integer The process ID. The value should be less than or equal to 2147483647 (2^31-1).
 ---@field shellProcessId? integer The process ID of the terminal shell. The value should be less than or equal to 2147483647 (2^31-1).
 
+---This request is sent from the debug adapter to the client to run a command in a terminal.
+---This is typically used to launch the debuggee in a terminal provided by the client.
+---This request should only be called if the corresponding client capability `supportsRunInTerminalRequest` is true.
+---Client implementations of `runInTerminal` are free to run the command however they choose including issuing the command to a command line interpreter (aka 'shell'). Argument strings passed to the `runInTerminal` request must arrive verbatim in the command to be run. As a consequence, clients which use a shell are responsible for escaping any special shell characters in the argument strings to prevent them from being interpreted (and modified) by the shell.
+---Some users may wish to take advantage of shell processing in the argument strings. For clients which implement `runInTerminal` using an intermediary shell, the `argsCanBeInterpretedByShell` property can be set to true. In this case the client is requested not to escape any special shell characters in the argument strings.
 ---@async
 ---@param args dapui.types.RunInTerminalRequestArguments 
 ---@return dapui.types.RunInTerminalResponse
@@ -492,6 +555,7 @@ function DAPUIRequestsClient.runInTerminal(args) end
 ---@class dapui.types.ScopesResponse
 ---@field scopes dapui.types.Scope[] The scopes of the stackframe. If the array has length zero, there are no scopes available.
 
+---The request returns the variable scopes for a given stackframe ID.
 ---@async
 ---@param args dapui.types.ScopesArguments 
 ---@return dapui.types.ScopesResponse
@@ -528,6 +592,9 @@ function DAPUIRequestsClient.scopes(args) end
 ---@class dapui.types.SetBreakpointsResponse
 ---@field breakpoints dapui.types.Breakpoint[] Information about the breakpoints. The array elements are in the same order as the elements of the `breakpoints` (or the deprecated `lines`) array in the arguments.
 
+---Sets multiple breakpoints for a single source and clears all previous breakpoints in that source.
+---To clear all breakpoint for a source, specify an empty array.
+---When a breakpoint is hit, a `stopped` event (with reason `breakpoint`) is generated.
 ---@async
 ---@param args dapui.types.SetBreakpointsArguments 
 ---@return dapui.types.SetBreakpointsResponse
@@ -547,6 +614,10 @@ function DAPUIRequestsClient.setBreakpoints(args) end
 ---@class dapui.types.SetDataBreakpointsResponse
 ---@field breakpoints dapui.types.Breakpoint[] Information about the data breakpoints. The array elements correspond to the elements of the input argument `breakpoints` array.
 
+---Replaces all existing data breakpoints with new data breakpoints.
+---To clear all data breakpoints, specify an empty array.
+---When a data breakpoint is hit, a `stopped` event (with reason `data breakpoint`) is generated.
+---Clients should only call this request if the corresponding capability `supportsDataBreakpoints` is true.
 ---@async
 ---@param args dapui.types.SetDataBreakpointsArguments 
 ---@return dapui.types.SetDataBreakpointsResponse
@@ -577,6 +648,9 @@ function DAPUIRequestsClient.setDataBreakpoints(args) end
 ---@class dapui.types.SetExceptionBreakpointsResponse
 ---@field breakpoints? dapui.types.Breakpoint[] Information about the exception breakpoints or filters. The breakpoints returned are in the same order as the elements of the `filters`, `filterOptions`, `exceptionOptions` arrays in the arguments. If both `filters` and `filterOptions` are given, the returned array must start with `filters` information first, followed by `filterOptions` information.
 
+---The request configures the debugger's response to thrown exceptions.
+---If an exception is configured to break, a `stopped` event is fired (with reason `exception`).
+---Clients should only call this request if the corresponding capability `exceptionBreakpointFilters` returns one or more filters.
 ---@async
 ---@param args dapui.types.SetExceptionBreakpointsArguments 
 ---@return dapui.types.SetExceptionBreakpointsResponse
@@ -597,6 +671,10 @@ function DAPUIRequestsClient.setExceptionBreakpoints(args) end
 ---@field namedVariables? integer The number of named child variables. The client can use this information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31-1).
 ---@field indexedVariables? integer The number of indexed child variables. The client can use this information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31-1).
 
+---Evaluates the given `value` expression and assigns it to the `expression` which must be a modifiable l-value.
+---The expressions have access to any variables and arguments that are in scope of the specified frame.
+---Clients should only call this request if the corresponding capability `supportsSetExpression` is true.
+---If a debug adapter implements both `setExpression` and `setVariable`, a client uses `setExpression` if the variable has an `evaluateName` property.
 ---@async
 ---@param args dapui.types.SetExpressionArguments 
 ---@return dapui.types.SetExpressionResponse
@@ -615,6 +693,10 @@ function DAPUIRequestsClient.setExpression(args) end
 ---@class dapui.types.SetFunctionBreakpointsResponse
 ---@field breakpoints dapui.types.Breakpoint[] Information about the breakpoints. The array elements correspond to the elements of the `breakpoints` array.
 
+---Replaces all existing function breakpoints with new function breakpoints.
+---To clear all function breakpoints, specify an empty array.
+---When a function breakpoint is hit, a `stopped` event (with reason `function breakpoint`) is generated.
+---Clients should only call this request if the corresponding capability `supportsFunctionBreakpoints` is true.
 ---@async
 ---@param args dapui.types.SetFunctionBreakpointsArguments 
 ---@return dapui.types.SetFunctionBreakpointsResponse
@@ -634,6 +716,10 @@ function DAPUIRequestsClient.setFunctionBreakpoints(args) end
 ---@class dapui.types.SetInstructionBreakpointsResponse
 ---@field breakpoints dapui.types.Breakpoint[] Information about the breakpoints. The array elements correspond to the elements of the `breakpoints` array.
 
+---Replaces all existing instruction breakpoints. Typically, instruction breakpoints would be set from a disassembly window. 
+---To clear all instruction breakpoints, specify an empty array.
+---When an instruction breakpoint is hit, a `stopped` event (with reason `instruction breakpoint`) is generated.
+---Clients should only call this request if the corresponding capability `supportsInstructionBreakpoints` is true.
 ---@async
 ---@param args dapui.types.SetInstructionBreakpointsArguments 
 ---@return dapui.types.SetInstructionBreakpointsResponse
@@ -653,6 +739,8 @@ function DAPUIRequestsClient.setInstructionBreakpoints(args) end
 ---@field namedVariables? integer The number of named child variables. The client can use this information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31-1).
 ---@field indexedVariables? integer The number of indexed child variables. The client can use this information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31-1).
 
+---Set the variable with the given name in the variable container to a new value. Clients should only call this request if the corresponding capability `supportsSetVariable` is true.
+---If a debug adapter implements both `setVariable` and `setExpression`, a client will only use `setExpression` if the variable has an `evaluateName` property.
 ---@async
 ---@param args dapui.types.SetVariableArguments 
 ---@return dapui.types.SetVariableResponse
@@ -667,11 +755,13 @@ function DAPUIRequestsClient.setVariable(args) end
 ---@field content string Content of the source reference.
 ---@field mimeType? string Content type (MIME type) of the source.
 
+---The request retrieves the source code for a given source reference.
 ---@async
 ---@param args dapui.types.SourceArguments 
 ---@return dapui.types.SourceResponse
 function DAPUIRequestsClient.source(args) end
 
+---Provides formatting information for a stack frame.
 ---@class dapui.types.StackFrameFormat
 ---@field hex? boolean Display the value in hex.
 ---@field parameters? boolean Displays parameters for the stack frame.
@@ -707,6 +797,8 @@ function DAPUIRequestsClient.source(args) end
 ---@field stackFrames dapui.types.StackFrame[] The frames of the stackframe. If the array has length zero, there are no stackframes available. This means that there is no location information available.
 ---@field totalFrames? integer The total number of frames available in the stack. If omitted or if `totalFrames` is larger than the available frames, a client is expected to request frames until a request returns less frames than requested (which indicates the end of the stack). Returning monotonically increasing `totalFrames` values for subsequent requests can be used to enforce paging in the client.
 
+---The request returns a stacktrace from the current execution state of a given thread.
+---A client can request all stack frames by omitting the startFrame and levels arguments. For performance-conscious clients and if the corresponding capability `supportsDelayedStackTraceLoading` is true, stack frames can be retrieved in a piecemeal way with the `startFrame` and `levels` arguments. The response of the `stackTrace` request may contain a `totalFrames` property that hints at the total number of frames in the stack. If a client needs this total number upfront, it can issue a request for a single (first) frame and depending on the value of `totalFrames` decide how to proceed. In any case a client should be prepared to receive fewer frames than requested, which is an indication that the end of the stack has been reached.
 ---@async
 ---@param args dapui.types.StackTraceArguments 
 ---@return dapui.types.StackTraceResponse
@@ -717,6 +809,9 @@ function DAPUIRequestsClient.stackTrace(args) end
 ---@field configuration table<string,any> Arguments passed to the new debug session. The arguments must only contain properties understood by the `launch` or `attach` requests of the debug adapter and they must not contain any client-specific properties (e.g. `type`) or client-specific features (e.g. substitutable 'variables').
 ---@field request "launch" Indicates whether the new debug session should be started with a `launch` or `attach` request.
 
+---This request is sent from the debug adapter to the client to start a new debug session of the same type as the caller.
+---This request should only be sent if the corresponding client capability `supportsStartDebuggingRequest` is true.
+---A client implementation of `startDebugging` should start a new debug session (of the same type as the caller) in the same way that the caller's session was started. If the client supports hierarchical debug sessions, the newly created session can be treated as a child of the caller session.
 ---@async
 ---@param args dapui.types.StartDebuggingRequestArguments 
 function DAPUIRequestsClient.startDebugging(args) end
@@ -727,6 +822,10 @@ function DAPUIRequestsClient.startDebugging(args) end
 ---@field singleThread? boolean If this flag is true, all other suspended threads are not resumed.
 ---@field granularity? "statement" Stepping granularity to step. If no granularity is specified, a granularity of `statement` is assumed.
 
+---The request executes one backward step (in the given granularity) for the specified thread and allows all other threads to run backward freely by resuming them.
+---If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true prevents other suspended threads from resuming.
+---The debug adapter first sends the response and then a `stopped` event (with reason `step`) after the step has completed.
+---Clients should only call this request if the corresponding capability `supportsStepBack` is true.
 ---@async
 ---@param args dapui.types.StepBackArguments 
 function DAPUIRequestsClient.stepBack(args) end
@@ -738,6 +837,13 @@ function DAPUIRequestsClient.stepBack(args) end
 ---@field targetId? integer Id of the target to step into.
 ---@field granularity? "statement" Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.
 
+---The request resumes the given thread to step into a function/method and allows all other threads to run freely by resuming them.
+---If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true prevents other suspended threads from resuming.
+---If the request cannot step into a target, `stepIn` behaves like the `next` request.
+---The debug adapter first sends the response and then a `stopped` event (with reason `step`) after the step has completed.
+---If there are multiple function/method calls (or other targets) on the source line,
+---the argument `targetId` can be used to control into which target the `stepIn` should occur.
+---The list of possible targets for a given source line can be retrieved via the `stepInTargets` request.
 ---@async
 ---@param args dapui.types.StepInArguments 
 function DAPUIRequestsClient.stepIn(args) end
@@ -758,6 +864,9 @@ function DAPUIRequestsClient.stepIn(args) end
 ---@class dapui.types.StepInTargetsResponse
 ---@field targets dapui.types.StepInTarget[] The possible step-in targets of the specified source location.
 
+---This request retrieves the possible step-in targets for the specified stack frame.
+---These targets can be used in the `stepIn` request.
+---Clients should only call this request if the corresponding capability `supportsStepInTargetsRequest` is true.
 ---@async
 ---@param args dapui.types.StepInTargetsArguments 
 ---@return dapui.types.StepInTargetsResponse
@@ -769,6 +878,9 @@ function DAPUIRequestsClient.stepInTargets(args) end
 ---@field singleThread? boolean If this flag is true, all other suspended threads are not resumed.
 ---@field granularity? "statement" Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.
 
+---The request resumes the given thread to step out (return) from a function/method and allows all other threads to run freely by resuming them.
+---If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true prevents other suspended threads from resuming.
+---The debug adapter first sends the response and then a `stopped` event (with reason `step`) after the step has completed.
 ---@async
 ---@param args dapui.types.StepOutArguments 
 function DAPUIRequestsClient.stepOut(args) end
@@ -777,6 +889,10 @@ function DAPUIRequestsClient.stepOut(args) end
 ---@class dapui.types.TerminateArguments
 ---@field restart? boolean A value of true indicates that this `terminate` request is part of a restart sequence.
 
+---The `terminate` request is sent from the client to the debug adapter in order to shut down the debuggee gracefully. Clients should only call this request if the capability `supportsTerminateRequest` is true.
+---Typically a debug adapter implements `terminate` by sending a software signal which the debuggee intercepts in order to clean things up properly before terminating itself.
+---Please note that this request does not directly affect the state of the debug session: if the debuggee decides to veto the graceful shutdown for any reason by not terminating itself, then the debug session just continues.
+---Clients can surface the `terminate` request as an explicit command or they can integrate it into a two stage Stop command that first sends `terminate` to request a graceful shutdown, and if that fails uses `disconnect` for a forceful shutdown.
 ---@async
 ---@param args dapui.types.TerminateArguments 
 function DAPUIRequestsClient.terminate(args) end
@@ -785,6 +901,8 @@ function DAPUIRequestsClient.terminate(args) end
 ---@class dapui.types.TerminateThreadsArguments
 ---@field threadIds? integer[] Ids of threads to be terminated.
 
+---The request terminates the threads with the given ids.
+---Clients should only call this request if the corresponding capability `supportsTerminateThreadsRequest` is true.
 ---@async
 ---@param args dapui.types.TerminateThreadsArguments 
 function DAPUIRequestsClient.terminateThreads(args) end
@@ -798,10 +916,10 @@ function DAPUIRequestsClient.terminateThreads(args) end
 ---@class dapui.types.ThreadsResponse
 ---@field threads dapui.types.Thread[] All threads.
 
+---The request retrieves a list of all threads.
 ---@async
----@param args any[] | boolean | integer | number | table<string,any> | string Object containing arguments for the command.
 ---@return dapui.types.ThreadsResponse
-function DAPUIRequestsClient.threads(args) end
+function DAPUIRequestsClient.threads() end
 
 ---Arguments for `variables` request.
 ---@class dapui.types.VariablesArguments
@@ -831,6 +949,8 @@ function DAPUIRequestsClient.threads(args) end
 ---@class dapui.types.VariablesResponse
 ---@field variables dapui.types.Variable[] All (or a range) of variables for the given variable reference.
 
+---Retrieves all child variables for the given variable reference.
+---A filter can be used to limit the fetched children to either named or indexed children.
 ---@async
 ---@param args dapui.types.VariablesArguments 
 ---@return dapui.types.VariablesResponse
@@ -847,6 +967,8 @@ function DAPUIRequestsClient.variables(args) end
 ---@field offset? integer Property that should be returned when `allowPartial` is true to indicate the offset of the first byte of data successfully written. Can be negative.
 ---@field bytesWritten? integer Property that should be returned when `allowPartial` is true to indicate the number of bytes starting from address that were successfully written.
 
+---Writes bytes to memory at the provided location.
+---Clients should only call this request if the corresponding capability `supportsWriteMemoryRequest` is true.
 ---@async
 ---@param args dapui.types.WriteMemoryArguments 
 ---@return dapui.types.WriteMemoryResponse
@@ -856,6 +978,7 @@ function DAPUIRequestsClient.writeMemory(args) end
 ---@field reason string The reason for the event.
 ---@field breakpoint dapui.types.Breakpoint The `id` attribute is used to find the target breakpoint, the other attributes are used as the new values.
 
+---The event indicates that some information about a breakpoint has changed.
 ---@param listener fun(args: dapui.types.BreakpointEventArgs)
 function DAPUIEventListenerClient.breakpoint(listener) end
 
@@ -904,6 +1027,10 @@ function DAPUIEventListenerClient.breakpoint(listener) end
 ---@class dapui.types.CapabilitiesEventArgs
 ---@field capabilities dapui.types.Capabilities The set of updated capabilities.
 
+---The event indicates that one or more capabilities have changed.
+---Since the capabilities are dependent on the client and its UI, it might not be possible to change that at random times (or too late).
+---Consequently this event has a hint characteristic: a client can only be expected to make a 'best effort' in honoring individual capabilities but there are no guarantees.
+---Only changed capabilities need to be included, all other capabilities keep their values.
 ---@param listener fun(args: dapui.types.CapabilitiesEventArgs)
 function DAPUIEventListenerClient.capabilities(listener) end
 
@@ -911,16 +1038,29 @@ function DAPUIEventListenerClient.capabilities(listener) end
 ---@field threadId integer The thread which was continued.
 ---@field allThreadsContinued? boolean If `allThreadsContinued` is true, a debug adapter can announce that all threads have continued.
 
+---The event indicates that the execution of the debuggee has continued.
+---Please note: a debug adapter is not expected to send this event in response to a request that implies that execution continues, e.g. `launch` or `continue`.
+---It is only necessary to send a `continued` event if there was no previous request that implied this.
 ---@param listener fun(args: dapui.types.ContinuedEventArgs)
 function DAPUIEventListenerClient.continued(listener) end
 
 ---@class dapui.types.ExitedEventArgs
 ---@field exitCode integer The exit code returned from the debuggee.
 
+---The event indicates that the debuggee has exited and returns its exit code.
 ---@param listener fun(args: dapui.types.ExitedEventArgs)
 function DAPUIEventListenerClient.exited(listener) end
 
 
+---This event indicates that the debug adapter is ready to accept configuration requests (e.g. `setBreakpoints`, `setExceptionBreakpoints`).
+---A debug adapter is expected to send this event when it is ready to accept configuration requests (but not before the `initialize` request has finished).
+---The sequence of events/requests is as follows:
+---- adapters sends `initialized` event (after the `initialize` request has returned)
+---- client sends zero or more `setBreakpoints` requests
+---- client sends one `setFunctionBreakpoints` request (if corresponding capability `supportsFunctionBreakpoints` is true)
+---- client sends a `setExceptionBreakpoints` request if one or more `exceptionBreakpointFilters` have been defined (or if `supportsConfigurationDoneRequest` is not true)
+---- client sends other future configuration requests
+---- client sends one `configurationDone` request to indicate the end of the configuration.
 ---@param listener fun()
 function DAPUIEventListenerClient.initialized(listener) end
 
@@ -932,6 +1072,9 @@ function DAPUIEventListenerClient.initialized(listener) end
 ---@field threadId? integer If specified, the client only needs to refetch data related to this thread.
 ---@field stackFrameId? integer If specified, the client only needs to refetch data related to this stack frame (and the `threadId` is ignored).
 
+---This event signals that some state in the debug adapter has changed and requires that the client needs to re-render the data snapshot previously requested.
+---Debug adapters do not have to emit this event for runtime changes like stopped or thread events because in that case the client refetches the new state anyway. But the event can be used for example to refresh the UI after rendering formatting has changed in the debug adapter.
+---This event should only be sent if the corresponding capability `supportsInvalidatedEvent` is true.
 ---@param listener fun(args: dapui.types.InvalidatedEventArgs)
 function DAPUIEventListenerClient.invalidated(listener) end
 
@@ -939,6 +1082,7 @@ function DAPUIEventListenerClient.invalidated(listener) end
 ---@field reason "new" The reason for the event.
 ---@field source dapui.types.Source The new, changed, or removed source.
 
+---The event indicates that some source has been added, changed, or removed from the set of all loaded sources.
 ---@param listener fun(args: dapui.types.LoadedSourceEventArgs)
 function DAPUIEventListenerClient.loadedSource(listener) end
 
@@ -947,6 +1091,9 @@ function DAPUIEventListenerClient.loadedSource(listener) end
 ---@field offset integer Starting offset in bytes where memory has been updated. Can be negative.
 ---@field count integer Number of bytes updated.
 
+---This event indicates that some memory range has been updated. It should only be sent if the corresponding capability `supportsMemoryEvent` is true.
+---Clients typically react to the event by re-issuing a `readMemory` request if they show the memory identified by the `memoryReference` and if the updated memory range overlaps the displayed range. Clients should not make assumptions how individual memory references relate to each other, so they should not assume that they are part of a single continuous address range and might overlap.
+---Debug adapters can use this event to indicate that the contents of a memory range has changed due to some other request like `setVariable` or `setExpression`. Debug adapters are not expected to emit this event for each and every memory change of a running program, because that information is typically not available from debuggers and it would flood clients with too many events.
 ---@param listener fun(args: dapui.types.MemoryEventArgs)
 function DAPUIEventListenerClient.memory(listener) end
 
@@ -954,6 +1101,7 @@ function DAPUIEventListenerClient.memory(listener) end
 ---@field reason "new" The reason for the event.
 ---@field module dapui.types.Module The new, changed, or removed module. In case of `removed` only the module id is used.
 
+---The event indicates that some information about a module has changed.
 ---@param listener fun(args: dapui.types.ModuleEventArgs)
 function DAPUIEventListenerClient.module(listener) end
 
@@ -967,6 +1115,7 @@ function DAPUIEventListenerClient.module(listener) end
 ---@field column? integer The position in `line` where the output was produced. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.
 ---@field data? any[] | boolean | integer | number | table<string,any> | string Additional data to report. For the `telemetry` category the data is sent to telemetry, for the other categories the data is shown in JSON format.
 
+---The event indicates that the target has produced some output.
 ---@param listener fun(args: dapui.types.OutputEventArgs)
 function DAPUIEventListenerClient.output(listener) end
 
@@ -977,6 +1126,7 @@ function DAPUIEventListenerClient.output(listener) end
 ---@field startMethod? "launch" Describes how the debug engine started debugging this process.
 ---@field pointerSize? integer The size of a pointer or address for this process, in bits. This value may be used by clients when formatting addresses for display.
 
+---The event indicates that the debugger has begun debugging a new process. Either one that it has launched, or one that it has attached to.
 ---@param listener fun(args: dapui.types.ProcessEventArgs)
 function DAPUIEventListenerClient.process(listener) end
 
@@ -984,6 +1134,8 @@ function DAPUIEventListenerClient.process(listener) end
 ---@field progressId string The ID that was introduced in the initial `ProgressStartEvent`.
 ---@field message? string More detailed progress message. If omitted, the previous message (if any) is used.
 
+---The event signals the end of the progress reporting with a final message.
+---This event should only be sent if the corresponding capability `supportsProgressReporting` is true.
 ---@param listener fun(args: dapui.types.ProgressEndEventArgs)
 function DAPUIEventListenerClient.progressEnd(listener) end
 
@@ -995,6 +1147,9 @@ function DAPUIEventListenerClient.progressEnd(listener) end
 ---@field message? string More detailed progress message.
 ---@field percentage? number Progress percentage to display (value range: 0 to 100). If omitted no percentage is shown.
 
+---The event signals that a long running operation is about to start and provides additional information for the client to set up a corresponding progress and cancellation UI.
+---The client is free to delay the showing of the UI in order to reduce flicker.
+---This event should only be sent if the corresponding capability `supportsProgressReporting` is true.
 ---@param listener fun(args: dapui.types.ProgressStartEventArgs)
 function DAPUIEventListenerClient.progressStart(listener) end
 
@@ -1003,6 +1158,9 @@ function DAPUIEventListenerClient.progressStart(listener) end
 ---@field message? string More detailed progress message. If omitted, the previous message (if any) is used.
 ---@field percentage? number Progress percentage to display (value range: 0 to 100). If omitted no percentage is shown.
 
+---The event signals that the progress reporting needs to be updated with a new message and/or percentage.
+---The client does not have to update the UI immediately, but the clients needs to keep track of the message and/or percentage values.
+---This event should only be sent if the corresponding capability `supportsProgressReporting` is true.
 ---@param listener fun(args: dapui.types.ProgressUpdateEventArgs)
 function DAPUIEventListenerClient.progressUpdate(listener) end
 
@@ -1015,12 +1173,15 @@ function DAPUIEventListenerClient.progressUpdate(listener) end
 ---@field allThreadsStopped? boolean If `allThreadsStopped` is true, a debug adapter can announce that all threads have stopped. - The client should use this information to enable that all threads can be expanded to access their stacktraces. - If the attribute is missing or false, only the thread with the given `threadId` can be expanded.
 ---@field hitBreakpointIds? integer[] Ids of the breakpoints that triggered the event. In most cases there is only a single breakpoint but here are some examples for multiple breakpoints: - Different types of breakpoints map to the same location. - Multiple source breakpoints get collapsed to the same instruction by the compiler/runtime. - Multiple function breakpoints with different function names map to the same location.
 
+---The event indicates that the execution of the debuggee has stopped due to some condition.
+---This can be caused by a breakpoint previously set, a stepping request has completed, by executing a debugger statement etc.
 ---@param listener fun(args: dapui.types.StoppedEventArgs)
 function DAPUIEventListenerClient.stopped(listener) end
 
 ---@class dapui.types.TerminatedEventArgs
 ---@field restart? any[] | boolean | integer | number | table<string,any> | string A debug adapter may set `restart` to true (or to an arbitrary object) to request that the client restarts the session. The value is not interpreted by the client and passed unmodified as an attribute `__restart` to the `launch` and `attach` requests.
 
+---The event indicates that debugging of the debuggee has terminated. This does **not** mean that the debuggee itself has exited.
 ---@param listener fun(args: dapui.types.TerminatedEventArgs)
 function DAPUIEventListenerClient.terminated(listener) end
 
@@ -1028,6 +1189,7 @@ function DAPUIEventListenerClient.terminated(listener) end
 ---@field reason string The reason for the event.
 ---@field threadId integer The identifier of the thread.
 
+---The event indicates that a thread has started or exited.
 ---@param listener fun(args: dapui.types.ThreadEventArgs)
 function DAPUIEventListenerClient.thread(listener) end
 

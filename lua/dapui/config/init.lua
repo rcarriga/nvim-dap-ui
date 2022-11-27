@@ -223,9 +223,8 @@ function M.expand_lines()
   return user_config.expand_lines
 end
 
-function M.element_mapping(element, action)
-  return (user_config.element_mappings[element] and user_config.element_mappings[element][action])
-    or user_config.mappings[action]
+function M.element_mapping(element)
+  return user_config.element_mappings[element] or user_config.mappings
 end
 
 setmetatable(M, {

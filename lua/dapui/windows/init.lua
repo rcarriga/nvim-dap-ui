@@ -26,11 +26,12 @@ local function create_win_states(win_configs)
   return win_states
 end
 
-local function horizontal_layout(height, position, win_configs)
+local function horizontal_layout(height, position, win_configs, buffers)
   local open_cmd = position == "top" and "topleft" or "botright"
 
   local function open_tray_win(index)
     vim.cmd(index == 1 and open_cmd .. " " .. " split" or "vsplit")
+    return buffers[index]
   end
 
   return WindowLayout({
@@ -46,10 +47,11 @@ local function horizontal_layout(height, position, win_configs)
   })
 end
 
-local function vertical_layout(width, position, win_configs)
+local function vertical_layout(width, position, win_configs, buffers)
   local open_cmd = position == "left" and "topleft" or "botright"
   local function open_side_win(index)
     vim.cmd(index == 1 and open_cmd .. " " .. "vsplit" or "split")
+    return buffers[index]
   end
 
   return WindowLayout({
@@ -65,7 +67,7 @@ local function vertical_layout(width, position, win_configs)
   })
 end
 
-local function area_layout(size, position, win_configs)
+local function area_layout(size, position, win_configs, buffers)
   local win_states = create_win_states(win_configs)
   local layout_func
   if position == "top" or position == "bottom" then
@@ -73,17 +75,22 @@ local function area_layout(size, position, win_configs)
   else
     layout_func = vertical_layout
   end
-  return layout_func(size, position, win_states)
+  return layout_func(size, position, win_states, buffers)
 end
 
-function M.setup()
+---@param element_buffers table<string, integer>
+function M.setup(element_buffers)
   for _, layout in ipairs(M.layouts) do
     layout:close()
   end
   local layout_configs = config.layouts()
   M.layouts = {}
   for i, layout in ipairs(layout_configs) do
-    M.layouts[i] = area_layout(layout.size, layout.position, layout.elements)
+    local buffers = {}
+    for index, win_config in ipairs(layout.elements) do
+      buffers[index] = element_buffers[win_config.id]
+    end
+    M.layouts[i] = area_layout(layout.size, layout.position, layout.elements, buffers)
   end
   vim.cmd([[
     augroup DapuiWindowsSetup
