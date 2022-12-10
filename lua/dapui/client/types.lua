@@ -1,19 +1,25 @@
----Generated on 2022-11-19 18:14:04.192581
+---Generated on 2022-12-10 16:56:06.898226
 
 ---@class dapui.DAPRequestsClient
 local DAPUIRequestsClient = {}
 
 ---@class dapui.DAPEventListenerClient
 local DAPUIEventListenerClient = {}
-
 ---Arguments for `attach` request. Additional attributes are implementation specific.
 ---@class dapui.types.AttachRequestArguments
 
 ---The `attach` request is sent from the client to the debug adapter to attach to a debuggee that is already running.
 ---Since attaching is debugger/runtime specific, the arguments for this request are not part of this specification.
 ---@async
----@param args dapui.types.AttachRequestArguments 
+---@param args dapui.types.AttachRequestArguments
 function DAPUIRequestsClient.attach(args) end
+
+---@class dapui.types.attachRequestListenerArgs
+---@field request dapui.types.AttachRequestArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.attachRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.attach(listener) end
 
 ---The checksum of an item calculated by the specified algorithm.
 ---@class dapui.types.Checksum
@@ -53,9 +59,17 @@ function DAPUIRequestsClient.attach(args) end
 ---The `breakpointLocations` request returns all possible locations for source breakpoints in a given range.
 ---Clients should only call this request if the corresponding capability `supportsBreakpointLocationsRequest` is true.
 ---@async
----@param args dapui.types.BreakpointLocationsArguments 
+---@param args dapui.types.BreakpointLocationsArguments
 ---@return dapui.types.BreakpointLocationsResponse
 function DAPUIRequestsClient.breakpointLocations(args) end
+
+---@class dapui.types.breakpointLocationsRequestListenerArgs
+---@field request dapui.types.BreakpointLocationsArguments
+---@field error? table
+---@field response dapui.types.BreakpointLocationsResponse
+
+---@param listener fun(args: dapui.types.breakpointLocationsRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.breakpointLocations(listener) end
 
 ---Arguments for `cancel` request.
 ---@class dapui.types.CancelArguments
@@ -72,8 +86,15 @@ function DAPUIRequestsClient.breakpointLocations(args) end
 ---The progress that got cancelled still needs to send a `progressEnd` event back.
 ---A client should not assume that progress just got cancelled after sending the `cancel` request.
 ---@async
----@param args dapui.types.CancelArguments 
+---@param args dapui.types.CancelArguments
 function DAPUIRequestsClient.cancel(args) end
+
+---@class dapui.types.cancelRequestListenerArgs
+---@field request dapui.types.CancelArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.cancelRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.cancel(listener) end
 
 ---Arguments for `completions` request.
 ---@class dapui.types.CompletionsArguments
@@ -100,9 +121,17 @@ function DAPUIRequestsClient.cancel(args) end
 ---Returns a list of possible completions for a given caret position and text.
 ---Clients should only call this request if the corresponding capability `supportsCompletionsRequest` is true.
 ---@async
----@param args dapui.types.CompletionsArguments 
+---@param args dapui.types.CompletionsArguments
 ---@return dapui.types.CompletionsResponse
 function DAPUIRequestsClient.completions(args) end
+
+---@class dapui.types.completionsRequestListenerArgs
+---@field request dapui.types.CompletionsArguments
+---@field error? table
+---@field response dapui.types.CompletionsResponse
+
+---@param listener fun(args: dapui.types.completionsRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.completions(listener) end
 
 ---Arguments for `configurationDone` request.
 ---@class dapui.types.ConfigurationDoneArguments
@@ -111,8 +140,15 @@ function DAPUIRequestsClient.completions(args) end
 ---So it is the last request in the sequence of configuration requests (which was started by the `initialized` event).
 ---Clients should only call this request if the corresponding capability `supportsConfigurationDoneRequest` is true.
 ---@async
----@param args dapui.types.ConfigurationDoneArguments 
+---@param args dapui.types.ConfigurationDoneArguments
 function DAPUIRequestsClient.configurationDone(args) end
+
+---@class dapui.types.configurationDoneRequestListenerArgs
+---@field request dapui.types.ConfigurationDoneArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.configurationDoneRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.configurationDone(listener) end
 
 ---Arguments for `continue` request.
 ---@class dapui.types.ContinueArguments
@@ -124,14 +160,23 @@ function DAPUIRequestsClient.configurationDone(args) end
 
 ---The request resumes execution of all threads. If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true resumes only the specified thread. If not all threads were resumed, the `allThreadsContinued` attribute of the response should be set to false.
 ---@async
----@param args dapui.types.ContinueArguments 
+---@param args dapui.types.ContinueArguments
 ---@return dapui.types.ContinueResponse
 function DAPUIRequestsClient.continue_(args) end
 
+---@class dapui.types.continue_RequestListenerArgs
+---@field request dapui.types.ContinueArguments
+---@field error? table
+---@field response dapui.types.ContinueResponse
+
+---@param listener fun(args: dapui.types.continue_RequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.continue_(listener) end
+
 ---Arguments for `dataBreakpointInfo` request.
 ---@class dapui.types.DataBreakpointInfoArguments
----@field variablesReference? integer Reference to the variable container if the data breakpoint is requested for a child of the container.
+---@field variablesReference? integer Reference to the variable container if the data breakpoint is requested for a child of the container. The `variablesReference` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.
 ---@field name string The name of the variable's child to obtain data breakpoint information for. If `variablesReference` isn't specified, this can be an expression.
+---@field frameId? integer When `name` is an expression, evaluate it in the scope of this stack frame. If not specified, the expression is evaluated in the global scope. When `variablesReference` is specified, this property has no effect.
 
 ---@class dapui.types.DataBreakpointInfoResponse
 ---@field dataId string An identifier for the data on which a data breakpoint can be registered with the `setDataBreakpoints` request or null if no data breakpoint is available.
@@ -142,9 +187,17 @@ function DAPUIRequestsClient.continue_(args) end
 ---Obtains information on a possible data breakpoint that could be set on an expression or variable.
 ---Clients should only call this request if the corresponding capability `supportsDataBreakpoints` is true.
 ---@async
----@param args dapui.types.DataBreakpointInfoArguments 
+---@param args dapui.types.DataBreakpointInfoArguments
 ---@return dapui.types.DataBreakpointInfoResponse
 function DAPUIRequestsClient.dataBreakpointInfo(args) end
+
+---@class dapui.types.dataBreakpointInfoRequestListenerArgs
+---@field request dapui.types.DataBreakpointInfoArguments
+---@field error? table
+---@field response dapui.types.DataBreakpointInfoResponse
+
+---@param listener fun(args: dapui.types.dataBreakpointInfoRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.dataBreakpointInfo(listener) end
 
 ---Arguments for `disassemble` request.
 ---@class dapui.types.DisassembleArguments
@@ -172,9 +225,17 @@ function DAPUIRequestsClient.dataBreakpointInfo(args) end
 ---Disassembles code stored at the provided location.
 ---Clients should only call this request if the corresponding capability `supportsDisassembleRequest` is true.
 ---@async
----@param args dapui.types.DisassembleArguments 
+---@param args dapui.types.DisassembleArguments
 ---@return dapui.types.DisassembleResponse
 function DAPUIRequestsClient.disassemble(args) end
+
+---@class dapui.types.disassembleRequestListenerArgs
+---@field request dapui.types.DisassembleArguments
+---@field error? table
+---@field response dapui.types.DisassembleResponse
+
+---@param listener fun(args: dapui.types.disassembleRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.disassemble(listener) end
 
 ---Arguments for `disconnect` request.
 ---@class dapui.types.DisconnectArguments
@@ -186,8 +247,15 @@ function DAPUIRequestsClient.disassemble(args) end
 ---In addition, the debug adapter must terminate the debuggee if it was started with the `launch` request. If an `attach` request was used to connect to the debuggee, then the debug adapter must not terminate the debuggee.
 ---This implicit behavior of when to terminate the debuggee can be overridden with the `terminateDebuggee` argument (which is only supported by a debug adapter if the corresponding capability `supportTerminateDebuggee` is true).
 ---@async
----@param args dapui.types.DisconnectArguments 
+---@param args dapui.types.DisconnectArguments
 function DAPUIRequestsClient.disconnect(args) end
+
+---@class dapui.types.disconnectRequestListenerArgs
+---@field request dapui.types.DisconnectArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.disconnectRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.disconnect(listener) end
 
 ---Provides formatting information for a value.
 ---@class dapui.types.ValueFormat
@@ -211,7 +279,7 @@ function DAPUIRequestsClient.disconnect(args) end
 ---@field result string The result of the evaluate request.
 ---@field type? string The type of the evaluate result. This attribute should only be returned by a debug adapter if the corresponding capability `supportsVariableType` is true.
 ---@field presentationHint? dapui.types.VariablePresentationHint Properties of an evaluate result that can be used to determine how to render the result in the UI.
----@field variablesReference integer If `variablesReference` is > 0, the evaluate result is structured and its children can be retrieved by passing `variablesReference` to the `variables` request. The value should be less than or equal to 2147483647 (2^31-1).
+---@field variablesReference integer If `variablesReference` is > 0, the evaluate result is structured and its children can be retrieved by passing `variablesReference` to the `variables` request as long as execution remains suspended. See 'Lifetime of Object References' in the Overview section for details.
 ---@field namedVariables? integer The number of named child variables. The client can use this information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31-1).
 ---@field indexedVariables? integer The number of indexed child variables. The client can use this information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31-1).
 ---@field memoryReference? string A memory reference to a location appropriate for this result. For pointer type eval results, this is generally a reference to the memory address contained in the pointer. This attribute should be returned by a debug adapter if corresponding capability `supportsMemoryReferences` is true.
@@ -219,9 +287,17 @@ function DAPUIRequestsClient.disconnect(args) end
 ---Evaluates the given expression in the context of the topmost stack frame.
 ---The expression has access to any variables and arguments that are in scope.
 ---@async
----@param args dapui.types.EvaluateArguments 
+---@param args dapui.types.EvaluateArguments
 ---@return dapui.types.EvaluateResponse
 function DAPUIRequestsClient.evaluate(args) end
+
+---@class dapui.types.evaluateRequestListenerArgs
+---@field request dapui.types.EvaluateArguments
+---@field error? table
+---@field response dapui.types.EvaluateResponse
+
+---@param listener fun(args: dapui.types.evaluateRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.evaluate(listener) end
 
 ---Arguments for `exceptionInfo` request.
 ---@class dapui.types.ExceptionInfoArguments
@@ -245,9 +321,17 @@ function DAPUIRequestsClient.evaluate(args) end
 ---Retrieves the details of the exception that caused this event to be raised.
 ---Clients should only call this request if the corresponding capability `supportsExceptionInfoRequest` is true.
 ---@async
----@param args dapui.types.ExceptionInfoArguments 
+---@param args dapui.types.ExceptionInfoArguments
 ---@return dapui.types.ExceptionInfoResponse
 function DAPUIRequestsClient.exceptionInfo(args) end
+
+---@class dapui.types.exceptionInfoRequestListenerArgs
+---@field request dapui.types.ExceptionInfoArguments
+---@field error? table
+---@field response dapui.types.ExceptionInfoResponse
+
+---@param listener fun(args: dapui.types.exceptionInfoRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.exceptionInfo(listener) end
 
 ---Arguments for `goto` request.
 ---@class dapui.types.GotoArguments
@@ -260,8 +344,15 @@ function DAPUIRequestsClient.exceptionInfo(args) end
 ---The debug adapter first sends the response and then a `stopped` event with reason `goto`.
 ---Clients should only call this request if the corresponding capability `supportsGotoTargetsRequest` is true (because only then goto targets exist that can be passed as arguments).
 ---@async
----@param args dapui.types.GotoArguments 
+---@param args dapui.types.GotoArguments
 function DAPUIRequestsClient.goto_(args) end
+
+---@class dapui.types.gotoRequestListenerArgs
+---@field request dapui.types.GotoArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.gotoRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.goto_(listener) end
 
 ---Arguments for `gotoTargets` request.
 ---@class dapui.types.GotoTargetsArguments
@@ -287,9 +378,17 @@ function DAPUIRequestsClient.goto_(args) end
 ---These targets can be used in the `goto` request.
 ---Clients should only call this request if the corresponding capability `supportsGotoTargetsRequest` is true.
 ---@async
----@param args dapui.types.GotoTargetsArguments 
+---@param args dapui.types.GotoTargetsArguments
 ---@return dapui.types.GotoTargetsResponse
 function DAPUIRequestsClient.gotoTargets(args) end
+
+---@class dapui.types.gotoTargetsRequestListenerArgs
+---@field request dapui.types.GotoTargetsArguments
+---@field error? table
+---@field response dapui.types.GotoTargetsResponse
+
+---@param listener fun(args: dapui.types.gotoTargetsRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.gotoTargets(listener) end
 
 ---Arguments for `initialize` request.
 ---@class dapui.types.InitializeRequestArguments
@@ -376,9 +475,17 @@ function DAPUIRequestsClient.gotoTargets(args) end
 ---In addition the debug adapter is not allowed to send any requests or events to the client until it has responded with an `initialize` response.
 ---The `initialize` request may only be sent once.
 ---@async
----@param args dapui.types.InitializeRequestArguments 
+---@param args dapui.types.InitializeRequestArguments
 ---@return dapui.types.InitializeResponse
 function DAPUIRequestsClient.initialize(args) end
+
+---@class dapui.types.initializeRequestListenerArgs
+---@field request dapui.types.InitializeRequestArguments
+---@field error? table
+---@field response dapui.types.InitializeResponse
+
+---@param listener fun(args: dapui.types.initializeRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.initialize(listener) end
 
 ---Arguments for `launch` request. Additional attributes are implementation specific.
 ---@class dapui.types.LaunchRequestArguments
@@ -387,8 +494,15 @@ function DAPUIRequestsClient.initialize(args) end
 ---This launch request is sent from the client to the debug adapter to start the debuggee with or without debugging (if `noDebug` is true).
 ---Since launching is debugger/runtime specific, the arguments for this request are not part of this specification.
 ---@async
----@param args dapui.types.LaunchRequestArguments 
+---@param args dapui.types.LaunchRequestArguments
 function DAPUIRequestsClient.launch(args) end
+
+---@class dapui.types.launchRequestListenerArgs
+---@field request dapui.types.LaunchRequestArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.launchRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.launch(listener) end
 
 ---Arguments for `loadedSources` request.
 ---@class dapui.types.LoadedSourcesArguments
@@ -399,9 +513,17 @@ function DAPUIRequestsClient.launch(args) end
 ---Retrieves the set of all sources currently loaded by the debugged process.
 ---Clients should only call this request if the corresponding capability `supportsLoadedSourcesRequest` is true.
 ---@async
----@param args dapui.types.LoadedSourcesArguments 
+---@param args dapui.types.LoadedSourcesArguments
 ---@return dapui.types.LoadedSourcesResponse
 function DAPUIRequestsClient.loadedSources(args) end
+
+---@class dapui.types.loadedSourcesRequestListenerArgs
+---@field request dapui.types.LoadedSourcesArguments
+---@field error? table
+---@field response dapui.types.LoadedSourcesResponse
+
+---@param listener fun(args: dapui.types.loadedSourcesRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.loadedSources(listener) end
 
 ---Arguments for `modules` request.
 ---@class dapui.types.ModulesArguments
@@ -434,9 +556,17 @@ function DAPUIRequestsClient.loadedSources(args) end
 ---Modules can be retrieved from the debug adapter with this request which can either return all modules or a range of modules to support paging.
 ---Clients should only call this request if the corresponding capability `supportsModulesRequest` is true.
 ---@async
----@param args dapui.types.ModulesArguments 
+---@param args dapui.types.ModulesArguments
 ---@return dapui.types.ModulesResponse
 function DAPUIRequestsClient.modules(args) end
+
+---@class dapui.types.modulesRequestListenerArgs
+---@field request dapui.types.ModulesArguments
+---@field error? table
+---@field response dapui.types.ModulesResponse
+
+---@param listener fun(args: dapui.types.modulesRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.modules(listener) end
 
 ---Arguments for `next` request.
 ---@class dapui.types.NextArguments
@@ -448,8 +578,15 @@ function DAPUIRequestsClient.modules(args) end
 ---If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true prevents other suspended threads from resuming.
 ---The debug adapter first sends the response and then a `stopped` event (with reason `step`) after the step has completed.
 ---@async
----@param args dapui.types.NextArguments 
+---@param args dapui.types.NextArguments
 function DAPUIRequestsClient.next(args) end
+
+---@class dapui.types.nextRequestListenerArgs
+---@field request dapui.types.NextArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.nextRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.next(listener) end
 
 ---Arguments for `pause` request.
 ---@class dapui.types.PauseArguments
@@ -458,8 +595,15 @@ function DAPUIRequestsClient.next(args) end
 ---The request suspends the debuggee.
 ---The debug adapter first sends the response and then a `stopped` event (with reason `pause`) after the thread has been paused successfully.
 ---@async
----@param args dapui.types.PauseArguments 
+---@param args dapui.types.PauseArguments
 function DAPUIRequestsClient.pause(args) end
+
+---@class dapui.types.pauseRequestListenerArgs
+---@field request dapui.types.PauseArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.pauseRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.pause(listener) end
 
 ---Arguments for `readMemory` request.
 ---@class dapui.types.ReadMemoryArguments
@@ -470,25 +614,40 @@ function DAPUIRequestsClient.pause(args) end
 ---@class dapui.types.ReadMemoryResponse
 ---@field address string The address of the first byte of data returned. Treated as a hex value if prefixed with `0x`, or as a decimal value otherwise.
 ---@field unreadableBytes? integer The number of unreadable bytes encountered after the last successfully read byte. This can be used to determine the number of bytes that should be skipped before a subsequent `readMemory` request succeeds.
----@field data? string The bytes read from memory, encoded using base64.
+---@field data? string The bytes read from memory, encoded using base64. If the decoded length of `data` is less than the requested `count` in the original `readMemory` request, and `unreadableBytes` is zero or omitted, then the client should assume it's reached the end of readable memory.
 
 ---Reads bytes from memory at the provided location.
 ---Clients should only call this request if the corresponding capability `supportsReadMemoryRequest` is true.
 ---@async
----@param args dapui.types.ReadMemoryArguments 
+---@param args dapui.types.ReadMemoryArguments
 ---@return dapui.types.ReadMemoryResponse
 function DAPUIRequestsClient.readMemory(args) end
 
+---@class dapui.types.readMemoryRequestListenerArgs
+---@field request dapui.types.ReadMemoryArguments
+---@field error? table
+---@field response dapui.types.ReadMemoryResponse
+
+---@param listener fun(args: dapui.types.readMemoryRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.readMemory(listener) end
+
 ---Arguments for `restartFrame` request.
 ---@class dapui.types.RestartFrameArguments
----@field frameId integer Restart this stackframe.
+---@field frameId integer Restart the stack frame identified by `frameId`. The `frameId` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.
 
----The request restarts execution of the specified stackframe.
+---The request restarts execution of the specified stack frame.
 ---The debug adapter first sends the response and then a `stopped` event (with reason `restart`) after the restart has completed.
 ---Clients should only call this request if the corresponding capability `supportsRestartFrame` is true.
 ---@async
----@param args dapui.types.RestartFrameArguments 
+---@param args dapui.types.RestartFrameArguments
 function DAPUIRequestsClient.restartFrame(args) end
+
+---@class dapui.types.restartFrameRequestListenerArgs
+---@field request dapui.types.RestartFrameArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.restartFrameRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.restartFrame(listener) end
 
 ---Arguments for `restart` request.
 ---@class dapui.types.RestartArguments
@@ -497,8 +656,15 @@ function DAPUIRequestsClient.restartFrame(args) end
 ---Restarts a debug session. Clients should only call this request if the corresponding capability `supportsRestartRequest` is true.
 ---If the capability is missing or has the value false, a typical client emulates `restart` by terminating the debug adapter first and then launching it anew.
 ---@async
----@param args dapui.types.RestartArguments 
+---@param args dapui.types.RestartArguments
 function DAPUIRequestsClient.restart(args) end
+
+---@class dapui.types.restartRequestListenerArgs
+---@field request dapui.types.RestartArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.restartRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.restart(listener) end
 
 ---Arguments for `reverseContinue` request.
 ---@class dapui.types.ReverseContinueArguments
@@ -508,12 +674,19 @@ function DAPUIRequestsClient.restart(args) end
 ---The request resumes backward execution of all threads. If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true resumes only the specified thread. If not all threads were resumed, the `allThreadsContinued` attribute of the response should be set to false.
 ---Clients should only call this request if the corresponding capability `supportsStepBack` is true.
 ---@async
----@param args dapui.types.ReverseContinueArguments 
+---@param args dapui.types.ReverseContinueArguments
 function DAPUIRequestsClient.reverseContinue(args) end
+
+---@class dapui.types.reverseContinueRequestListenerArgs
+---@field request dapui.types.ReverseContinueArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.reverseContinueRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.reverseContinue(listener) end
 
 ---Arguments for `runInTerminal` request.
 ---@class dapui.types.RunInTerminalRequestArguments
----@field kind? "integrated" What kind of terminal to launch.
+---@field kind? "integrated" What kind of terminal to launch. Defaults to `integrated` if not specified.
 ---@field title? string Title of the terminal.
 ---@field cwd string Working directory for the command. For non-empty, valid paths this typically results in execution of a change directory command.
 ---@field args string[] List of arguments. The first argument is the command to run.
@@ -530,19 +703,27 @@ function DAPUIRequestsClient.reverseContinue(args) end
 ---Client implementations of `runInTerminal` are free to run the command however they choose including issuing the command to a command line interpreter (aka 'shell'). Argument strings passed to the `runInTerminal` request must arrive verbatim in the command to be run. As a consequence, clients which use a shell are responsible for escaping any special shell characters in the argument strings to prevent them from being interpreted (and modified) by the shell.
 ---Some users may wish to take advantage of shell processing in the argument strings. For clients which implement `runInTerminal` using an intermediary shell, the `argsCanBeInterpretedByShell` property can be set to true. In this case the client is requested not to escape any special shell characters in the argument strings.
 ---@async
----@param args dapui.types.RunInTerminalRequestArguments 
+---@param args dapui.types.RunInTerminalRequestArguments
 ---@return dapui.types.RunInTerminalResponse
 function DAPUIRequestsClient.runInTerminal(args) end
 
+---@class dapui.types.runInTerminalRequestListenerArgs
+---@field request dapui.types.RunInTerminalRequestArguments
+---@field error? table
+---@field response dapui.types.RunInTerminalResponse
+
+---@param listener fun(args: dapui.types.runInTerminalRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.runInTerminal(listener) end
+
 ---Arguments for `scopes` request.
 ---@class dapui.types.ScopesArguments
----@field frameId integer Retrieve the scopes for this stackframe.
+---@field frameId integer Retrieve the scopes for the stack frame identified by `frameId`. The `frameId` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.
 
 ---A `Scope` is a named container for variables. Optionally a scope can map to a source or a range within a source.
 ---@class dapui.types.Scope
 ---@field name string Name of the scope such as 'Arguments', 'Locals', or 'Registers'. This string is shown in the UI as is and can be translated.
 ---@field presentationHint? string A hint for how to present this scope in the UI. If this attribute is missing, the scope is shown with a generic UI.
----@field variablesReference integer The variables of this scope can be retrieved by passing the value of `variablesReference` to the `variables` request.
+---@field variablesReference integer The variables of this scope can be retrieved by passing the value of `variablesReference` to the `variables` request as long as execution remains suspended. See 'Lifetime of Object References' in the Overview section for details.
 ---@field namedVariables? integer The number of named variables in this scope. The client can use this information to present the variables in a paged UI and fetch them in chunks.
 ---@field indexedVariables? integer The number of indexed variables in this scope. The client can use this information to present the variables in a paged UI and fetch them in chunks.
 ---@field expensive boolean If true, the number of variables in this scope is large or expensive to retrieve.
@@ -553,13 +734,21 @@ function DAPUIRequestsClient.runInTerminal(args) end
 ---@field endColumn? integer End position of the range covered by the scope. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.
 
 ---@class dapui.types.ScopesResponse
----@field scopes dapui.types.Scope[] The scopes of the stackframe. If the array has length zero, there are no scopes available.
+---@field scopes dapui.types.Scope[] The scopes of the stack frame. If the array has length zero, there are no scopes available.
 
----The request returns the variable scopes for a given stackframe ID.
+---The request returns the variable scopes for a given stack frame ID.
 ---@async
----@param args dapui.types.ScopesArguments 
+---@param args dapui.types.ScopesArguments
 ---@return dapui.types.ScopesResponse
 function DAPUIRequestsClient.scopes(args) end
+
+---@class dapui.types.scopesRequestListenerArgs
+---@field request dapui.types.ScopesArguments
+---@field error? table
+---@field response dapui.types.ScopesResponse
+
+---@param listener fun(args: dapui.types.scopesRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.scopes(listener) end
 
 ---Properties of a breakpoint or logpoint passed to the `setBreakpoints` request.
 ---@class dapui.types.SourceBreakpoint
@@ -596,9 +785,17 @@ function DAPUIRequestsClient.scopes(args) end
 ---To clear all breakpoint for a source, specify an empty array.
 ---When a breakpoint is hit, a `stopped` event (with reason `breakpoint`) is generated.
 ---@async
----@param args dapui.types.SetBreakpointsArguments 
+---@param args dapui.types.SetBreakpointsArguments
 ---@return dapui.types.SetBreakpointsResponse
 function DAPUIRequestsClient.setBreakpoints(args) end
+
+---@class dapui.types.setBreakpointsRequestListenerArgs
+---@field request dapui.types.SetBreakpointsArguments
+---@field error? table
+---@field response dapui.types.SetBreakpointsResponse
+
+---@param listener fun(args: dapui.types.setBreakpointsRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.setBreakpoints(listener) end
 
 ---Properties of a data breakpoint passed to the `setDataBreakpoints` request.
 ---@class dapui.types.DataBreakpoint
@@ -619,9 +816,17 @@ function DAPUIRequestsClient.setBreakpoints(args) end
 ---When a data breakpoint is hit, a `stopped` event (with reason `data breakpoint`) is generated.
 ---Clients should only call this request if the corresponding capability `supportsDataBreakpoints` is true.
 ---@async
----@param args dapui.types.SetDataBreakpointsArguments 
+---@param args dapui.types.SetDataBreakpointsArguments
 ---@return dapui.types.SetDataBreakpointsResponse
 function DAPUIRequestsClient.setDataBreakpoints(args) end
+
+---@class dapui.types.setDataBreakpointsRequestListenerArgs
+---@field request dapui.types.SetDataBreakpointsArguments
+---@field error? table
+---@field response dapui.types.SetDataBreakpointsResponse
+
+---@param listener fun(args: dapui.types.setDataBreakpointsRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.setDataBreakpoints(listener) end
 
 ---An `ExceptionFilterOptions` is used to specify an exception filter together with a condition for the `setExceptionBreakpoints` request.
 ---@class dapui.types.ExceptionFilterOptions
@@ -652,9 +857,17 @@ function DAPUIRequestsClient.setDataBreakpoints(args) end
 ---If an exception is configured to break, a `stopped` event is fired (with reason `exception`).
 ---Clients should only call this request if the corresponding capability `exceptionBreakpointFilters` returns one or more filters.
 ---@async
----@param args dapui.types.SetExceptionBreakpointsArguments 
+---@param args dapui.types.SetExceptionBreakpointsArguments
 ---@return dapui.types.SetExceptionBreakpointsResponse
 function DAPUIRequestsClient.setExceptionBreakpoints(args) end
+
+---@class dapui.types.setExceptionBreakpointsRequestListenerArgs
+---@field request dapui.types.SetExceptionBreakpointsArguments
+---@field error? table
+---@field response dapui.types.SetExceptionBreakpointsResponse
+
+---@param listener fun(args: dapui.types.setExceptionBreakpointsRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.setExceptionBreakpoints(listener) end
 
 ---Arguments for `setExpression` request.
 ---@class dapui.types.SetExpressionArguments
@@ -667,7 +880,7 @@ function DAPUIRequestsClient.setExceptionBreakpoints(args) end
 ---@field value string The new value of the expression.
 ---@field type? string The type of the value. This attribute should only be returned by a debug adapter if the corresponding capability `supportsVariableType` is true.
 ---@field presentationHint? dapui.types.VariablePresentationHint Properties of a value that can be used to determine how to render the result in the UI.
----@field variablesReference? integer If `variablesReference` is > 0, the value is structured and its children can be retrieved by passing `variablesReference` to the `variables` request. The value should be less than or equal to 2147483647 (2^31-1).
+---@field variablesReference? integer If `variablesReference` is > 0, the evaluate result is structured and its children can be retrieved by passing `variablesReference` to the `variables` request as long as execution remains suspended. See 'Lifetime of Object References' in the Overview section for details.
 ---@field namedVariables? integer The number of named child variables. The client can use this information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31-1).
 ---@field indexedVariables? integer The number of indexed child variables. The client can use this information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31-1).
 
@@ -676,9 +889,17 @@ function DAPUIRequestsClient.setExceptionBreakpoints(args) end
 ---Clients should only call this request if the corresponding capability `supportsSetExpression` is true.
 ---If a debug adapter implements both `setExpression` and `setVariable`, a client uses `setExpression` if the variable has an `evaluateName` property.
 ---@async
----@param args dapui.types.SetExpressionArguments 
+---@param args dapui.types.SetExpressionArguments
 ---@return dapui.types.SetExpressionResponse
 function DAPUIRequestsClient.setExpression(args) end
+
+---@class dapui.types.setExpressionRequestListenerArgs
+---@field request dapui.types.SetExpressionArguments
+---@field error? table
+---@field response dapui.types.SetExpressionResponse
+
+---@param listener fun(args: dapui.types.setExpressionRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.setExpression(listener) end
 
 ---Properties of a breakpoint passed to the `setFunctionBreakpoints` request.
 ---@class dapui.types.FunctionBreakpoint
@@ -698,9 +919,17 @@ function DAPUIRequestsClient.setExpression(args) end
 ---When a function breakpoint is hit, a `stopped` event (with reason `function breakpoint`) is generated.
 ---Clients should only call this request if the corresponding capability `supportsFunctionBreakpoints` is true.
 ---@async
----@param args dapui.types.SetFunctionBreakpointsArguments 
+---@param args dapui.types.SetFunctionBreakpointsArguments
 ---@return dapui.types.SetFunctionBreakpointsResponse
 function DAPUIRequestsClient.setFunctionBreakpoints(args) end
+
+---@class dapui.types.setFunctionBreakpointsRequestListenerArgs
+---@field request dapui.types.SetFunctionBreakpointsArguments
+---@field error? table
+---@field response dapui.types.SetFunctionBreakpointsResponse
+
+---@param listener fun(args: dapui.types.setFunctionBreakpointsRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.setFunctionBreakpoints(listener) end
 
 ---Properties of a breakpoint passed to the `setInstructionBreakpoints` request
 ---@class dapui.types.InstructionBreakpoint
@@ -716,18 +945,26 @@ function DAPUIRequestsClient.setFunctionBreakpoints(args) end
 ---@class dapui.types.SetInstructionBreakpointsResponse
 ---@field breakpoints dapui.types.Breakpoint[] Information about the breakpoints. The array elements correspond to the elements of the `breakpoints` array.
 
----Replaces all existing instruction breakpoints. Typically, instruction breakpoints would be set from a disassembly window. 
+---Replaces all existing instruction breakpoints. Typically, instruction breakpoints would be set from a disassembly window.
 ---To clear all instruction breakpoints, specify an empty array.
 ---When an instruction breakpoint is hit, a `stopped` event (with reason `instruction breakpoint`) is generated.
 ---Clients should only call this request if the corresponding capability `supportsInstructionBreakpoints` is true.
 ---@async
----@param args dapui.types.SetInstructionBreakpointsArguments 
+---@param args dapui.types.SetInstructionBreakpointsArguments
 ---@return dapui.types.SetInstructionBreakpointsResponse
 function DAPUIRequestsClient.setInstructionBreakpoints(args) end
 
+---@class dapui.types.setInstructionBreakpointsRequestListenerArgs
+---@field request dapui.types.SetInstructionBreakpointsArguments
+---@field error? table
+---@field response dapui.types.SetInstructionBreakpointsResponse
+
+---@param listener fun(args: dapui.types.setInstructionBreakpointsRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.setInstructionBreakpoints(listener) end
+
 ---Arguments for `setVariable` request.
 ---@class dapui.types.SetVariableArguments
----@field variablesReference integer The reference of the variable container.
+---@field variablesReference integer The reference of the variable container. The `variablesReference` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.
 ---@field name string The name of the variable in the container.
 ---@field value string The value of the variable.
 ---@field format? dapui.types.ValueFormat Specifies details on how to format the response value.
@@ -735,16 +972,24 @@ function DAPUIRequestsClient.setInstructionBreakpoints(args) end
 ---@class dapui.types.SetVariableResponse
 ---@field value string The new value of the variable.
 ---@field type? string The type of the new value. Typically shown in the UI when hovering over the value.
----@field variablesReference? integer If `variablesReference` is > 0, the new value is structured and its children can be retrieved by passing `variablesReference` to the `variables` request. The value should be less than or equal to 2147483647 (2^31-1).
+---@field variablesReference? integer If `variablesReference` is > 0, the new value is structured and its children can be retrieved by passing `variablesReference` to the `variables` request as long as execution remains suspended. See 'Lifetime of Object References' in the Overview section for details.
 ---@field namedVariables? integer The number of named child variables. The client can use this information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31-1).
 ---@field indexedVariables? integer The number of indexed child variables. The client can use this information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31-1).
 
 ---Set the variable with the given name in the variable container to a new value. Clients should only call this request if the corresponding capability `supportsSetVariable` is true.
 ---If a debug adapter implements both `setVariable` and `setExpression`, a client will only use `setExpression` if the variable has an `evaluateName` property.
 ---@async
----@param args dapui.types.SetVariableArguments 
+---@param args dapui.types.SetVariableArguments
 ---@return dapui.types.SetVariableResponse
 function DAPUIRequestsClient.setVariable(args) end
+
+---@class dapui.types.setVariableRequestListenerArgs
+---@field request dapui.types.SetVariableArguments
+---@field error? table
+---@field response dapui.types.SetVariableResponse
+
+---@param listener fun(args: dapui.types.setVariableRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.setVariable(listener) end
 
 ---Arguments for `source` request.
 ---@class dapui.types.SourceArguments
@@ -757,9 +1002,17 @@ function DAPUIRequestsClient.setVariable(args) end
 
 ---The request retrieves the source code for a given source reference.
 ---@async
----@param args dapui.types.SourceArguments 
+---@param args dapui.types.SourceArguments
 ---@return dapui.types.SourceResponse
 function DAPUIRequestsClient.source(args) end
+
+---@class dapui.types.sourceRequestListenerArgs
+---@field request dapui.types.SourceArguments
+---@field error? table
+---@field response dapui.types.SourceResponse
+
+---@param listener fun(args: dapui.types.sourceRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.source(listener) end
 
 ---Provides formatting information for a stack frame.
 ---@class dapui.types.StackFrameFormat
@@ -781,7 +1034,7 @@ function DAPUIRequestsClient.source(args) end
 
 ---A Stackframe contains the source location.
 ---@class dapui.types.StackFrame
----@field id integer An identifier for the stack frame. It must be unique across all threads. This id can be used to retrieve the scopes of the frame with the `scopes` request or to restart the execution of a stackframe.
+---@field id integer An identifier for the stack frame. It must be unique across all threads. This id can be used to retrieve the scopes of the frame with the `scopes` request or to restart the execution of a stack frame.
 ---@field name string The name of the stack frame, typically a method name.
 ---@field source? dapui.types.Source The source of the frame.
 ---@field line integer The line within the source of the frame. If the source attribute is missing or doesn't exist, `line` is 0 and should be ignored by the client.
@@ -794,15 +1047,23 @@ function DAPUIRequestsClient.source(args) end
 ---@field presentationHint? "normal" A hint for how to present this frame in the UI. A value of `label` can be used to indicate that the frame is an artificial frame that is used as a visual label or separator. A value of `subtle` can be used to change the appearance of a frame in a 'subtle' way.
 
 ---@class dapui.types.StackTraceResponse
----@field stackFrames dapui.types.StackFrame[] The frames of the stackframe. If the array has length zero, there are no stackframes available. This means that there is no location information available.
+---@field stackFrames dapui.types.StackFrame[] The frames of the stack frame. If the array has length zero, there are no stack frames available. This means that there is no location information available.
 ---@field totalFrames? integer The total number of frames available in the stack. If omitted or if `totalFrames` is larger than the available frames, a client is expected to request frames until a request returns less frames than requested (which indicates the end of the stack). Returning monotonically increasing `totalFrames` values for subsequent requests can be used to enforce paging in the client.
 
 ---The request returns a stacktrace from the current execution state of a given thread.
 ---A client can request all stack frames by omitting the startFrame and levels arguments. For performance-conscious clients and if the corresponding capability `supportsDelayedStackTraceLoading` is true, stack frames can be retrieved in a piecemeal way with the `startFrame` and `levels` arguments. The response of the `stackTrace` request may contain a `totalFrames` property that hints at the total number of frames in the stack. If a client needs this total number upfront, it can issue a request for a single (first) frame and depending on the value of `totalFrames` decide how to proceed. In any case a client should be prepared to receive fewer frames than requested, which is an indication that the end of the stack has been reached.
 ---@async
----@param args dapui.types.StackTraceArguments 
+---@param args dapui.types.StackTraceArguments
 ---@return dapui.types.StackTraceResponse
 function DAPUIRequestsClient.stackTrace(args) end
+
+---@class dapui.types.stackTraceRequestListenerArgs
+---@field request dapui.types.StackTraceArguments
+---@field error? table
+---@field response dapui.types.StackTraceResponse
+
+---@param listener fun(args: dapui.types.stackTraceRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.stackTrace(listener) end
 
 ---Arguments for `startDebugging` request.
 ---@class dapui.types.StartDebuggingRequestArguments
@@ -813,8 +1074,15 @@ function DAPUIRequestsClient.stackTrace(args) end
 ---This request should only be sent if the corresponding client capability `supportsStartDebuggingRequest` is true.
 ---A client implementation of `startDebugging` should start a new debug session (of the same type as the caller) in the same way that the caller's session was started. If the client supports hierarchical debug sessions, the newly created session can be treated as a child of the caller session.
 ---@async
----@param args dapui.types.StartDebuggingRequestArguments 
+---@param args dapui.types.StartDebuggingRequestArguments
 function DAPUIRequestsClient.startDebugging(args) end
+
+---@class dapui.types.startDebuggingRequestListenerArgs
+---@field request dapui.types.StartDebuggingRequestArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.startDebuggingRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.startDebugging(listener) end
 
 ---Arguments for `stepBack` request.
 ---@class dapui.types.StepBackArguments
@@ -827,8 +1095,15 @@ function DAPUIRequestsClient.startDebugging(args) end
 ---The debug adapter first sends the response and then a `stopped` event (with reason `step`) after the step has completed.
 ---Clients should only call this request if the corresponding capability `supportsStepBack` is true.
 ---@async
----@param args dapui.types.StepBackArguments 
+---@param args dapui.types.StepBackArguments
 function DAPUIRequestsClient.stepBack(args) end
+
+---@class dapui.types.stepBackRequestListenerArgs
+---@field request dapui.types.StepBackArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.stepBackRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.stepBack(listener) end
 
 ---Arguments for `stepIn` request.
 ---@class dapui.types.StepInArguments
@@ -845,8 +1120,15 @@ function DAPUIRequestsClient.stepBack(args) end
 ---the argument `targetId` can be used to control into which target the `stepIn` should occur.
 ---The list of possible targets for a given source line can be retrieved via the `stepInTargets` request.
 ---@async
----@param args dapui.types.StepInArguments 
+---@param args dapui.types.StepInArguments
 function DAPUIRequestsClient.stepIn(args) end
+
+---@class dapui.types.stepInRequestListenerArgs
+---@field request dapui.types.StepInArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.stepInRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.stepIn(listener) end
 
 ---Arguments for `stepInTargets` request.
 ---@class dapui.types.StepInTargetsArguments
@@ -868,9 +1150,17 @@ function DAPUIRequestsClient.stepIn(args) end
 ---These targets can be used in the `stepIn` request.
 ---Clients should only call this request if the corresponding capability `supportsStepInTargetsRequest` is true.
 ---@async
----@param args dapui.types.StepInTargetsArguments 
+---@param args dapui.types.StepInTargetsArguments
 ---@return dapui.types.StepInTargetsResponse
 function DAPUIRequestsClient.stepInTargets(args) end
+
+---@class dapui.types.stepInTargetsRequestListenerArgs
+---@field request dapui.types.StepInTargetsArguments
+---@field error? table
+---@field response dapui.types.StepInTargetsResponse
+
+---@param listener fun(args: dapui.types.stepInTargetsRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.stepInTargets(listener) end
 
 ---Arguments for `stepOut` request.
 ---@class dapui.types.StepOutArguments
@@ -882,8 +1172,15 @@ function DAPUIRequestsClient.stepInTargets(args) end
 ---If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true prevents other suspended threads from resuming.
 ---The debug adapter first sends the response and then a `stopped` event (with reason `step`) after the step has completed.
 ---@async
----@param args dapui.types.StepOutArguments 
+---@param args dapui.types.StepOutArguments
 function DAPUIRequestsClient.stepOut(args) end
+
+---@class dapui.types.stepOutRequestListenerArgs
+---@field request dapui.types.StepOutArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.stepOutRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.stepOut(listener) end
 
 ---Arguments for `terminate` request.
 ---@class dapui.types.TerminateArguments
@@ -894,8 +1191,15 @@ function DAPUIRequestsClient.stepOut(args) end
 ---Please note that this request does not directly affect the state of the debug session: if the debuggee decides to veto the graceful shutdown for any reason by not terminating itself, then the debug session just continues.
 ---Clients can surface the `terminate` request as an explicit command or they can integrate it into a two stage Stop command that first sends `terminate` to request a graceful shutdown, and if that fails uses `disconnect` for a forceful shutdown.
 ---@async
----@param args dapui.types.TerminateArguments 
+---@param args dapui.types.TerminateArguments
 function DAPUIRequestsClient.terminate(args) end
+
+---@class dapui.types.terminateRequestListenerArgs
+---@field request dapui.types.TerminateArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.terminateRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.terminate(listener) end
 
 ---Arguments for `terminateThreads` request.
 ---@class dapui.types.TerminateThreadsArguments
@@ -904,9 +1208,15 @@ function DAPUIRequestsClient.terminate(args) end
 ---The request terminates the threads with the given ids.
 ---Clients should only call this request if the corresponding capability `supportsTerminateThreadsRequest` is true.
 ---@async
----@param args dapui.types.TerminateThreadsArguments 
+---@param args dapui.types.TerminateThreadsArguments
 function DAPUIRequestsClient.terminateThreads(args) end
 
+---@class dapui.types.terminateThreadsRequestListenerArgs
+---@field request dapui.types.TerminateThreadsArguments
+---@field error? table
+
+---@param listener fun(args: dapui.types.terminateThreadsRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.terminateThreads(listener) end
 
 ---A Thread
 ---@class dapui.types.Thread
@@ -921,9 +1231,16 @@ function DAPUIRequestsClient.terminateThreads(args) end
 ---@return dapui.types.ThreadsResponse
 function DAPUIRequestsClient.threads() end
 
+---@class dapui.types.threadsRequestListenerArgs
+---@field error? table
+---@field response dapui.types.ThreadsResponse
+
+---@param listener fun(args: dapui.types.threadsRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.threads(listener) end
+
 ---Arguments for `variables` request.
 ---@class dapui.types.VariablesArguments
----@field variablesReference integer The Variable reference.
+---@field variablesReference integer The variable for which to retrieve its children. The `variablesReference` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.
 ---@field filter? "indexed" Filter to limit the child variables to either named or indexed. If omitted, both types are fetched.
 ---@field start? integer The index of the first variable to return; if omitted children start at 0.
 ---@field count? integer The number of variables to return. If count is missing or 0, all variables are returned.
@@ -941,7 +1258,7 @@ function DAPUIRequestsClient.threads() end
 ---@field type? string The type of the variable's value. Typically shown in the UI when hovering over the value. This attribute should only be returned by a debug adapter if the corresponding capability `supportsVariableType` is true.
 ---@field presentationHint? dapui.types.VariablePresentationHint Properties of a variable that can be used to determine how to render the variable in the UI.
 ---@field evaluateName? string The evaluatable name of this variable which can be passed to the `evaluate` request to fetch the variable's value.
----@field variablesReference integer If `variablesReference` is > 0, the variable is structured and its children can be retrieved by passing `variablesReference` to the `variables` request.
+---@field variablesReference integer If `variablesReference` is > 0, the variable is structured and its children can be retrieved by passing `variablesReference` to the `variables` request as long as execution remains suspended. See 'Lifetime of Object References' in the Overview section for details.
 ---@field namedVariables? integer The number of named child variables. The client can use this information to present the children in a paged UI and fetch them in chunks.
 ---@field indexedVariables? integer The number of indexed child variables. The client can use this information to present the children in a paged UI and fetch them in chunks.
 ---@field memoryReference? string The memory reference for the variable if the variable represents executable code, such as a function pointer. This attribute is only required if the corresponding capability `supportsMemoryReferences` is true.
@@ -952,9 +1269,17 @@ function DAPUIRequestsClient.threads() end
 ---Retrieves all child variables for the given variable reference.
 ---A filter can be used to limit the fetched children to either named or indexed children.
 ---@async
----@param args dapui.types.VariablesArguments 
+---@param args dapui.types.VariablesArguments
 ---@return dapui.types.VariablesResponse
 function DAPUIRequestsClient.variables(args) end
+
+---@class dapui.types.variablesRequestListenerArgs
+---@field request dapui.types.VariablesArguments
+---@field error? table
+---@field response dapui.types.VariablesResponse
+
+---@param listener fun(args: dapui.types.variablesRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.variables(listener) end
 
 ---Arguments for `writeMemory` request.
 ---@class dapui.types.WriteMemoryArguments
@@ -970,9 +1295,17 @@ function DAPUIRequestsClient.variables(args) end
 ---Writes bytes to memory at the provided location.
 ---Clients should only call this request if the corresponding capability `supportsWriteMemoryRequest` is true.
 ---@async
----@param args dapui.types.WriteMemoryArguments 
+---@param args dapui.types.WriteMemoryArguments
 ---@return dapui.types.WriteMemoryResponse
 function DAPUIRequestsClient.writeMemory(args) end
+
+---@class dapui.types.writeMemoryRequestListenerArgs
+---@field request dapui.types.WriteMemoryArguments
+---@field error? table
+---@field response dapui.types.WriteMemoryResponse
+
+---@param listener fun(args: dapui.types.writeMemoryRequestListenerArgs): boolean | nil
+function DAPUIEventListenerClient.writeMemory(listener) end
 
 ---@class dapui.types.BreakpointEventArgs
 ---@field reason string The reason for the event.
@@ -1051,7 +1384,6 @@ function DAPUIEventListenerClient.continued(listener) end
 ---@param listener fun(args: dapui.types.ExitedEventArgs)
 function DAPUIEventListenerClient.exited(listener) end
 
-
 ---This event indicates that the debug adapter is ready to accept configuration requests (e.g. `setBreakpoints`, `setExceptionBreakpoints`).
 ---A debug adapter is expected to send this event when it is ready to accept configuration requests (but not before the `initialize` request has finished).
 ---The sequence of events/requests is as follows:
@@ -1109,7 +1441,7 @@ function DAPUIEventListenerClient.module(listener) end
 ---@field category? string The output category. If not specified or if the category is not understood by the client, `console` is assumed.
 ---@field output string The output to report.
 ---@field group? "start" Support for keeping an output log organized by grouping related messages.
----@field variablesReference? integer If an attribute `variablesReference` exists and its value is > 0, the output contains objects which can be retrieved by passing `variablesReference` to the `variables` request. The value should be less than or equal to 2147483647 (2^31-1).
+---@field variablesReference? integer If an attribute `variablesReference` exists and its value is > 0, the output contains objects which can be retrieved by passing `variablesReference` to the `variables` request as long as execution remains suspended. See 'Lifetime of Object References' in the Overview section for details.
 ---@field source? dapui.types.Source The source location where the output was produced.
 ---@field line? integer The source location's line where the output was produced.
 ---@field column? integer The position in `line` where the output was produced. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.
@@ -1193,4 +1525,7 @@ function DAPUIEventListenerClient.terminated(listener) end
 ---@param listener fun(args: dapui.types.ThreadEventArgs)
 function DAPUIEventListenerClient.thread(listener) end
 
-
+return {
+  requests = DAPUIRequestsClient,
+  events = DAPUIEventListenerClient,
+}

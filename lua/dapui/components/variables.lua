@@ -5,7 +5,6 @@ local partial = util.partial
 ---@class Variables
 ---@field expanded_children table
 ---@field child_components table<number, Variables>
----@field state UIState
 ---@field var_to_set table | nil
 ---@field mode "set" | nil
 ---@field rendered_step integer | nil
@@ -22,7 +21,7 @@ return function(client, send_ready)
   ---@type string | nil
   local prompt_fill
   local rendered_step = client.lib.step_number()
-  ---@type table<string, dapui.types.Variable>
+  ---@type table<string, string>
   local rendered_vars = {}
 
   local function reference_prefix(path, variable)
@@ -33,8 +32,8 @@ return function(client, send_ready)
   end
 
   ---@param path string
-  local function rendered_value(path)
-    return rendered_vars[path] and rendered_vars[path].value
+  local function path_changed(path, value)
+    return rendered_vars[path] and rendered_vars[path] ~= value
   end
 
   ---@param canvas dapui.Canvas
@@ -46,7 +45,9 @@ return function(client, send_ready)
       canvas:set_prompt("> ", prompt_func, { fill = prompt_fill })
     end
     indent = indent or 0
-    local variables = client.request.variables({ variablesReference = parent_ref }).variables
+    local success, var_data = pcall(client.request.variables, { variablesReference = parent_ref })
+    local variables = success and var_data.variables or {}
+    local cur_frame_id = client.session.current_frame and client.session.current_frame.id
     for _, variable in pairs(variables) do
       local var_path = parent_path .. "." .. variable.name
 
@@ -63,11 +64,12 @@ return function(client, send_ready)
       end
 
       local var_group
-      if rendered_value(var_path) == variable.value then
-        var_group = "DapUIValue"
-      else
+      if path_changed(var_path, variable.value) then
         var_group = "DapUIModifiedValue"
+      else
+        var_group = "DapUIValue"
       end
+      rendered_vars[var_path] = variable.value
       local function add_var_line(line)
         if variable.variablesReference > 0 then
           canvas:add_mapping(config.actions.EXPAND, function()
@@ -110,9 +112,9 @@ return function(client, send_ready)
         render(canvas, var_path, variable.variablesReference, indent + config.windows().indent)
       end
     end
-    if client.lib.step_number() ~= rendered_step then
-      rendered_vars = variables
-      rendered_step = client.lib.step_number()
+    if cur_frame_id and cur_frame_id ~= rendered_step then
+      rendered_vars = {}
+      rendered_step = cur_frame_id
     end
   end
 

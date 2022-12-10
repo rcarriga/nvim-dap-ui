@@ -14,7 +14,7 @@ from typing import Any, Union, get_args, get_origin
 
 import datamodel_code_generator as d
 import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, create_model
 from pydantic.fields import ModelField
 
 logging.basicConfig(level=logging.INFO)
@@ -29,6 +29,18 @@ pat2 = re.compile("([a-z0-9])([A-Z])")
 def camel_to_snake(name):
     name = pat1.sub(r"\1_\2", name)
     return pat2.sub(r"\1_\2", name).lower()
+
+
+class FieldSummary(BaseModel):
+    type_name: str
+    type: type[BaseModel]
+
+
+class ModelSummary(BaseModel):
+    type: type[BaseModel]
+    type_name: str
+    fields: dict[str, FieldSummary]
+    description: str | None
 
 
 class DAPTypesGenerator:
@@ -69,6 +81,24 @@ class DAPTypesGenerator:
     def is_model(self, t) -> bool:
         return i.isclass(t) and issubclass(t, BaseModel)
 
+    def extract_summary(
+        self,
+        model_cls: type[BaseModel],
+    ) -> ModelSummary:
+        fields = {}
+        for field_name, field in model_cls.__fields__.items():
+            if field and self.is_model(field.outer_type_):
+                fields[field_name] = FieldSummary(
+                    type=field.type_,
+                    type_name=self.type_name(field.type_),
+                )
+        return ModelSummary(
+            type=model_cls,
+            type_name=self.type_name(model_cls),
+            fields=fields,
+            description=self.class_doc(model_cls),
+        )
+
     def type_name(self, t) -> str:
         if self.is_model(t):
             return f"dapui.types.{t.__name__}"
@@ -89,8 +119,12 @@ class DAPTypesGenerator:
             )
         if get_origin(t) is list:
             return f"{self.type_name(get_args(t)[0])}[]"
+        if t is list:
+            return f"any[]"
         if get_origin(t) is dict:
             return f"table<{self.type_name(get_args(t)[0])},{self.type_name(get_args(t)[1])}>"
+        if t is dict:
+            return f"table"
         if t is Any:
             return "any"
         if t is type(None):
@@ -170,18 +204,18 @@ class DAPTypesGenerator:
     ) -> list[str]:
         (command,) = list(request_cls.__fields__["command"].outer_type_.__members__)
 
-        arg_field = request_cls.__fields__["arguments"]
-        arg_class = arg_field.outer_type_
-        arg_class_name = self.type_name(arg_class)
+        request_summary = self.extract_summary(request_cls)
         types = []
         signature = []
-        if doc_string := self.class_doc(request_cls):
-            signature.append(f"---{self.prepare_doc(doc_string, multiline=True)}")
+        if request_summary.description:
+            signature.append(
+                f"---{self.prepare_doc(request_summary.description, multiline=True)}"
+            )
         signature.append("---@async")
-        if self.is_model(arg_class):
-            types = self.create_class(arg_class)
+        if arg_summary := request_summary.fields.get("arguments"):
+            types = self.create_class(arg_summary.type)
             signature += [
-                f"---@param args {arg_class_name} {arg_field.field_info.description or ''}",
+                f"---@param args {arg_summary.type_name}",
                 f"function DAPUIRequestsClient.{self.safe_name(command)}(args) end",
             ]
         else:
@@ -189,15 +223,11 @@ class DAPTypesGenerator:
                 f"function DAPUIRequestsClient.{self.safe_name(command)}() end",
             ]
 
-        if (body_field := response_cls.__fields__.get("body")) and self.is_model(
-            body_field.outer_type_
-        ):
-            response_body_class = body_field.outer_type_
-            response_class_name = self.type_name(response_cls)
-
+        response_summary = self.extract_summary(response_cls)
+        if body_summary := response_summary.fields.get("body"):
             types.append("")
-            types += self.create_class(response_body_class, response_class_name)
-            signature.insert(-1, f"---@return {response_class_name}")
+            types += self.create_class(body_summary.type, response_summary.type_name)
+            signature.insert(-1, f"---@return {response_summary.type_name}")
 
         x = [
             *types,
@@ -208,17 +238,18 @@ class DAPTypesGenerator:
         ]
         return x
 
-    def create_event(self, event_cls: type[BaseModel]) -> list[str]:
+    def create_event_listener(self, event_cls: type[BaseModel]) -> list[str]:
         (event,) = list(event_cls.__fields__["event"].outer_type_.__members__)
-        body_field = event_cls.__fields__["body"]
-        body_class = body_field.outer_type_
+        event_summary = self.extract_summary(event_cls)
         types = []
         signature = []
-        if doc_string := self.class_doc(event_cls):
-            signature.append(f"---{self.prepare_doc(doc_string, multiline=True)}")
-        if self.is_model(body_class):
-            body_class_name = f"{self.type_name(event_cls)}Args"
-            types = self.create_class(body_class, body_class_name)
+        if event_summary.description:
+            signature.append(
+                f"---{self.prepare_doc(event_summary.description, multiline=True)}"
+            )
+        if body_summary := event_summary.fields.get("body"):
+            body_class_name = f"{event_summary.type_name}Args"
+            types = self.create_class(body_summary.type, body_class_name)
             signature.append(f"---@param listener fun(args: {body_class_name})")
         else:
             signature.append(f"---@param listener fun()")
@@ -232,6 +263,39 @@ class DAPTypesGenerator:
             "",
         ]
         return x
+
+    def create_request_listener(
+        self, request_cls: type[BaseModel], response_cls: type[BaseModel]
+    ) -> list[str]:
+        (command,) = list(request_cls.__fields__["command"].outer_type_.__members__)
+
+        request_summary = self.extract_summary(request_cls)
+        response_summary = self.extract_summary(response_cls)
+
+        listener_args = {}
+        if args := request_summary.fields.get("arguments"):
+            listener_args["request"] = args.type
+        listener_args["error"] = dict | None
+        if args := response_summary.fields.get("body"):
+            listener_args["response"] = create_model(
+                response_cls.__name__, __base__=args.type
+            )
+
+        args_summary = self.extract_summary(
+            create_model(
+                f"{command}RequestListenerArgs",
+                **{name: (t, Field()) for name, t in listener_args.items()},
+            )
+        )
+        types = self.create_class(args_summary.type)
+        return [
+            *types,
+            "",
+            f"---@param listener fun(args: {args_summary.type_name}): boolean | nil",
+            f"function DAPUIEventListenerClient.{self.safe_name(command)}(listener) end",
+            "",
+            "",
+        ]
 
     PREFIX = """
 ---@class dapui.DAPRequestsClient
@@ -261,6 +325,12 @@ local DAPUIEventListenerClient = {}
                         getattr(self.models, name.replace("Request", "Response")),
                     )
                 )
+                output += "\n".join(
+                    self.create_request_listener(
+                        request,
+                        getattr(self.models, name.replace("Request", "Response")),
+                    )
+                )
             except Exception as e:
                 logger.exception(f"Failed to create {name}: {e}")
 
@@ -271,7 +341,7 @@ local DAPUIEventListenerClient = {}
             and issubclass(x, self.models.Event),
         ):
             try:
-                output += "\n".join(self.create_event(event))
+                output += "\n".join(self.create_event_listener(event))
             except Exception as e:
                 logger.exception(f"Failed to create {name}: {e}")
         return output

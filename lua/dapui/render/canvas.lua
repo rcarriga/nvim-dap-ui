@@ -166,15 +166,18 @@ function Canvas:render_buffer(buffer, action_keys)
   end
   for _, match in pairs(matches) do
     local pos = match[2]
-    if not pcall(api.nvim_buf_set_extmark,
-      buffer,
-      M.namespace,
-      pos[1] - 1,
-      (pos[2] or 1) - 1,
-      { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
-    ) then
-    P({pos, match})
-  end
+    if
+      not pcall(
+        api.nvim_buf_set_extmark,
+        buffer,
+        M.namespace,
+        pos[1] - 1,
+        (pos[2] or 1) - 1,
+        { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
+      )
+    then
+      P({ pos, match })
+    end
   end
   if self.expand_lines then
     local group = api.nvim_create_augroup(

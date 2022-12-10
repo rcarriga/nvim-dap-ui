@@ -3,16 +3,21 @@ local config = require("dapui.config")
 return function(client, send_ready)
   local render_vars = require("dapui.components.variables")(client, send_ready)
   client.listen.stopped(send_ready)
-  -- nvim-dap sets current frame after a stackTrace request
-  client.listen.stackTrace(send_ready)
-  client.listen.stopped(function(args)
-  end)
 
   return {
     ---@param canvas dapui.Canvas
     render = function(canvas)
+      local called = false
       local frame = client.session.current_frame
       if not frame then
+        -- nvim-dap sets current frame after a stackTrace request
+        client.listen.stackTrace(function()
+          if not called then
+            called = true
+            send_ready()
+          end
+          return true
+        end)
         return
       end
       -- TODO: Might need to reset variable state on frame change

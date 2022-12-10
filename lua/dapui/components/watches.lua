@@ -67,7 +67,7 @@ return function(client, send_ready)
       local step = client.lib.step_number()
       for i, watch in pairs(watches) do
         local success, evaluated =
-        pcall(client.request.evaluate, { context = "watch", expression = watch.expression })
+          pcall(client.request.evaluate, { context = "watch", expression = watch.expression })
         local prefix = config.icons()[watch.expanded and "expanded" or "collapsed"]
 
         canvas:write(prefix, { group = success and "DapUIWatchesValue" or "DapUIWatchesError" })
