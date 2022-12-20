@@ -3,14 +3,14 @@ local util = require("dapui.util")
 
 ---@param client dapui.DAPClient
 return function(client, send_ready)
-  client.listen.stopped(send_ready)
+  client.listen.scopes(send_ready)
   return {
     ---@async
     ---@param canvas dapui.Canvas
-    render = function(canvas, thread_id, subtle, indent)
+    render = function(canvas, thread_id, show_subtle, indent)
       local frames = client.request.stackTrace({ threadId = thread_id }).stackFrames
 
-      if not subtle then
+      if not show_subtle then
         frames = vim.tbl_filter(function(frame)
           return frame.presentationHint ~= "subtle"
         end, frames)
@@ -19,7 +19,7 @@ return function(client, send_ready)
       local current_frame_id = client.session.current_frame and client.session.current_frame.id
 
       for _, frame in ipairs(frames) do
-        local is_current = frame.id == client.session.current_frame
+        local is_current = frame.id == current_frame_id
         canvas:write(string.rep(" ", is_current and (indent - 1) or indent))
 
         if is_current then
@@ -42,7 +42,7 @@ return function(client, send_ready)
           canvas:write(":")
           canvas:write(frame.line, { group = "DapUILineNumber" })
         end
-        canvas:add_mapping(config.actions.OPEN, util.partial(client.lib.jump_to_frame, frame))
+        canvas:add_mapping(config.actions.OPEN, util.partial(client.lib.jump_to_frame, frame, true))
         canvas:write("\n")
       end
 

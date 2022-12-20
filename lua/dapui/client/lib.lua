@@ -92,5 +92,30 @@ return function(client)
     return stop_count
   end
 
+  local current_thread_id
+  client.listen.stopped(function(args)
+    current_thread_id = args.threadId
+  end, { before = true })
+  client.listen.continued(function()
+    current_thread_id = nil
+  end, { before = true })
+  client.listen.initialized(function()
+    current_thread_id = nil
+  end, { before = true })
+
+  ---@return dapui.types.StackFrame | nil
+  function client_lib.current_frame()
+    if not current_thread_id then
+      return
+    end
+    local stack_trace = client.request.stackTrace({ threadId = current_thread_id }).stackFrames
+    for _, next_frame in ipairs(stack_trace) do
+      if next_frame.source and next_frame.source.path then
+        return next_frame
+      end
+    end
+    return stack_trace[1]
+  end
+
   return client_lib
 end

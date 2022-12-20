@@ -45,6 +45,7 @@ return function(client, send_ready)
     else
       _disabled_breakpoints[bufnr][bp.line] = nil
     end
+    send_ready()
   end
 
   ---@return table<integer, dapui.types.DAPBreakpoint[]>

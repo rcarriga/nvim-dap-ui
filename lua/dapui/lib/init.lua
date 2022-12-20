@@ -42,7 +42,7 @@ function M.notify(msg, level, opts)
 end
 
 function M.create_buffer(name, options)
-  local buf = async.api.nvim_create_buf(false, true)
+  local buf = async.api.nvim_create_buf(true, true)
   options = vim.tbl_extend("keep", options or {}, {
     modifiable = false,
   })

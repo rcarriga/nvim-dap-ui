@@ -6,12 +6,12 @@ local frame_renderer = require("dapui.components.frames")
 return function(client, send_ready)
   client.listen.stopped(send_ready)
   local render_frames = frame_renderer(client, send_ready)
+  local subtle_threads = {}
   return {
     ---@param canvas dapui.Canvas
     render = function(canvas, indent)
       indent = indent or 0
       local threads = client.request.threads().threads
-      local subtle_threads = {}
 
       ---@param thread dapui.types.Thread
       local function render_thread(thread, match_group)

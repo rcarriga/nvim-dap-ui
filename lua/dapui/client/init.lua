@@ -1,6 +1,8 @@
+local logger = require("dapui.logging")
 local dap = require("dap")
 local async = require("dapui.async")
 local util = require("dapui.util")
+local types = require("dapui.client.types")
 
 ---@alias dap.Session Session
 
@@ -65,8 +67,14 @@ end
 ---@param session_factory fun(): dap.Session
 ---@return dapui.DAPClient
 local function create_client(session_factory)
+  local request_seqs = {}
   local async_request = async.wrap(function(command, args, cb)
-    session_factory():request(command, args, cb)
+    local session = session_factory()
+    request_seqs[session.seq] = true
+    session:request(command, args, function(...)
+      request_seqs[session.seq] = nil
+      cb(...)
+    end)
   end, 3)
 
   local request = setmetatable({}, {
@@ -75,40 +83,52 @@ local function create_client(session_factory)
         local start = vim.loop.now()
         local err, body = async_request(command, args)
         local diff = vim.loop.now() - start
-        P({ command, diff / 1000 })
+        logger.debug("Command", command, "took", diff / 1000, "seconds")
         if err then
           error(Error(err, { command = command, args = args }))
+        elseif body.error then
+          error(Error(body.err, { command = command, args = args }))
         end
         return body
       end
     end,
   })
 
-  local listener_prefix = "DAPClient" .. tostring(os.time())
+  local listener_prefix = "DAPClient" .. tostring(vim.loop.now())
   local listener_count = 0
   local listen = setmetatable({}, {
     __index = function(_, event)
-      return function(listener)
+      return function(listener, opts)
+        opts = opts or {}
+        local listeners
+        if opts.before then
+          listeners = dap.listeners.before
+        else
+          listeners = dap.listeners.after
+        end
         local listener_id = listener_prefix .. tostring(listener_count)
         listener_count = listener_count + 1
-        local listener_wrapper = function(_, ...)
-          debug.traceback()
-          local is_event = select("#", ...) == 1
+        local is_event = not types.request[event]
+        local key = is_event and "event_" .. event or event
 
-          local should_stop_listening
-          if is_event then
-            should_stop_listening = listener(...)
-          else
-            local err, body, req = ...
-            should_stop_listening = listener({ error = err, response = body, request = req })
-          end
-          if should_stop_listening then
-            dap.listeners.after[event][listener_id] = nil
-            dap.listeners.after["event_" .. event][listener_id] = nil
+        local wrap = function(inner)
+          listeners[key][listener_id] = function(_, ...)
+            if inner(...) then
+              listeners[key][listener_id] = nil
+            end
           end
         end
-        dap.listeners.after["event_" .. event][listener_id] = listener_wrapper
-        dap.listeners.after[event][listener_id] = listener
+
+        if is_event then
+          wrap(listener)
+        else
+          wrap(function(err, body, req, req_seq)
+            if request_seqs[req_seq] then
+              return
+            end
+            return listener({ error = err, response = body, request = req })
+          end)
+        end
       end
     end,
   })

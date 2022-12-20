@@ -9,10 +9,9 @@ local partial = util.partial
 
 ---@param client dapui.DAPClient
 return function(client, send_ready)
-  client.listen.stopped(send_ready)
+  client.listen.scopes(send_ready)
   ---@type dapui.watches.Watch[]
   local watches = {}
-  local new_mode = true
   local edit_index = nil
   local rendered_exprs = {}
   local rendered_step = client.lib.step_number()
@@ -27,10 +26,10 @@ return function(client, send_ready)
       expression = value,
       expanded = false,
     }
+    send_ready()
   end
 
   local function edit_expr(new_value)
-    new_mode = true
     local index = edit_index
     edit_index = nil
     if new_value == "" then
@@ -54,24 +53,27 @@ return function(client, send_ready)
   return {
     ---@param canvas dapui.Canvas
     render = function(canvas)
-      if new_mode then
+      if not edit_index then
         canvas:set_prompt("> ", add_watch)
       else
-        canvas:set_prompt("> ", edit_expr, { fill = watches[edit_index] })
+        canvas:set_prompt("> ", edit_expr, { fill = watches[edit_index].expression })
       end
 
       if vim.tbl_count(watches) == 0 then
         canvas:write("No Expressions\n", { group = "DapUIWatchesEmpty" })
         return
       end
+      local frame_id = client.session.current_frame and client.session.current_frame.id
       local step = client.lib.step_number()
       for i, watch in pairs(watches) do
-        local success, evaluated =
-          pcall(client.request.evaluate, { context = "watch", expression = watch.expression })
+        local success, evaluated = pcall(
+          client.request.evaluate,
+          { context = "watch", expression = watch.expression, frameId = frame_id }
+        )
         local prefix = config.icons()[watch.expanded and "expanded" or "collapsed"]
 
         canvas:write(prefix, { group = success and "DapUIWatchesValue" or "DapUIWatchesError" })
-        canvas:write(" " .. watch)
+        canvas:write(" " .. watch.expression)
 
         local value = ""
         if not success then
@@ -101,7 +103,6 @@ return function(client, send_ready)
           canvas:add_mapping(config.actions.REMOVE, partial(remove_expr, i))
           canvas:add_mapping(config.actions.EDIT, function()
             edit_index = i
-            new_mode = false
             send_ready()
           end)
           if success then

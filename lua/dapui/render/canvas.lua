@@ -16,6 +16,19 @@ M.namespace = api.nvim_create_namespace("dapui")
 ---@field expand_lines table
 local Canvas = {}
 
+local function run_mapping(action)
+  local buffer = api.nvim_get_current_buf()
+  local line = vim.fn.line(".")
+  local callbacks = _mappings[buffer][action][line]
+  if not callbacks then
+    util.notify("No " .. action .. " action for current line", vim.log.levels.INFO)
+    return
+  end
+  for _, callback in pairs(callbacks) do
+    callback()
+  end
+end
+
 ---@return dapui.Canvas
 function Canvas:new()
   local mappings = {}
@@ -142,18 +155,12 @@ function Canvas:render_buffer(buffer, action_keys)
   if not success then
     return false
   end
-  local win = vim.fn.bufwinnr(buffer)
-  if win == -1 then
-    return false
-  end
 
   _mappings[buffer] = self.mappings
   for action, _ in pairs(self.mappings) do
-    util.apply_mapping(
-      action_keys[action],
-      "<cmd>lua require('dapui.render.canvas')._mapping('" .. action .. "')<CR>",
-      buffer
-    )
+    util.apply_mapping(action_keys[action], function()
+      run_mapping(action)
+    end, buffer)
   end
 
   local lines = self.lines
@@ -166,18 +173,14 @@ function Canvas:render_buffer(buffer, action_keys)
   end
   for _, match in pairs(matches) do
     local pos = match[2]
-    if
-      not pcall(
-        api.nvim_buf_set_extmark,
-        buffer,
-        M.namespace,
-        pos[1] - 1,
-        (pos[2] or 1) - 1,
-        { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
-      )
-    then
-      P({ pos, match })
-    end
+    pcall(
+      api.nvim_buf_set_extmark,
+      buffer,
+      M.namespace,
+      pos[1] - 1,
+      (pos[2] or 1) - 1,
+      { end_col = pos[3] and (pos[2] + pos[3] - 1), hl_group = match[1] }
+    )
   end
   if self.expand_lines then
     local group = api.nvim_create_augroup(
@@ -230,19 +233,6 @@ end
 --- @return dapui.Canvas
 function M.new()
   return Canvas:new()
-end
-
-function M._mapping(action)
-  local buffer = api.nvim_get_current_buf()
-  local line = vim.fn.line(".")
-  local callbacks = _mappings[buffer][action][line]
-  if not callbacks then
-    util.notify("No " .. action .. " action for current line", vim.log.levels.INFO)
-    return
-  end
-  for _, callback in pairs(callbacks) do
-    callback()
-  end
 end
 
 function M._prompt_backspace()

@@ -26,8 +26,8 @@ return function(client)
 
   ---Set the expression for the hover window
   ---@param expression string
-  function dapui.hover.set_expression(expression)
-    hover.set_expression(expression)
+  function dapui.hover.set_expression(expression, context)
+    hover.set_expression(expression, context)
   end
 
   return dapui.hover

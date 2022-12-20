@@ -6,31 +6,31 @@ local dapui = {}
 local windows = require("dapui.windows")
 local config = require("dapui.config")
 local util = require("dapui.util")
-local lib = require("dapui.lib")
-local ui_state
+local async = require("dapui.async")
 
----@return fun(client, send_ready): dapui.Element
+---@type table<string, dapui.Element>
+local elements = {}
+
+---@return fun(client): dapui.Element
 local function get_element(name)
   return require("dapui.elements." .. name)
 end
 
 local open_float = nil
 
-local function query_elem_name(on_select)
+local function query_elem_name()
   local entries = {}
-  local elems = {}
-  for _, name in pairs(config.elements) do
+  for name, _ in pairs(elements) do
     if name ~= config.elements.HOVER then
       entries[#entries + 1] = name
-      elems[#elems + 1] = name
     end
   end
-  vim.ui.select(entries, {
+  return async.ui.select(entries, {
     prompt = "Select an element:",
     format_item = function(entry)
       return entry:sub(1, 1):upper() .. entry:sub(2)
     end,
-  }, on_select)
+  })
 end
 
 ---Open a floating window containing the desired element.
@@ -43,29 +43,30 @@ end
 ---@field height integer: Fixed height of window
 ---@field enter boolean: Whether or not to enter the window after opening
 function dapui.float_element(elem_name, settings)
-  vim.schedule(function()
+  async.run(function()
     if open_float then
       return open_float:jump_to()
     end
-    local line_no = vim.fn.screenrow()
-    local col_no = vim.fn.screencol()
+    local line_no = async.fn.screenrow()
+    local col_no = async.fn.screencol()
     local position = { line = line_no, col = col_no }
-    local with_elem = vim.schedule_wrap(function(elem_name)
-      if not elem_name then
-        return
-      end
-      local elem = get_element(elem_name)
-      local settings = vim.tbl_deep_extend("keep", settings or {}, elem.float_defaults or {})
-      open_float = require("dapui.windows").open_float(elem, position, settings)
+    elem_name = elem_name or query_elem_name()
+    if not elem_name then
+      return
+    end
+    local elem = elements[elem_name]
+    settings = vim.tbl_deep_extend(
+      "keep",
+      settings or {},
+      elem.float_defaults and elem.float_defaults() or {}
+    )
+    async.util.scheduler()
+    open_float = require("dapui.windows").open_float(elem_name, elem, position, settings)
+    if open_float then
       open_float:listen("close", function()
         open_float = nil
       end)
-    end)
-    if elem_name then
-      with_elem(elem_name)
-      return
     end
-    query_elem_name(with_elem)
   end)
 end
 
@@ -82,53 +83,47 @@ local prev_expr = nil
 ---@field height integer: Fixed height of window
 ---@field enter boolean: Whether or not to enter the window after opening
 function dapui.eval(expr, settings)
-  if not dap.session() then
-    util.notify("No active debug session", vim.log.levels.WARN)
-    return
-  end
-  settings = settings or {}
-  if not expr then
-    if vim.fn.mode() == "v" then
-      local start = vim.fn.getpos("v")
-      local finish = vim.fn.getpos(".")
-      local lines = util.get_selection(start, finish)
-      expr = table.concat(lines, "\n")
-    else
-      expr = expr or vim.fn.expand("<cexpr>")
-    end
-  end
-  if open_float then
-    if prev_expr == expr then
-      open_float:jump_to()
+  async.run(function()
+    if not dap.session() then
+      util.notify("No active debug session", vim.log.levels.WARN)
       return
-    else
-      open_float:close()
     end
-  end
-  prev_expr = expr
-  local elem = require("dapui.elements.hover")
-  elem.set_expression(expr, settings.context)
-  vim.schedule(function()
-    local line_no = vim.fn.screenrow()
-    local col_no = vim.fn.screencol()
+    settings = settings or {}
+    if not expr then
+      if vim.fn.mode() == "v" then
+        local start = async.fn.getpos("v")
+        local finish = async.fn.getpos(".")
+        local lines = util.get_selection(start, finish)
+        expr = table.concat(lines, "\n")
+      else
+        expr = expr or async.fn.expand("<cexpr>")
+      end
+    end
+    if open_float then
+      if prev_expr == expr then
+        open_float:jump_to()
+        return
+      else
+        open_float:close()
+      end
+    end
+    prev_expr = expr
+    local elem = elements[config.elements.HOVER]
+    elem.set_expression(expr, settings.context)
+    local line_no = async.fn.screenrow()
+    local col_no = async.fn.screencol()
     local position = { line = line_no, col = col_no }
-    open_float = require("dapui.windows").open_float(elem, position, settings)
-    open_float:listen("close", function()
-      open_float = nil
-    end)
+    open_float =
+      require("dapui.windows").open_float(config.elements.HOVER, elem, position, settings)
+    if open_float then
+      open_float:listen("close", function()
+        open_float = nil
+      end)
+    end
   end)
 end
 
-function dapui._dump_state()
-  local data = vim.inspect(ui_state)
-  local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(data, "\n"))
-  vim.cmd("sb " .. buf)
-end
-
 local refresh_control_panel = function() end
-
-local elements = {}
 
 function dapui.setup(user_config)
   config.setup(user_config)
@@ -139,7 +134,6 @@ function dapui.setup(user_config)
   for _, module in pairs(config.elements) do
     local elem = get_element(module)(client)
 
-    -- TODO: Fix this
     elements[module] = elem
   end
 

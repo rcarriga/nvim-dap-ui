@@ -19,7 +19,9 @@ local async_wrapper = {
   api = proxy_vim("api"),
   fn = proxy_vim("fn"),
   ui = {
+    ---@type fun(entries: string[], opts: table): string
     select = plen_async.wrap(vim.ui.select, 3),
+    ---@type fun(opts: table): string
     input = plen_async.wrap(vim.ui.input, 2),
   },
   lib = {

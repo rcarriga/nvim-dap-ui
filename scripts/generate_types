@@ -254,11 +254,12 @@ class DAPTypesGenerator:
         else:
             signature.append(f"---@param listener fun()")
 
+        signature.append(f"---@param opts? dapui.client.ListenerOpts")
         x = [
             *types,
             "",
             *signature,
-            f"function DAPUIEventListenerClient.{self.safe_name(event)}(listener) end",
+            f"function DAPUIEventListenerClient.{self.safe_name(event)}(listener, opts) end",
             "",
             "",
         ]
@@ -292,7 +293,8 @@ class DAPTypesGenerator:
             *types,
             "",
             f"---@param listener fun(args: {args_summary.type_name}): boolean | nil",
-            f"function DAPUIEventListenerClient.{self.safe_name(command)}(listener) end",
+            f"---@param opts? dapui.client.ListenerOpts",
+            f"function DAPUIEventListenerClient.{self.safe_name(command)}(listener, opts) end",
             "",
             "",
         ]
@@ -303,6 +305,9 @@ local DAPUIRequestsClient = {}
 
 ---@class dapui.DAPEventListenerClient
 local DAPUIEventListenerClient = {}
+
+---@class dapui.client.ListenerOpts
+---@field before boolean Run before event/request is processed by nvim-dap
 """
 
     def generate_types(self) -> str:
@@ -344,6 +349,9 @@ local DAPUIEventListenerClient = {}
                 output += "\n".join(self.create_event_listener(event))
             except Exception as e:
                 logger.exception(f"Failed to create {name}: {e}")
+        output += (
+            "\nreturn { request = DAPUIRequestsClient, listen = DAPUIEventListenerClient }"
+        )
         return output
 
 

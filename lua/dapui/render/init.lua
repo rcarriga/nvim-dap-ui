@@ -1,11 +1,12 @@
 local M = {}
 
+---@class dapui.Element
+---@field render fun()
+---@field float_defaults? fun(): table
+---@field buffer fun(): integer
+
 local canvas = require("dapui.render.canvas")
-local render_loop = require("dapui.render.loop")
 
 M.new_canvas = canvas.new
-M.render_buffer = canvas.render_buffer
-
-M.loop = render_loop
 
 return M
