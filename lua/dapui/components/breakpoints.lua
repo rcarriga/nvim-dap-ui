@@ -99,7 +99,7 @@ return function(client, send_ready)
         for _, bp in ipairs(breakpoints) do
           local text = vim.api.nvim_buf_get_lines(buffer, bp.line - 1, bp.line, false)
           local jump_to_bp = util.partial(
-            util.jump_to_frame,
+            client.lib.jump_to_frame,
             { line = bp.line, column = 0, source = { path = bufname } }
           )
           if vim.tbl_count(text) ~= 0 then

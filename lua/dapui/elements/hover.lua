@@ -1,14 +1,14 @@
 local config = require("dapui.config")
-local lib = require("dapui.lib")
+local util = require("dapui.util")
 local Canvas = require("dapui.render.canvas")
 
 return function(client)
   local dapui = { hover = {} }
-  local buf = lib.create_buffer("DAP Hover", {
+  local buf = util.create_buffer("DAP Hover", {
     filetype = "dapui_hover",
   })
 
-  local send_ready = lib.create_render_loop(function()
+  local send_ready = util.create_render_loop(function()
     dapui.hover.render()
   end)
 

@@ -1,16 +1,16 @@
-local lib = require("dapui.lib")
+local util = require("dapui.util")
 local config = require("dapui.config")
 local Canvas = require("dapui.render.canvas")
 
 return function(client)
   local dapui = { watches = {} }
-  local send_ready = lib.create_render_loop(function()
+  local send_ready = util.create_render_loop(function()
     dapui.watches.render()
   end)
 
   local watches = require("dapui.components.watches")(client, send_ready)
 
-  local buf = lib.create_buffer("DAP Watches", {
+  local buf = util.create_buffer("DAP Watches", {
     filetype = "dapui_watches",
     omnifunc = "v:lua.require'dap'.omnifunc",
   })

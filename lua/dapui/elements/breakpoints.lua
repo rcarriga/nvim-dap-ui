@@ -1,17 +1,17 @@
 local config = require("dapui.config")
 local Canvas = require("dapui.render.canvas")
-local lib = require("dapui.lib")
+local util = require("dapui.util")
 
 ---@param client dapui.DAPClient
 return function(client)
   local dapui = { breakpoints = {} }
-  local send_ready = lib.create_render_loop(function()
+  local send_ready = util.create_render_loop(function()
     dapui.breakpoints.render()
   end)
 
   local breakpoints = require("dapui.components.breakpoints")(client, send_ready)
 
-  local buf = lib.create_buffer("DAP Breakpoints", {
+  local buf = util.create_buffer("DAP Breakpoints", {
     filetype = "dapui_breakpoints",
   })
 

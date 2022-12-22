@@ -1,6 +1,6 @@
 local async = require("dapui.async")
 local dap = require("dap")
-local lib = require("dapui.lib")
+local util = require("dapui.util")
 
 return function()
   local dapui = { console = {} }
@@ -11,7 +11,7 @@ return function()
     if async.api.nvim_buf_is_valid(console_buf) then
       return console_buf
     end
-    console_buf = lib.create_buffer("DAP Console", { filetype = "dapui_console" })
+    console_buf = util.create_buffer("DAP Console", { filetype = "dapui_console" })
     if vim.fn.has("nvim-0.7") == 1 then
       vim.keymap.set("n", "G", function()
         autoscroll = true

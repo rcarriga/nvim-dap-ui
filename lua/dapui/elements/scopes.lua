@@ -1,16 +1,16 @@
 local config = require("dapui.config")
-local lib = require("dapui.lib")
+local util = require("dapui.util")
 local Canvas = require("dapui.render.canvas")
 
 return function(client)
   local dapui = { scopes = {} }
-  local send_ready = lib.create_render_loop(function()
+  local send_ready = util.create_render_loop(function()
     dapui.scopes.render()
   end)
 
   local scopes = require("dapui.components.scopes")(client, send_ready)
 
-  local buf = lib.create_buffer("DAP Scopes", {
+  local buf = util.create_buffer("DAP Scopes", {
     filetype = "dapui_scopes",
   })
 

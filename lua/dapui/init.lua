@@ -114,7 +114,7 @@ function dapui.eval(expr, settings)
     local col_no = async.fn.screencol()
     local position = { line = line_no, col = col_no }
     open_float =
-      require("dapui.windows").open_float(config.elements.HOVER, elem, position, settings)
+    require("dapui.windows").open_float(config.elements.HOVER, elem, position, settings)
     if open_float then
       open_float:listen("close", function()
         open_float = nil
@@ -220,8 +220,11 @@ end
 ---@param update table: Updated settings, from the `render` table of the config
 function dapui.update_render(update)
   config.update_render(update)
-  local render = require("dapui.render")
-  render.loop.run()
+  async.run(function()
+    for _, elem in pairs(elements) do
+      elem.render()
+    end
+  end)
 end
 
 local function keep_cmdheight(cb)
