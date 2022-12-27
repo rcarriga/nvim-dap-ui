@@ -24,7 +24,7 @@ return function(client, send_ready)
           canvas,
           thread.id,
           subtle_threads[thread.id] or false,
-          indent + config.windows().indent
+          indent + config.render.indent
         )
 
         local last_line = canvas:length()

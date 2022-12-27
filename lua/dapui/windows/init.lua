@@ -81,7 +81,7 @@ function M.setup(element_buffers)
   for _, layout in ipairs(M.layouts) do
     layout:close()
   end
-  local layout_configs = config.layouts()
+  local layout_configs = config.layouts
   M.layouts = {}
   for i, layout in ipairs(layout_configs) do
     local buffers = {}
@@ -152,7 +152,7 @@ function M.open_float(name, element, position, settings)
   })
   element.render()
 
-  util.apply_mapping(config.floating().mappings[config.FLOAT_MAPPINGS.CLOSE], "<Cmd>q<CR>", buf)
+  util.apply_mapping(config.floating.mappings["close"], "<Cmd>q<CR>", buf)
   local close_cmd = "lua require('dapui.windows').close_float('" .. name .. "')"
   vim.cmd("au WinEnter,CursorMoved * ++once " .. close_cmd)
   vim.cmd("au WinClosed " .. float_win.win_id .. " ++once " .. close_cmd)

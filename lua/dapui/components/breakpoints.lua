@@ -89,7 +89,7 @@ return function(client, send_ready)
         current_file = async.fn.bufname(current_frame.source.path)
         current_line = current_frame.line
       end
-      local indent = config.windows().indent
+      local indent = config.render.indent
       for buffer, breakpoints in pairs(_get_breakpoints()) do
         local bufname = async.fn.bufname(buffer)
         local name = util.pretty_name(bufname)
@@ -103,8 +103,8 @@ return function(client, send_ready)
             { line = bp.line, column = 0, source = { path = bufname } }
           )
           if vim.tbl_count(text) ~= 0 then
-            canvas:add_mapping(config.actions.OPEN, jump_to_bp)
-            canvas:add_mapping(config.actions.TOGGLE, function()
+            canvas:add_mapping("open", jump_to_bp)
+            canvas:add_mapping("toggle", function()
               _toggle(buffer, bp)
             end)
             canvas:write(string.rep(" ", indent))
@@ -123,7 +123,7 @@ return function(client, send_ready)
             local whitespace = string.rep(" ", info_indent)
 
             local function add_info(message, data)
-              canvas:add_mapping(config.actions.OPEN, jump_to_bp)
+              canvas:add_mapping("open", jump_to_bp)
               canvas:write(whitespace)
               canvas:write(message, { group = "DapUIBreakpointsInfo" })
               canvas:write(" " .. data .. "\n")

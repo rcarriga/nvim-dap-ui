@@ -2,7 +2,13 @@ local async = require("dapui.async")
 local dap = require("dap")
 
 return function()
-  local dapui = { repl = {} }
+  local dapui = { elements = {} }
+
+  ---@class dapui.elements.repl
+  ---@toc_entry Repl
+  ---@text
+  --- The REPL provided by nvim-dap.
+  dapui.elements.repl = {}
 
   dap.repl.close({ mode = "toggle" })
   local win = vim.api.nvim_open_win(
@@ -15,16 +21,18 @@ return function()
   local buf = async.api.nvim_win_get_buf(win)
   async.api.nvim_win_close(win, true)
 
-  function dapui.repl.render() end
+  ---@nodoc
+  function dapui.elements.repl.render() end
 
-  function dapui.repl.buffer()
+  ---@nodoc
+  function dapui.elements.repl.buffer()
     return buf
   end
 
-  function dapui.repl.float_defaults()
+  ---@nodoc
+  function dapui.elements.repl.float_defaults()
     return { width = 80, height = 20, enter = true }
   end
 
-  ---@type dapui.Element
-  return dapui.repl
+  return dapui.elements.repl
 end

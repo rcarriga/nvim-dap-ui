@@ -3,10 +3,22 @@ local Canvas = require("dapui.render.canvas")
 local util = require("dapui.util")
 
 ---@param client dapui.DAPClient
+---@nodoc
 return function(client)
-  local dapui = { breakpoints = {} }
+  local dapui = { elements = {} }
+
+  ---@class dapui.elements.breakpoints
+  ---@toc_entry Breakpoints
+  ---@text
+  --- Lists all breakpoints currently set.
+  ---
+  --- Mappings:
+  --- - `open`: Jump to the location the breakpoint is set
+  --- - `toggle`: Enable/disable the selected breakpoint
+  dapui.elements.breakpoints = {}
+
   local send_ready = util.create_render_loop(function()
-    dapui.breakpoints.render()
+    dapui.elements.breakpoints.render()
   end)
 
   local breakpoints = require("dapui.components.breakpoints")(client, send_ready)
@@ -15,15 +27,17 @@ return function(client)
     filetype = "dapui_breakpoints",
   })
 
-  function dapui.breakpoints.render()
+  ---@nodoc
+  function dapui.elements.breakpoints.render()
     local canvas = Canvas.new()
     breakpoints.render(canvas)
     canvas:render_buffer(buf, config.element_mapping("breakpoints"))
   end
 
-  function dapui.breakpoints.buffer()
+  ---@nodoc
+  function dapui.elements.breakpoints.buffer()
     return buf
   end
 
-  return dapui.breakpoints
+  return dapui.elements.breakpoints
 end

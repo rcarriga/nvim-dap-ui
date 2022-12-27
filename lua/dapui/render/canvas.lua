@@ -29,10 +29,13 @@ local function run_mapping(action)
   end
 end
 
+---@type dapui.Action[]
+local all_actions = { "expand", "open", "remove", "edit", "repl", "toggle" }
+
 ---@return dapui.Canvas
 function Canvas:new()
   local mappings = {}
-  for _, action in pairs(config.actions) do
+  for _, action in pairs(all_actions) do
     mappings[action] = {}
   end
   local canvas = {
@@ -88,7 +91,7 @@ end
 function Canvas:reset()
   self.lines = {}
   self.matches = {}
-  for _, action in pairs(config.actions) do
+  for _, action in pairs(vim.tbl_keys(self.mappings)) do
     self.mappings[action] = {}
   end
 end
@@ -110,7 +113,7 @@ function Canvas:add_match(group, line, start_col, length)
 end
 
 ---Add a mapping for a specific line
----@param action string Name of mapping action to use key for
+---@param action dapui.Action
 ---@param callback function Callback for when mapping is used
 ---@param opts? table Optional extra arguments
 -- Extra arguments currently accepts:

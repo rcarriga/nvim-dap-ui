@@ -46,7 +46,7 @@ return function(client, send_ready)
 
       local prefix
       if not success or hover_expr.variablesReference > 0 then
-        prefix = config.icons()[expanded and "expanded" or "collapsed"] .. " "
+        prefix = config.icons[expanded and "expanded" or "collapsed"] .. " "
         canvas:write(prefix, { group = success and "DapUIDecoration" or "DapUIWatchesError" })
       end
 
@@ -74,13 +74,13 @@ return function(client, send_ready)
       for _, line in ipairs(util.format_value(val_start, value)) do
         canvas:write(line, { group = "DapUIValue" })
         if success then
-          canvas:add_mapping(config.actions.EXPAND, function()
+          canvas:add_mapping("expand", function()
             expanded = not expanded
             send_ready()
           end)
-          canvas:add_mapping(config.actions.REPL, util.partial(util.send_to_repl, expression))
+          canvas:add_mapping("repl", util.partial(util.send_to_repl, expression))
         end
-        canvas:add_mapping(config.actions.EDIT, function()
+        canvas:add_mapping("edit", function()
           prompt_func = function(new_expr)
             expression = new_expr
             prompt_func = prompt_func
@@ -92,7 +92,7 @@ return function(client, send_ready)
       end
 
       if expanded and var_ref then
-        render_vars.render(canvas, expression, var_ref, config.windows().indent)
+        render_vars.render(canvas, expression, var_ref, config.render.indent)
       end
       canvas:remove_line()
     end,

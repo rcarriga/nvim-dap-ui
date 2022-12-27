@@ -23,7 +23,7 @@ return function(client, send_ready)
         canvas:write(string.rep(" ", is_current and (indent - 1) or indent))
 
         if is_current then
-          canvas:write(config.icons().current_frame .. " ")
+          canvas:write(config.icons.current_frame .. " ")
         end
 
         canvas:write(
@@ -42,7 +42,7 @@ return function(client, send_ready)
           canvas:write(":")
           canvas:write(frame.line, { group = "DapUILineNumber" })
         end
-        canvas:add_mapping(config.actions.OPEN, util.partial(client.lib.jump_to_frame, frame, true))
+        canvas:add_mapping("open", util.partial(client.lib.jump_to_frame, frame, true))
         canvas:write("\n")
       end
 

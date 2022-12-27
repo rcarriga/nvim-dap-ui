@@ -28,7 +28,7 @@ return function(client, send_ready)
     if variable.variablesReference == 0 then
       return " "
     end
-    return config.icons()[expanded_children[path] and "expanded" or "collapsed"]
+    return config.icons[expanded_children[path] and "expanded" or "collapsed"]
   end
 
   ---@param path string
@@ -72,18 +72,15 @@ return function(client, send_ready)
       rendered_vars[var_path] = variable.value
       local function add_var_line(line)
         if variable.variablesReference > 0 then
-          canvas:add_mapping(config.actions.EXPAND, function()
+          canvas:add_mapping("expand", function()
             expanded_children[var_path] = not expanded_children[var_path]
             send_ready()
           end)
           if variable.evaluateName then
-            canvas:add_mapping(
-              config.actions.REPL,
-              partial(util.send_to_repl, variable.evaluateName)
-            )
+            canvas:add_mapping("repl", partial(util.send_to_repl, variable.evaluateName))
           end
         end
-        canvas:add_mapping(config.actions.EDIT, function()
+        canvas:add_mapping("edit", function()
           prompt_func = function(new_value)
             client.lib.set_variable(parent_ref, variable, new_value)
             prompt_func = nil
@@ -109,7 +106,7 @@ return function(client, send_ready)
       end
 
       if expanded_children[var_path] and variable.variablesReference ~= 0 then
-        render(canvas, var_path, variable.variablesReference, indent + config.windows().indent)
+        render(canvas, var_path, variable.variablesReference, indent + config.render.indent)
       end
     end
     if cur_frame_id and cur_frame_id ~= rendered_step then

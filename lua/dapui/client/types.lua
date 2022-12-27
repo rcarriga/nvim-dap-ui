@@ -18,8 +18,8 @@ local DAPUIEventListenerClient = {}
 function DAPUIRequestsClient.attach(args) end
 
 ---@class dapui.types.attachRequestListenerArgs
----@field request dapui.types.AttachRequestArguments 
----@field error? table 
+---@field request dapui.types.AttachRequestArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.attachRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -68,9 +68,9 @@ function DAPUIEventListenerClient.attach(listener, opts) end
 function DAPUIRequestsClient.breakpointLocations(args) end
 
 ---@class dapui.types.breakpointLocationsRequestListenerArgs
----@field request dapui.types.BreakpointLocationsArguments 
----@field error? table 
----@field response dapui.types.BreakpointLocationsResponse 
+---@field request dapui.types.BreakpointLocationsArguments
+---@field error? table
+---@field response dapui.types.BreakpointLocationsResponse
 
 ---@param listener fun(args: dapui.types.breakpointLocationsRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -95,8 +95,8 @@ function DAPUIEventListenerClient.breakpointLocations(listener, opts) end
 function DAPUIRequestsClient.cancel(args) end
 
 ---@class dapui.types.cancelRequestListenerArgs
----@field request dapui.types.CancelArguments 
----@field error? table 
+---@field request dapui.types.CancelArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.cancelRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -132,9 +132,9 @@ function DAPUIEventListenerClient.cancel(listener, opts) end
 function DAPUIRequestsClient.completions(args) end
 
 ---@class dapui.types.completionsRequestListenerArgs
----@field request dapui.types.CompletionsArguments 
----@field error? table 
----@field response dapui.types.CompletionsResponse 
+---@field request dapui.types.CompletionsArguments
+---@field error? table
+---@field response dapui.types.CompletionsResponse
 
 ---@param listener fun(args: dapui.types.completionsRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -151,8 +151,8 @@ function DAPUIEventListenerClient.completions(listener, opts) end
 function DAPUIRequestsClient.configurationDone(args) end
 
 ---@class dapui.types.configurationDoneRequestListenerArgs
----@field request dapui.types.ConfigurationDoneArguments 
----@field error? table 
+---@field request dapui.types.ConfigurationDoneArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.configurationDoneRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -173,9 +173,9 @@ function DAPUIEventListenerClient.configurationDone(listener, opts) end
 function DAPUIRequestsClient.continue_(args) end
 
 ---@class dapui.types.continue_RequestListenerArgs
----@field request dapui.types.ContinueArguments 
----@field error? table 
----@field response dapui.types.ContinueResponse 
+---@field request dapui.types.ContinueArguments
+---@field error? table
+---@field response dapui.types.ContinueResponse
 
 ---@param listener fun(args: dapui.types.continue_RequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -201,9 +201,9 @@ function DAPUIEventListenerClient.continue_(listener, opts) end
 function DAPUIRequestsClient.dataBreakpointInfo(args) end
 
 ---@class dapui.types.dataBreakpointInfoRequestListenerArgs
----@field request dapui.types.DataBreakpointInfoArguments 
----@field error? table 
----@field response dapui.types.DataBreakpointInfoResponse 
+---@field request dapui.types.DataBreakpointInfoArguments
+---@field error? table
+---@field response dapui.types.DataBreakpointInfoResponse
 
 ---@param listener fun(args: dapui.types.dataBreakpointInfoRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -240,9 +240,9 @@ function DAPUIEventListenerClient.dataBreakpointInfo(listener, opts) end
 function DAPUIRequestsClient.disassemble(args) end
 
 ---@class dapui.types.disassembleRequestListenerArgs
----@field request dapui.types.DisassembleArguments 
----@field error? table 
----@field response dapui.types.DisassembleResponse 
+---@field request dapui.types.DisassembleArguments
+---@field error? table
+---@field response dapui.types.DisassembleResponse
 
 ---@param listener fun(args: dapui.types.disassembleRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -262,8 +262,8 @@ function DAPUIEventListenerClient.disassemble(listener, opts) end
 function DAPUIRequestsClient.disconnect(args) end
 
 ---@class dapui.types.disconnectRequestListenerArgs
----@field request dapui.types.DisconnectArguments 
----@field error? table 
+---@field request dapui.types.DisconnectArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.disconnectRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -304,9 +304,9 @@ function DAPUIEventListenerClient.disconnect(listener, opts) end
 function DAPUIRequestsClient.evaluate(args) end
 
 ---@class dapui.types.evaluateRequestListenerArgs
----@field request dapui.types.EvaluateArguments 
----@field error? table 
----@field response dapui.types.EvaluateResponse 
+---@field request dapui.types.EvaluateArguments
+---@field error? table
+---@field response dapui.types.EvaluateResponse
 
 ---@param listener fun(args: dapui.types.evaluateRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -339,9 +339,9 @@ function DAPUIEventListenerClient.evaluate(listener, opts) end
 function DAPUIRequestsClient.exceptionInfo(args) end
 
 ---@class dapui.types.exceptionInfoRequestListenerArgs
----@field request dapui.types.ExceptionInfoArguments 
----@field error? table 
----@field response dapui.types.ExceptionInfoResponse 
+---@field request dapui.types.ExceptionInfoArguments
+---@field error? table
+---@field response dapui.types.ExceptionInfoResponse
 
 ---@param listener fun(args: dapui.types.exceptionInfoRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -362,8 +362,8 @@ function DAPUIEventListenerClient.exceptionInfo(listener, opts) end
 function DAPUIRequestsClient.goto_(args) end
 
 ---@class dapui.types.gotoRequestListenerArgs
----@field request dapui.types.GotoArguments 
----@field error? table 
+---@field request dapui.types.GotoArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.gotoRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -398,9 +398,9 @@ function DAPUIEventListenerClient.goto_(listener, opts) end
 function DAPUIRequestsClient.gotoTargets(args) end
 
 ---@class dapui.types.gotoTargetsRequestListenerArgs
----@field request dapui.types.GotoTargetsArguments 
----@field error? table 
----@field response dapui.types.GotoTargetsResponse 
+---@field request dapui.types.GotoTargetsArguments
+---@field error? table
+---@field response dapui.types.GotoTargetsResponse
 
 ---@param listener fun(args: dapui.types.gotoTargetsRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -496,9 +496,9 @@ function DAPUIEventListenerClient.gotoTargets(listener, opts) end
 function DAPUIRequestsClient.initialize(args) end
 
 ---@class dapui.types.initializeRequestListenerArgs
----@field request dapui.types.InitializeRequestArguments 
----@field error? table 
----@field response dapui.types.InitializeResponse 
+---@field request dapui.types.InitializeRequestArguments
+---@field error? table
+---@field response dapui.types.InitializeResponse
 
 ---@param listener fun(args: dapui.types.initializeRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -515,8 +515,8 @@ function DAPUIEventListenerClient.initialize(listener, opts) end
 function DAPUIRequestsClient.launch(args) end
 
 ---@class dapui.types.launchRequestListenerArgs
----@field request dapui.types.LaunchRequestArguments 
----@field error? table 
+---@field request dapui.types.LaunchRequestArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.launchRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -536,9 +536,9 @@ function DAPUIEventListenerClient.launch(listener, opts) end
 function DAPUIRequestsClient.loadedSources(args) end
 
 ---@class dapui.types.loadedSourcesRequestListenerArgs
----@field request dapui.types.LoadedSourcesArguments 
----@field error? table 
----@field response dapui.types.LoadedSourcesResponse 
+---@field request dapui.types.LoadedSourcesArguments
+---@field error? table
+---@field response dapui.types.LoadedSourcesResponse
 
 ---@param listener fun(args: dapui.types.loadedSourcesRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -580,9 +580,9 @@ function DAPUIEventListenerClient.loadedSources(listener, opts) end
 function DAPUIRequestsClient.modules(args) end
 
 ---@class dapui.types.modulesRequestListenerArgs
----@field request dapui.types.ModulesArguments 
----@field error? table 
----@field response dapui.types.ModulesResponse 
+---@field request dapui.types.ModulesArguments
+---@field error? table
+---@field response dapui.types.ModulesResponse
 
 ---@param listener fun(args: dapui.types.modulesRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -602,8 +602,8 @@ function DAPUIEventListenerClient.modules(listener, opts) end
 function DAPUIRequestsClient.next(args) end
 
 ---@class dapui.types.nextRequestListenerArgs
----@field request dapui.types.NextArguments 
----@field error? table 
+---@field request dapui.types.NextArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.nextRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -620,8 +620,8 @@ function DAPUIEventListenerClient.next(listener, opts) end
 function DAPUIRequestsClient.pause(args) end
 
 ---@class dapui.types.pauseRequestListenerArgs
----@field request dapui.types.PauseArguments 
----@field error? table 
+---@field request dapui.types.PauseArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.pauseRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -646,9 +646,9 @@ function DAPUIEventListenerClient.pause(listener, opts) end
 function DAPUIRequestsClient.readMemory(args) end
 
 ---@class dapui.types.readMemoryRequestListenerArgs
----@field request dapui.types.ReadMemoryArguments 
----@field error? table 
----@field response dapui.types.ReadMemoryResponse 
+---@field request dapui.types.ReadMemoryArguments
+---@field error? table
+---@field response dapui.types.ReadMemoryResponse
 
 ---@param listener fun(args: dapui.types.readMemoryRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -666,8 +666,8 @@ function DAPUIEventListenerClient.readMemory(listener, opts) end
 function DAPUIRequestsClient.restartFrame(args) end
 
 ---@class dapui.types.restartFrameRequestListenerArgs
----@field request dapui.types.RestartFrameArguments 
----@field error? table 
+---@field request dapui.types.RestartFrameArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.restartFrameRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -684,8 +684,8 @@ function DAPUIEventListenerClient.restartFrame(listener, opts) end
 function DAPUIRequestsClient.restart(args) end
 
 ---@class dapui.types.restartRequestListenerArgs
----@field request dapui.types.RestartArguments 
----@field error? table 
+---@field request dapui.types.RestartArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.restartRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -703,8 +703,8 @@ function DAPUIEventListenerClient.restart(listener, opts) end
 function DAPUIRequestsClient.reverseContinue(args) end
 
 ---@class dapui.types.reverseContinueRequestListenerArgs
----@field request dapui.types.ReverseContinueArguments 
----@field error? table 
+---@field request dapui.types.ReverseContinueArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.reverseContinueRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -734,9 +734,9 @@ function DAPUIEventListenerClient.reverseContinue(listener, opts) end
 function DAPUIRequestsClient.runInTerminal(args) end
 
 ---@class dapui.types.runInTerminalRequestListenerArgs
----@field request dapui.types.RunInTerminalRequestArguments 
----@field error? table 
----@field response dapui.types.RunInTerminalResponse 
+---@field request dapui.types.RunInTerminalRequestArguments
+---@field error? table
+---@field response dapui.types.RunInTerminalResponse
 
 ---@param listener fun(args: dapui.types.runInTerminalRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -770,9 +770,9 @@ function DAPUIEventListenerClient.runInTerminal(listener, opts) end
 function DAPUIRequestsClient.scopes(args) end
 
 ---@class dapui.types.scopesRequestListenerArgs
----@field request dapui.types.ScopesArguments 
----@field error? table 
----@field response dapui.types.ScopesResponse 
+---@field request dapui.types.ScopesArguments
+---@field error? table
+---@field response dapui.types.ScopesResponse
 
 ---@param listener fun(args: dapui.types.scopesRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -818,9 +818,9 @@ function DAPUIEventListenerClient.scopes(listener, opts) end
 function DAPUIRequestsClient.setBreakpoints(args) end
 
 ---@class dapui.types.setBreakpointsRequestListenerArgs
----@field request dapui.types.SetBreakpointsArguments 
----@field error? table 
----@field response dapui.types.SetBreakpointsResponse 
+---@field request dapui.types.SetBreakpointsArguments
+---@field error? table
+---@field response dapui.types.SetBreakpointsResponse
 
 ---@param listener fun(args: dapui.types.setBreakpointsRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -850,9 +850,9 @@ function DAPUIEventListenerClient.setBreakpoints(listener, opts) end
 function DAPUIRequestsClient.setDataBreakpoints(args) end
 
 ---@class dapui.types.setDataBreakpointsRequestListenerArgs
----@field request dapui.types.SetDataBreakpointsArguments 
----@field error? table 
----@field response dapui.types.SetDataBreakpointsResponse 
+---@field request dapui.types.SetDataBreakpointsArguments
+---@field error? table
+---@field response dapui.types.SetDataBreakpointsResponse
 
 ---@param listener fun(args: dapui.types.setDataBreakpointsRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -892,9 +892,9 @@ function DAPUIEventListenerClient.setDataBreakpoints(listener, opts) end
 function DAPUIRequestsClient.setExceptionBreakpoints(args) end
 
 ---@class dapui.types.setExceptionBreakpointsRequestListenerArgs
----@field request dapui.types.SetExceptionBreakpointsArguments 
----@field error? table 
----@field response dapui.types.SetExceptionBreakpointsResponse 
+---@field request dapui.types.SetExceptionBreakpointsArguments
+---@field error? table
+---@field response dapui.types.SetExceptionBreakpointsResponse
 
 ---@param listener fun(args: dapui.types.setExceptionBreakpointsRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -925,9 +925,9 @@ function DAPUIEventListenerClient.setExceptionBreakpoints(listener, opts) end
 function DAPUIRequestsClient.setExpression(args) end
 
 ---@class dapui.types.setExpressionRequestListenerArgs
----@field request dapui.types.SetExpressionArguments 
----@field error? table 
----@field response dapui.types.SetExpressionResponse 
+---@field request dapui.types.SetExpressionArguments
+---@field error? table
+---@field response dapui.types.SetExpressionResponse
 
 ---@param listener fun(args: dapui.types.setExpressionRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -956,9 +956,9 @@ function DAPUIEventListenerClient.setExpression(listener, opts) end
 function DAPUIRequestsClient.setFunctionBreakpoints(args) end
 
 ---@class dapui.types.setFunctionBreakpointsRequestListenerArgs
----@field request dapui.types.SetFunctionBreakpointsArguments 
----@field error? table 
----@field response dapui.types.SetFunctionBreakpointsResponse 
+---@field request dapui.types.SetFunctionBreakpointsArguments
+---@field error? table
+---@field response dapui.types.SetFunctionBreakpointsResponse
 
 ---@param listener fun(args: dapui.types.setFunctionBreakpointsRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -978,7 +978,7 @@ function DAPUIEventListenerClient.setFunctionBreakpoints(listener, opts) end
 ---@class dapui.types.SetInstructionBreakpointsResponse
 ---@field breakpoints dapui.types.Breakpoint[] Information about the breakpoints. The array elements correspond to the elements of the `breakpoints` array.
 
----Replaces all existing instruction breakpoints. Typically, instruction breakpoints would be set from a disassembly window. 
+---Replaces all existing instruction breakpoints. Typically, instruction breakpoints would be set from a disassembly window.
 ---To clear all instruction breakpoints, specify an empty array.
 ---When an instruction breakpoint is hit, a `stopped` event (with reason `instruction breakpoint`) is generated.
 ---Clients should only call this request if the corresponding capability `supportsInstructionBreakpoints` is true.
@@ -988,9 +988,9 @@ function DAPUIEventListenerClient.setFunctionBreakpoints(listener, opts) end
 function DAPUIRequestsClient.setInstructionBreakpoints(args) end
 
 ---@class dapui.types.setInstructionBreakpointsRequestListenerArgs
----@field request dapui.types.SetInstructionBreakpointsArguments 
----@field error? table 
----@field response dapui.types.SetInstructionBreakpointsResponse 
+---@field request dapui.types.SetInstructionBreakpointsArguments
+---@field error? table
+---@field response dapui.types.SetInstructionBreakpointsResponse
 
 ---@param listener fun(args: dapui.types.setInstructionBreakpointsRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1018,9 +1018,9 @@ function DAPUIEventListenerClient.setInstructionBreakpoints(listener, opts) end
 function DAPUIRequestsClient.setVariable(args) end
 
 ---@class dapui.types.setVariableRequestListenerArgs
----@field request dapui.types.SetVariableArguments 
----@field error? table 
----@field response dapui.types.SetVariableResponse 
+---@field request dapui.types.SetVariableArguments
+---@field error? table
+---@field response dapui.types.SetVariableResponse
 
 ---@param listener fun(args: dapui.types.setVariableRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1042,9 +1042,9 @@ function DAPUIEventListenerClient.setVariable(listener, opts) end
 function DAPUIRequestsClient.source(args) end
 
 ---@class dapui.types.sourceRequestListenerArgs
----@field request dapui.types.SourceArguments 
----@field error? table 
----@field response dapui.types.SourceResponse 
+---@field request dapui.types.SourceArguments
+---@field error? table
+---@field response dapui.types.SourceResponse
 
 ---@param listener fun(args: dapui.types.sourceRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1094,9 +1094,9 @@ function DAPUIEventListenerClient.source(listener, opts) end
 function DAPUIRequestsClient.stackTrace(args) end
 
 ---@class dapui.types.stackTraceRequestListenerArgs
----@field request dapui.types.StackTraceArguments 
----@field error? table 
----@field response dapui.types.StackTraceResponse 
+---@field request dapui.types.StackTraceArguments
+---@field error? table
+---@field response dapui.types.StackTraceResponse
 
 ---@param listener fun(args: dapui.types.stackTraceRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1115,8 +1115,8 @@ function DAPUIEventListenerClient.stackTrace(listener, opts) end
 function DAPUIRequestsClient.startDebugging(args) end
 
 ---@class dapui.types.startDebuggingRequestListenerArgs
----@field request dapui.types.StartDebuggingRequestArguments 
----@field error? table 
+---@field request dapui.types.StartDebuggingRequestArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.startDebuggingRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1137,8 +1137,8 @@ function DAPUIEventListenerClient.startDebugging(listener, opts) end
 function DAPUIRequestsClient.stepBack(args) end
 
 ---@class dapui.types.stepBackRequestListenerArgs
----@field request dapui.types.StepBackArguments 
----@field error? table 
+---@field request dapui.types.StepBackArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.stepBackRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1163,8 +1163,8 @@ function DAPUIEventListenerClient.stepBack(listener, opts) end
 function DAPUIRequestsClient.stepIn(args) end
 
 ---@class dapui.types.stepInRequestListenerArgs
----@field request dapui.types.StepInArguments 
----@field error? table 
+---@field request dapui.types.StepInArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.stepInRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1195,9 +1195,9 @@ function DAPUIEventListenerClient.stepIn(listener, opts) end
 function DAPUIRequestsClient.stepInTargets(args) end
 
 ---@class dapui.types.stepInTargetsRequestListenerArgs
----@field request dapui.types.StepInTargetsArguments 
----@field error? table 
----@field response dapui.types.StepInTargetsResponse 
+---@field request dapui.types.StepInTargetsArguments
+---@field error? table
+---@field response dapui.types.StepInTargetsResponse
 
 ---@param listener fun(args: dapui.types.stepInTargetsRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1217,8 +1217,8 @@ function DAPUIEventListenerClient.stepInTargets(listener, opts) end
 function DAPUIRequestsClient.stepOut(args) end
 
 ---@class dapui.types.stepOutRequestListenerArgs
----@field request dapui.types.StepOutArguments 
----@field error? table 
+---@field request dapui.types.StepOutArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.stepOutRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1237,8 +1237,8 @@ function DAPUIEventListenerClient.stepOut(listener, opts) end
 function DAPUIRequestsClient.terminate(args) end
 
 ---@class dapui.types.terminateRequestListenerArgs
----@field request dapui.types.TerminateArguments 
----@field error? table 
+---@field request dapui.types.TerminateArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.terminateRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1255,13 +1255,12 @@ function DAPUIEventListenerClient.terminate(listener, opts) end
 function DAPUIRequestsClient.terminateThreads(args) end
 
 ---@class dapui.types.terminateThreadsRequestListenerArgs
----@field request dapui.types.TerminateThreadsArguments 
----@field error? table 
+---@field request dapui.types.TerminateThreadsArguments
+---@field error? table
 
 ---@param listener fun(args: dapui.types.terminateThreadsRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
 function DAPUIEventListenerClient.terminateThreads(listener, opts) end
-
 
 ---A Thread
 ---@class dapui.types.Thread
@@ -1277,8 +1276,8 @@ function DAPUIEventListenerClient.terminateThreads(listener, opts) end
 function DAPUIRequestsClient.threads() end
 
 ---@class dapui.types.threadsRequestListenerArgs
----@field error? table 
----@field response dapui.types.ThreadsResponse 
+---@field error? table
+---@field response dapui.types.ThreadsResponse
 
 ---@param listener fun(args: dapui.types.threadsRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1320,9 +1319,9 @@ function DAPUIEventListenerClient.threads(listener, opts) end
 function DAPUIRequestsClient.variables(args) end
 
 ---@class dapui.types.variablesRequestListenerArgs
----@field request dapui.types.VariablesArguments 
----@field error? table 
----@field response dapui.types.VariablesResponse 
+---@field request dapui.types.VariablesArguments
+---@field error? table
+---@field response dapui.types.VariablesResponse
 
 ---@param listener fun(args: dapui.types.variablesRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1347,9 +1346,9 @@ function DAPUIEventListenerClient.variables(listener, opts) end
 function DAPUIRequestsClient.writeMemory(args) end
 
 ---@class dapui.types.writeMemoryRequestListenerArgs
----@field request dapui.types.WriteMemoryArguments 
----@field error? table 
----@field response dapui.types.WriteMemoryResponse 
+---@field request dapui.types.WriteMemoryArguments
+---@field error? table
+---@field response dapui.types.WriteMemoryResponse
 
 ---@param listener fun(args: dapui.types.writeMemoryRequestListenerArgs): boolean | nil
 ---@param opts? dapui.client.ListenerOpts
@@ -1435,7 +1434,6 @@ function DAPUIEventListenerClient.continued(listener, opts) end
 ---@param listener fun(args: dapui.types.ExitedEventArgs)
 ---@param opts? dapui.client.ListenerOpts
 function DAPUIEventListenerClient.exited(listener, opts) end
-
 
 ---This event indicates that the debug adapter is ready to accept configuration requests (e.g. `setBreakpoints`, `setExceptionBreakpoints`).
 ---A debug adapter is expected to send this event when it is ready to accept configuration requests (but not before the `initialize` request has finished).
@@ -1590,6 +1588,5 @@ function DAPUIEventListenerClient.terminated(listener, opts) end
 ---@param listener fun(args: dapui.types.ThreadEventArgs)
 ---@param opts? dapui.client.ListenerOpts
 function DAPUIEventListenerClient.thread(listener, opts) end
-
 
 return { request = DAPUIRequestsClient, listen = DAPUIEventListenerClient }

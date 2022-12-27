@@ -70,7 +70,7 @@ return function(client, send_ready)
           client.request.evaluate,
           { context = "watch", expression = watch.expression, frameId = frame_id }
         )
-        local prefix = config.icons()[watch.expanded and "expanded" or "collapsed"]
+        local prefix = config.icons[watch.expanded and "expanded" or "collapsed"]
 
         canvas:write(prefix, { group = success and "DapUIWatchesValue" or "DapUIWatchesError" })
         canvas:write(" " .. watch.expression)
@@ -100,21 +100,21 @@ return function(client, send_ready)
 
         for _, line in ipairs(util.format_value(val_start, value)) do
           canvas:write(line, { group = var_group })
-          canvas:add_mapping(config.actions.REMOVE, partial(remove_expr, i))
-          canvas:add_mapping(config.actions.EDIT, function()
+          canvas:add_mapping("remove", partial(remove_expr, i))
+          canvas:add_mapping("edit", function()
             edit_index = i
             send_ready()
           end)
           if success then
-            canvas:add_mapping(config.actions.EXPAND, partial(toggle_expression, i))
-            canvas:add_mapping(config.actions.REPL, partial(util.send_to_repl, watch.expression))
+            canvas:add_mapping("expand", partial(toggle_expression, i))
+            canvas:add_mapping("repl", partial(util.send_to_repl, watch.expression))
           end
           canvas:write("\n")
         end
 
         local var_ref = success and evaluated.variablesReference or 0
         if watch.expanded and var_ref > 0 then
-          render_vars.render(canvas, watch.expression, var_ref, config.windows().indent)
+          render_vars.render(canvas, watch.expression, var_ref, config.render.indent)
         end
         if rendered_step ~= step then
           rendered_exprs[i] = evaluated.result

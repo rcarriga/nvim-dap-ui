@@ -177,7 +177,7 @@ function M.render_type(maybe_type)
   if not maybe_type then
     return ""
   end
-  local max_length = config.render().max_type_length
+  local max_length = config.render.max_type_length
   if not max_length or max_length == -1 then
     return maybe_type
   end
@@ -197,7 +197,7 @@ end
 ---@return string[]
 function M.format_value(value_start, value)
   local formatted = {}
-  local max_lines = config.render().max_value_lines
+  local max_lines = config.render.max_value_lines
   local i = 0
   --- Use gsplit instead of split because adapters can returns very long values
   --- and we want to avoid creating thousands of substrings that we won't use.

@@ -3,7 +3,13 @@ local dap = require("dap")
 local util = require("dapui.util")
 
 return function()
-  local dapui = { console = {} }
+  local dapui = { elements = {} }
+
+  ---@class dapui.elements.console
+  ---@toc_entry Console
+  ---@text
+  --- The console window used by nvim-dap for the integrated terminal.
+  dapui.elements.console = {}
 
   local console_buf = -1
   local autoscroll = true
@@ -59,16 +65,15 @@ return function()
     return get_buf(), win
   end
 
-  function dapui.console.render() end
+  function dapui.elements.console.render() end
 
-  function dapui.console.buffer()
+  function dapui.elements.console.buffer()
     return get_buf()
   end
 
-  function dapui.console.float_defaults()
+  function dapui.elements.console.float_defaults()
     return { width = 80, height = 20, enter = true }
   end
 
-  ---@type dapui.Element
-  return dapui.console
+  return dapui.elements.console
 end

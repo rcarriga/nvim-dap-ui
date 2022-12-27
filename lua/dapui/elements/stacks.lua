@@ -3,9 +3,20 @@ local Canvas = require("dapui.render.canvas")
 local util = require("dapui.util")
 
 return function(client)
-  local dapui = { stacks = {} }
+  local dapui = { elements = {} }
+
+  ---@class dapui.elements.stacks
+  ---@toc_entry Threads and Stack Frames
+  ---@text
+  --- Displays the running threads and their stack frames.
+  ---
+  --- Mappings:
+  --- - `open`: Jump to a place within the stack frame.
+  --- - `toggle`: Toggle displaying [subtle](https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame) frames
+  dapui.elements.stacks = {}
+
   local send_ready = util.create_render_loop(function()
-    dapui.stacks.render()
+    dapui.elements.stacks.render()
   end)
 
   local threads = require("dapui.components.threads")(client, send_ready)
@@ -14,15 +25,15 @@ return function(client)
     filetype = "dapui_stacks",
   })
 
-  function dapui.stacks.render()
+  function dapui.elements.stacks.render()
     local canvas = Canvas.new()
     threads.render(canvas)
     canvas:render_buffer(buf, config.element_mapping("stacks"))
   end
 
-  function dapui.stacks.buffer()
+  function dapui.elements.stacks.buffer()
     return buf
   end
 
-  return dapui.stacks
+  return dapui.elements.stacks
 end

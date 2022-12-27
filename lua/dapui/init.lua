@@ -1,5 +1,11 @@
 ---@tag nvim-dap-ui
 
+---@toc
+---@text
+--- A UI for nvim-dap which provides a good out of the box configuration.
+--- nvim-dap-ui is built on the idea of "elements". These elements are windows
+--- which provide different features.
+
 local dap = require("dap")
 local dapui = {}
 
@@ -9,19 +15,15 @@ local util = require("dapui.util")
 local async = require("dapui.async")
 
 ---@type table<string, dapui.Element>
+---@nodoc
 local elements = {}
-
----@return fun(client): dapui.Element
-local function get_element(name)
-  return require("dapui.elements." .. name)
-end
 
 local open_float = nil
 
 local function query_elem_name()
   local entries = {}
   for name, _ in pairs(elements) do
-    if name ~= config.elements.HOVER then
+    if name ~= "hover" then
       entries[#entries + 1] = name
     end
   end
@@ -33,106 +35,29 @@ local function query_elem_name()
   })
 end
 
----Open a floating window containing the desired element.
+---@toc_entry Setup
+---@text
+--- Configure nvim-dap-ui
+---@seealso |dapui.Config|
 ---
----If no fixed dimensions are given, the window will expand to fit the contents
----of the buffer.
----@param elem_name string
----@param settings table
----@field width integer: Fixed width of window
----@field height integer: Fixed height of window
----@field enter boolean: Whether or not to enter the window after opening
-function dapui.float_element(elem_name, settings)
-  async.run(function()
-    if open_float then
-      return open_float:jump_to()
-    end
-    local line_no = async.fn.screenrow()
-    local col_no = async.fn.screencol()
-    local position = { line = line_no, col = col_no }
-    elem_name = elem_name or query_elem_name()
-    if not elem_name then
-      return
-    end
-    local elem = elements[elem_name]
-    settings = vim.tbl_deep_extend(
-      "keep",
-      settings or {},
-      elem.float_defaults and elem.float_defaults() or {}
-    )
-    async.util.scheduler()
-    open_float = require("dapui.windows").open_float(elem_name, elem, position, settings)
-    if open_float then
-      open_float:listen("close", function()
-        open_float = nil
-      end)
-    end
-  end)
-end
-
-local prev_expr = nil
-
----Open a floating window containing the result of evaluting an expression
----
----If no fixed dimensions are given, the window will expand to fit the contents
----of the buffer.
----@param expr string: Expression to evaluate. If nil, then in normal more the current word is used, and in visual mode the currently highlighted text.
----@param settings table
----@field context string: Context to use for evalutate request, defaults to "hover". Hover requests should have no side effects, if you have errors with evaluation, try changing context to "repl". See the DAP specification for more details.
----@field width integer: Fixed width of window
----@field height integer: Fixed height of window
----@field enter boolean: Whether or not to enter the window after opening
-function dapui.eval(expr, settings)
-  async.run(function()
-    if not dap.session() then
-      util.notify("No active debug session", vim.log.levels.WARN)
-      return
-    end
-    settings = settings or {}
-    if not expr then
-      if vim.fn.mode() == "v" then
-        local start = async.fn.getpos("v")
-        local finish = async.fn.getpos(".")
-        local lines = util.get_selection(start, finish)
-        expr = table.concat(lines, "\n")
-      else
-        expr = expr or async.fn.expand("<cexpr>")
-      end
-    end
-    if open_float then
-      if prev_expr == expr then
-        open_float:jump_to()
-        return
-      else
-        open_float:close()
-      end
-    end
-    prev_expr = expr
-    local elem = elements[config.elements.HOVER]
-    elem.set_expression(expr, settings.context)
-    local line_no = async.fn.screenrow()
-    local col_no = async.fn.screencol()
-    local position = { line = line_no, col = col_no }
-    open_float =
-    require("dapui.windows").open_float(config.elements.HOVER, elem, position, settings)
-    if open_float then
-      open_float:listen("close", function()
-        open_float = nil
-      end)
-    end
-  end)
-end
-
-local refresh_control_panel = function() end
-
+---@eval return require('dapui.config')._format_default()
+---@param user_config? dapui.Config
 function dapui.setup(user_config)
   config.setup(user_config)
 
   local client = require("dapui.client")(dap.session)
 
   ---@type table<string, dapui.Element>
-  for _, module in pairs(config.elements) do
-    local elem = get_element(module)(client)
+  for _, module in pairs({
+    "breakpoints",
+    "repl",
+    "scopes",
+    "stacks",
+    "watches",
+    "hover",
+    "console",
+  }) do
+    local elem = require("dapui.elements." .. module)(client)
 
     elements[module] = elem
   end
@@ -216,8 +141,100 @@ function dapui.setup(user_config)
   windows.setup(element_buffers)
 end
 
----Update the config.render settings and re-render windows
----@param update table: Updated settings, from the `render` table of the config
+---@class dapui.FloatElementArgs
+---@field width integer Fixed width of window
+---@field height integer Fixed height of window
+---@field enter boolean Whether or not to enter the window after opening
+
+--- Open a floating window containing the desired element.
+---
+--- If no fixed dimensions are given, the window will expand to fit the contents
+--- of the buffer.
+---@param elem_name string
+---@param args dapui.FloatElementArgs
+function dapui.float_element(elem_name, args)
+  async.run(function()
+    if open_float then
+      return open_float:jump_to()
+    end
+    local line_no = async.fn.screenrow()
+    local col_no = async.fn.screencol()
+    local position = { line = line_no, col = col_no }
+    elem_name = elem_name or query_elem_name()
+    if not elem_name then
+      return
+    end
+    local elem = elements[elem_name]
+    args =
+      vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
+    async.util.scheduler()
+    open_float = require("dapui.windows").open_float(elem_name, elem, position, args)
+    if open_float then
+      open_float:listen("close", function()
+        open_float = nil
+      end)
+    end
+  end)
+end
+
+local prev_expr = nil
+
+---@class dapui.EvalArgs
+---@field context string Context to use for evalutate request, defaults to "hover". Hover requests should have no side effects, if you have errors with evaluation, try changing context to "repl". See the DAP specification for more details.
+---@field width integer Fixed width of window
+---@field height integer Fixed height of window
+---@field enter boolean Whether or not to enter the window after opening
+
+--- Open a floating window containing the result of evaluting an expression
+---
+--- If no fixed dimensions are given, the window will expand to fit the contents
+--- of the buffer.
+---@param expr string Expression to evaluate. If nil, then in normal more the current word is used, and in visual mode the currently highlighted text.
+---@param args dapui.EvalArgs
+function dapui.eval(expr, args)
+  async.run(function()
+    if not dap.session() then
+      util.notify("No active debug session", vim.log.levels.WARN)
+      return
+    end
+    args = args or {}
+    if not expr then
+      if vim.fn.mode() == "v" then
+        local start = async.fn.getpos("v")
+        local finish = async.fn.getpos(".")
+        local lines = util.get_selection(start, finish)
+        expr = table.concat(lines, "\n")
+      else
+        expr = expr or async.fn.expand("<cexpr>")
+      end
+    end
+    if open_float then
+      if prev_expr == expr then
+        open_float:jump_to()
+        return
+      else
+        open_float:close()
+      end
+    end
+    prev_expr = expr
+    local elem = elements.hover
+    elem.set_expression(expr, args.context)
+    local line_no = async.fn.screenrow()
+    local col_no = async.fn.screencol()
+    local position = { line = line_no, col = col_no }
+    open_float = require("dapui.windows").open_float("hover", elem, position, args)
+    if open_float then
+      open_float:listen("close", function()
+        open_float = nil
+      end)
+    end
+  end)
+end
+
+local refresh_control_panel = function() end
+
+--- Update the config.render settings and re-render windows
+---@param update dapui.Config.render Updated settings, from the `render` table of the config
 function dapui.update_render(update)
   config.update_render(update)
   async.run(function()
@@ -235,16 +252,18 @@ local function keep_cmdheight(cb)
   vim.o.cmdheight = cmd_height
 end
 
----Close one or all of the window layouts
----@param opts table
----@field layout number|nil: Index of layout in config
-function dapui.close(opts)
+---@class dapui.CloseArgs
+---@field layout? number Index of layout in config
+
+--- Close one or all of the window layouts
+---@param args? dapui.CloseArgs
+function dapui.close(args)
   keep_cmdheight(function()
-    opts = opts or {}
-    if type(opts) == "number" then
-      opts = { layout = opts }
+    args = args or {}
+    if type(args) == "number" then
+      args = { layout = args }
     end
-    local layout = opts.layout
+    local layout = args.layout
 
     for _, win_layout in ipairs(windows.layouts) do
       win_layout:update_sizes()
@@ -261,6 +280,7 @@ end
 ---@generic T
 ---@param list T[]
 ---@return fun(): number, T
+---@nodoc
 local function reverse(list)
   local i = #list + 1
   return function()
@@ -272,17 +292,19 @@ local function reverse(list)
   end
 end
 
----Open one or all of the window layouts
----@param opts table
----@field layout number|nil: Index of layout in config
----@field reset boolean: Reset windows to original size
-function dapui.open(opts)
+---@class dapui.OpenArgs
+---@field layout? number Index of layout in config
+---@field reset? boolean Reset windows to original size
+
+--- Open one or all of the window layouts
+---@param args? dapui.OpenArgs
+function dapui.open(args)
   keep_cmdheight(function()
-    opts = opts or {}
-    if type(opts) == "number" then
-      opts = { layout = opts }
+    args = args or {}
+    if type(args) == "number" then
+      args = { layout = args }
     end
-    local layout = opts.layout
+    local layout = args.layout
 
     for _, win_layout in ipairs(windows.layouts) do
       win_layout:update_sizes()
@@ -310,23 +332,25 @@ function dapui.open(opts)
     end
 
     for _, win_layout in ipairs(windows.layouts) do
-      win_layout:resize(opts)
+      win_layout:resize(args)
     end
   end)
   refresh_control_panel()
 end
 
----Toggle one or all of the window layouts.
----@param opts table
----@field layout number|nil: Index of layout in config
----@field reset boolean: Reset windows to original size
-function dapui.toggle(opts)
+---@class dapui.ToggleArgs
+---@field layout? number Index of layout in config
+---@field reset? boolean Reset windows to original size
+
+--- Toggle one or all of the window layouts.
+---@param args? dapui.ToggleArgs
+function dapui.toggle(args)
   keep_cmdheight(function()
-    opts = opts or {}
-    if type(opts) == "number" then
-      opts = { layout = opts }
+    args = args or {}
+    if type(args) == "number" then
+      args = { layout = args }
     end
-    local layout = opts.layout
+    local layout = args.layout
 
     for _, win_layout in reverse(windows.layouts) do
       win_layout:update_sizes()
@@ -353,7 +377,7 @@ function dapui.toggle(opts)
     end
 
     for _, win_layout in ipairs(windows.layouts) do
-      win_layout:resize(opts)
+      win_layout:resize(args)
     end
   end)
   refresh_control_panel()
