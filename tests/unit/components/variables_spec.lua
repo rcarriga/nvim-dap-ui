@@ -1,5 +1,64 @@
-local Variables = require("dapui.components.variables")
-local render = require("dapui.render")
+local async = require("dapui.async")
+local a = async.tests
+local Scopes = require("dapui.elements.scopes")
+local MockClient = require("dapui.tests")
+
+A = function(...)
+  print(vim.inspect(...))
+end
+
+describe("scopes element", function()
+  require("dapui.config").setup({})
+  ---@type dapui.DAPClient
+  a.it("", function()
+    local client = MockClient({
+      current_frame = {
+        id = 1,
+      },
+      requests = {
+        scopes = function(args)
+          assert(args.frameId == 1)
+          return {
+            scopes = {
+              {
+                name = "Locals",
+                variablesReference = 1,
+              },
+            },
+          }
+        end,
+        variables = function(args)
+          assert.equals(1, args.variablesReference)
+          return {
+            variables = {
+              {
+                name = "a",
+                value = "1",
+                type = "number",
+                variablesReference = 0,
+              },
+              {
+                name = "b",
+                value = "2",
+                type = "number",
+                variablesReference = 0,
+              },
+            },
+          }
+        end,
+      },
+    })
+    local scopes = Scopes(client)
+    scopes.render()
+    local buf = scopes.buffer()
+    local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
+    assert.same({
+      "Locals:",
+      "   a number = 1",
+      "   b number = 2",
+    }, lines)
+  end)
+end)
 
 describe("checking variables", function()
   assert:add_formatter(vim.inspect)

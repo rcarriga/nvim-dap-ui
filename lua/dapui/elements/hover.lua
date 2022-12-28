@@ -1,4 +1,5 @@
 local config = require("dapui.config")
+local async = require("dapui.async")
 local util = require("dapui.util")
 local Canvas = require("dapui.render.canvas")
 
@@ -33,7 +34,9 @@ return function(client)
   ---Set the expression for the hover window
   ---@param expression string
   function dapui.elements.hover.set_expression(expression, context)
-    hover.set_expression(expression, context)
+    async.run(function()
+      hover.set_expression(expression, context)
+    end)
   end
 
   return dapui.elements.hover

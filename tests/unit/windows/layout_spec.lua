@@ -17,7 +17,7 @@ describe("checking window layout", function()
     config.setup()
     registered = {}
     run = {}
-    local layout_conf = config.layouts()[1]
+    local layout_conf = config.layouts[1]
     local position = layout_conf.position
     local width = layout_conf.size
     local open_cmd = position == "left" and "topleft" or "botright"

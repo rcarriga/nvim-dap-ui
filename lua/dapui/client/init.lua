@@ -11,6 +11,7 @@ local types = require("dapui.client.types")
 ---@field listen dapui.DAPEventListenerClient
 ---@field session dapui.SessionProxy
 ---@field lib dapui.DAPClientLib
+---@field breakpoints dapui.BreakpointsProxy
 local DAPUIClient = {}
 
 ---@class dapui.SessionProxy
@@ -19,21 +20,21 @@ local DAPUIClient = {}
 ---@field stopped_thread_id integer
 ---@field capabilities dapui.types.Capabilities
 
-local proxied = {}
+local proxied_session_keys = {}
 for _, key in ipairs({
   "current_frame",
   "_frame_set",
   "stopped_thread_id",
   "capabilities",
 }) do
-  proxied[key] = true
+  proxied_session_keys[key] = true
 end
 
 ---@return dapui.SessionProxy
 local function create_session_proxy(session)
   return setmetatable({}, {
     __index = function(_, key)
-      if not proxied[key] then
+      if not proxied_session_keys[key] then
         return nil
       end
       local value = session[key]
@@ -45,6 +46,31 @@ local function create_session_proxy(session)
       return value
     end,
   })
+end
+
+---@class dapui.client.BreakpointArgs{
+---@field condition? string
+---@field hit_condition? string
+---@field log_message? string
+
+---@class dapui.BreakpointsProxy
+---@field get fun(): table<integer, dapui.types.DAPBreakpoint[]>
+---@field get_buf fun(bufnr: integer): dapui.types.DAPBreakpoint[]
+---@field toggle fun(bufnr: integer, line: integer, args: dapui.client.BreakpointArgs)
+
+---@return dapui.BreakpointsProxy
+local function create_breakpoints_proxy(breakpoints)
+  local proxy = {}
+  proxy.get = function()
+    return breakpoints.get()
+  end
+  proxy.get_buf = function(bufnr)
+    return breakpoints.get(bufnr)
+  end
+  proxy.toggle = function(bufnr, line, args)
+    breakpoints.toggle(args, bufnr, line)
+  end
+  return proxy
 end
 
 local Error = function(err, args)
@@ -66,7 +92,8 @@ end
 
 ---@param session_factory fun(): dap.Session
 ---@return dapui.DAPClient
-local function create_client(session_factory)
+local function create_client(session_factory, breakpoints)
+  breakpoints = breakpoints or require("dap.breakpoints")
   local request_seqs = {}
   local async_request = async.wrap(function(command, args, cb)
     local session = session_factory()
@@ -134,6 +161,7 @@ local function create_client(session_factory)
   })
 
   local client = setmetatable({
+    breakpoints = create_breakpoints_proxy(breakpoints),
     request = request,
     listen = listen,
   }, {

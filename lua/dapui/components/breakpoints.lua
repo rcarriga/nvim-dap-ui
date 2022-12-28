@@ -20,13 +20,13 @@ return function(client, send_ready)
 
   ---@param bp dapui.types.DAPBreakpoint
   local function _toggle(bufnr, bp)
-    require("dap.breakpoints").toggle({
+    client.breakpoints.toggle(bufnr, bp.line, {
       condition = bp.condition,
       hit_condition = bp.hitCondition,
       log_message = bp.logMessage,
-    }, bufnr, bp.line)
+    })
 
-    local buffer_breakpoints = require("dap.breakpoints").get(bufnr)
+    local buffer_breakpoints = client.breakpoints.get_buf(bufnr)
     local enabled = false
     for _, buf_bp in ipairs(buffer_breakpoints) do
       if buf_bp.line == bp.line then
@@ -51,7 +51,7 @@ return function(client, send_ready)
   ---@return table<integer, dapui.types.DAPBreakpoint[]>
   local function _get_breakpoints()
     ---@type table<integer, dapui.types.DAPBreakpoint[]>
-    local bps = require("dap.breakpoints").get() or {}
+    local bps = client.breakpoints.get()
     local merged_breakpoints = {}
     local buffers = {}
     for buf, _ in pairs(bps) do

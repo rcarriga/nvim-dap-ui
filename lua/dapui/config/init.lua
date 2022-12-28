@@ -126,7 +126,7 @@ local default_config = {
   },
 }
 
-local user_config = {}
+local user_config = default_config
 
 local function fill_elements(area)
   area = vim.deepcopy(area)
@@ -207,5 +207,7 @@ setmetatable(dapui.config, {
     return user_config[key]
   end,
 })
+
+dapui.config.setup()
 
 return dapui.config

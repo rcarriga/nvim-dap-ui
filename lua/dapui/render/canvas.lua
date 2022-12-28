@@ -16,9 +16,8 @@ M.namespace = api.nvim_create_namespace("dapui")
 ---@field expand_lines table
 local Canvas = {}
 
-local function run_mapping(action)
-  local buffer = api.nvim_get_current_buf()
-  local line = vim.fn.line(".")
+local function run_mapping(action, buffer, line)
+  line = line or vim.fn.line(".")
   local callbacks = _mappings[buffer][action][line]
   if not callbacks then
     util.notify("No " .. action .. " action for current line", vim.log.levels.INFO)
@@ -161,8 +160,8 @@ function Canvas:render_buffer(buffer, action_keys)
 
   _mappings[buffer] = self.mappings
   for action, _ in pairs(self.mappings) do
-    util.apply_mapping(action_keys[action], function()
-      run_mapping(action)
+    util.apply_mapping(action_keys[action], function(line)
+      run_mapping(action, buffer, line)
     end, buffer)
   end
 

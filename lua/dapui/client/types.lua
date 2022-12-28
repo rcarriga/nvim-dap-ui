@@ -1,4 +1,4 @@
----Generated on 2022-12-20 10:36:35.250435
+---Generated on 2022-12-28 11:53:29.971988
 
 ---@class dapui.DAPRequestsClient
 local DAPUIRequestsClient = {}
@@ -27,7 +27,7 @@ function DAPUIEventListenerClient.attach(listener, opts) end
 
 ---The checksum of an item calculated by the specified algorithm.
 ---@class dapui.types.Checksum
----@field algorithm "MD5" The algorithm used to calculate this checksum.
+---@field algorithm "MD5"|"SHA1"|"SHA256"|"timestamp" The algorithm used to calculate this checksum.
 ---@field checksum string Value of the checksum, encoded as a hexadecimal value.
 
 ---A `Source` is a descriptor for source code.
@@ -36,7 +36,7 @@ function DAPUIEventListenerClient.attach(listener, opts) end
 ---@field name? string The short name of the source. Every source returned from the debug adapter has a name. When sending a source to the debug adapter this name is optional.
 ---@field path? string The path of the source to be shown in the UI. It is only used to locate and load the content of the source if no `sourceReference` is specified (or its value is 0).
 ---@field sourceReference? integer If the value > 0 the contents of the source must be retrieved through the `source` request (even if a path is specified). Since a `sourceReference` is only valid for a session, it can not be used to persist a source. The value should be less than or equal to 2147483647 (2^31-1).
----@field presentationHint? "normal" A hint for how to present the source in the UI. A value of `deemphasize` can be used to indicate that the source is not available or that it is skipped on stepping.
+---@field presentationHint? "normal"|"emphasize"|"deemphasize" A hint for how to present the source in the UI. A value of `deemphasize` can be used to indicate that the source is not available or that it is skipped on stepping.
 ---@field origin? string The origin of this source. For example, 'internal module', 'inlined content from source map', etc.
 ---@field sources? dapui.types.Source[] A list of sources that are related to this source. These may be the source that generated this source.
 ---@field adapterData? any[] | boolean | integer | number | table<string,any> | string Additional data that a debug adapter might want to loop through the client. The client should leave the data intact and persist it across sessions. The client should not interpret the data.
@@ -115,7 +115,7 @@ function DAPUIEventListenerClient.cancel(listener, opts) end
 ---@field text? string If text is returned and not an empty string, then it is inserted instead of the label.
 ---@field sortText? string A string that should be used when comparing this item with other items. If not returned or an empty string, the `label` is used instead.
 ---@field detail? string A human-readable string with additional information about this item, like type or symbol information.
----@field type? "method" The item's type. Typically the client uses this information to render the item in the UI with an icon.
+---@field type? "method"|"function"|"constructor"|"field"|"variable"|"class"|"interface"|"module"|"property"|"unit"|"value"|"enum"|"keyword"|"snippet"|"text"|"color"|"file"|"reference"|"customcolor" The item's type. Typically the client uses this information to render the item in the UI with an icon.
 ---@field start? integer Start position (within the `text` attribute of the `completions` request) where the completion text is added. The position is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based. If the start position is omitted the text is added at the location specified by the `column` attribute of the `completions` request.
 ---@field length? integer Length determines how many characters are overwritten by the completion text and it is measured in UTF-16 code units. If missing the value 0 is assumed which results in the completion text being inserted.
 ---@field selectionStart? integer Determines the start of the new selection after the text has been inserted (or replaced). `selectionStart` is measured in UTF-16 code units and must be in the range 0 and length of the completion text. If omitted the selection starts at the end of the completion text.
@@ -190,7 +190,7 @@ function DAPUIEventListenerClient.continue_(listener, opts) end
 ---@class dapui.types.DataBreakpointInfoResponse
 ---@field dataId string An identifier for the data on which a data breakpoint can be registered with the `setDataBreakpoints` request or null if no data breakpoint is available.
 ---@field description string UI string that describes on what data the breakpoint is set on or why a data breakpoint is not available.
----@field accessTypes? "read"[] Attribute lists the available access types for a potential data breakpoint. A UI client could surface this information.
+---@field accessTypes? "read"|"write"|"readWrite"[] Attribute lists the available access types for a potential data breakpoint. A UI client could surface this information.
 ---@field canPersist? boolean Attribute indicates that a potential data breakpoint could be persisted across sessions.
 
 ---Obtains information on a possible data breakpoint that could be set on an expression or variable.
@@ -328,7 +328,7 @@ function DAPUIEventListenerClient.evaluate(listener, opts) end
 ---@class dapui.types.ExceptionInfoResponse
 ---@field exceptionId string ID of the exception that was thrown.
 ---@field description? string Descriptive text for the exception.
----@field breakMode "never" Mode that caused the exception notification to be raised.
+---@field breakMode "never"|"always"|"unhandled"|"userUnhandled" Mode that caused the exception notification to be raised.
 ---@field details? dapui.types.ExceptionDetails Detailed information about the exception.
 
 ---Retrieves the details of the exception that caused this event to be raised.
@@ -441,7 +441,7 @@ function DAPUIEventListenerClient.gotoTargets(listener, opts) end
 ---@field attributeName string Name of the attribute rendered in this column.
 ---@field label string Header UI label of column.
 ---@field format? string Format to use for the rendered values in this column. TBD how the format strings looks like.
----@field type? "string" Datatype of values in this column. Defaults to `string` if not specified.
+---@field type? "string"|"number"|"boolean"|"unixTimestampUTC" Datatype of values in this column. Defaults to `string` if not specified.
 ---@field width? integer Width of this column in characters (hint only).
 
 ---Information about the capabilities of a debug adapter.
@@ -461,7 +461,7 @@ function DAPUIEventListenerClient.gotoTargets(listener, opts) end
 ---@field completionTriggerCharacters? string[] The set of characters that should trigger completion in a REPL. If not specified, the UI should assume the `.` character.
 ---@field supportsModulesRequest? boolean The debug adapter supports the `modules` request.
 ---@field additionalModuleColumns? dapui.types.ColumnDescriptor[] The set of additional module information exposed by the debug adapter.
----@field supportedChecksumAlgorithms? "MD5"[] Checksum algorithms supported by the debug adapter.
+---@field supportedChecksumAlgorithms? "MD5"|"SHA1"|"SHA256"|"timestamp"[] Checksum algorithms supported by the debug adapter.
 ---@field supportsRestartRequest? boolean The debug adapter supports the `restart` request. In this case a client should not implement `restart` by terminating and relaunching the adapter but by calling the `restart` request.
 ---@field supportsExceptionOptions? boolean The debug adapter supports `exceptionOptions` on the `setExceptionBreakpoints` request.
 ---@field supportsValueFormattingOptions? boolean The debug adapter supports a `format` attribute on the `stackTrace`, `variables`, and `evaluate` requests.
@@ -592,7 +592,7 @@ function DAPUIEventListenerClient.modules(listener, opts) end
 ---@class dapui.types.NextArguments
 ---@field threadId integer Specifies the thread for which to resume execution for one step (of the given granularity).
 ---@field singleThread? boolean If this flag is true, all other suspended threads are not resumed.
----@field granularity? "statement" Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.
+---@field granularity? "statement"|"line"|"instruction" Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.
 
 ---The request executes one step (in the given granularity) for the specified thread and allows all other threads to run freely by resuming them.
 ---If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true prevents other suspended threads from resuming.
@@ -712,7 +712,7 @@ function DAPUIEventListenerClient.reverseContinue(listener, opts) end
 
 ---Arguments for `runInTerminal` request.
 ---@class dapui.types.RunInTerminalRequestArguments
----@field kind? "integrated" What kind of terminal to launch. Defaults to `integrated` if not specified.
+---@field kind? "integrated"|"external" What kind of terminal to launch. Defaults to `integrated` if not specified.
 ---@field title? string Title of the terminal.
 ---@field cwd string Working directory for the command. For non-empty, valid paths this typically results in execution of a change directory command.
 ---@field args string[] List of arguments. The first argument is the command to run.
@@ -829,7 +829,7 @@ function DAPUIEventListenerClient.setBreakpoints(listener, opts) end
 ---Properties of a data breakpoint passed to the `setDataBreakpoints` request.
 ---@class dapui.types.DataBreakpoint
 ---@field dataId string An id representing the data. This id is returned from the `dataBreakpointInfo` request.
----@field accessType? "read" The access type of the data.
+---@field accessType? "read"|"write"|"readWrite" The access type of the data.
 ---@field condition? string An expression for conditional breakpoints.
 ---@field hitCondition? string An expression that controls how many hits of the breakpoint are ignored. The debug adapter is expected to interpret the expression as needed.
 
@@ -872,7 +872,7 @@ function DAPUIEventListenerClient.setDataBreakpoints(listener, opts) end
 ---An `ExceptionOptions` assigns configuration options to a set of exceptions.
 ---@class dapui.types.ExceptionOptions
 ---@field path? dapui.types.ExceptionPathSegment[] A path that selects a single or multiple exceptions in a tree. If `path` is missing, the whole tree is selected. By convention the first segment of the path is a category that is used to group exceptions in the UI.
----@field breakMode "never" Condition when a thrown exception should result in a break.
+---@field breakMode "never"|"always"|"unhandled"|"userUnhandled" Condition when a thrown exception should result in a break.
 
 ---Arguments for `setExceptionBreakpoints` request.
 ---@class dapui.types.SetExceptionBreakpointsArguments
@@ -1080,7 +1080,7 @@ function DAPUIEventListenerClient.source(listener, opts) end
 ---@field canRestart? boolean Indicates whether this frame can be restarted with the `restart` request. Clients should only use this if the debug adapter supports the `restart` request and the corresponding capability `supportsRestartRequest` is true.
 ---@field instructionPointerReference? string A memory reference for the current instruction pointer in this frame.
 ---@field moduleId? integer | string The module associated with this frame, if any.
----@field presentationHint? "normal" A hint for how to present this frame in the UI. A value of `label` can be used to indicate that the frame is an artificial frame that is used as a visual label or separator. A value of `subtle` can be used to change the appearance of a frame in a 'subtle' way.
+---@field presentationHint? "normal"|"label"|"subtle" A hint for how to present this frame in the UI. A value of `label` can be used to indicate that the frame is an artificial frame that is used as a visual label or separator. A value of `subtle` can be used to change the appearance of a frame in a 'subtle' way.
 
 ---@class dapui.types.StackTraceResponse
 ---@field stackFrames dapui.types.StackFrame[] The frames of the stack frame. If the array has length zero, there are no stack frames available. This means that there is no location information available.
@@ -1105,7 +1105,7 @@ function DAPUIEventListenerClient.stackTrace(listener, opts) end
 ---Arguments for `startDebugging` request.
 ---@class dapui.types.StartDebuggingRequestArguments
 ---@field configuration table<string,any> Arguments passed to the new debug session. The arguments must only contain properties understood by the `launch` or `attach` requests of the debug adapter and they must not contain any client-specific properties (e.g. `type`) or client-specific features (e.g. substitutable 'variables').
----@field request "launch" Indicates whether the new debug session should be started with a `launch` or `attach` request.
+---@field request "launch"|"attach" Indicates whether the new debug session should be started with a `launch` or `attach` request.
 
 ---This request is sent from the debug adapter to the client to start a new debug session of the same type as the caller.
 ---This request should only be sent if the corresponding client capability `supportsStartDebuggingRequest` is true.
@@ -1126,7 +1126,7 @@ function DAPUIEventListenerClient.startDebugging(listener, opts) end
 ---@class dapui.types.StepBackArguments
 ---@field threadId integer Specifies the thread for which to resume execution for one step backwards (of the given granularity).
 ---@field singleThread? boolean If this flag is true, all other suspended threads are not resumed.
----@field granularity? "statement" Stepping granularity to step. If no granularity is specified, a granularity of `statement` is assumed.
+---@field granularity? "statement"|"line"|"instruction" Stepping granularity to step. If no granularity is specified, a granularity of `statement` is assumed.
 
 ---The request executes one backward step (in the given granularity) for the specified thread and allows all other threads to run backward freely by resuming them.
 ---If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true prevents other suspended threads from resuming.
@@ -1149,7 +1149,7 @@ function DAPUIEventListenerClient.stepBack(listener, opts) end
 ---@field threadId integer Specifies the thread for which to resume execution for one step-into (of the given granularity).
 ---@field singleThread? boolean If this flag is true, all other suspended threads are not resumed.
 ---@field targetId? integer Id of the target to step into.
----@field granularity? "statement" Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.
+---@field granularity? "statement"|"line"|"instruction" Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.
 
 ---The request resumes the given thread to step into a function/method and allows all other threads to run freely by resuming them.
 ---If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true prevents other suspended threads from resuming.
@@ -1207,7 +1207,7 @@ function DAPUIEventListenerClient.stepInTargets(listener, opts) end
 ---@class dapui.types.StepOutArguments
 ---@field threadId integer Specifies the thread for which to resume execution for one step-out (of the given granularity).
 ---@field singleThread? boolean If this flag is true, all other suspended threads are not resumed.
----@field granularity? "statement" Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.
+---@field granularity? "statement"|"line"|"instruction" Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.
 
 ---The request resumes the given thread to step out (return) from a function/method and allows all other threads to run freely by resuming them.
 ---If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true prevents other suspended threads from resuming.
@@ -1286,7 +1286,7 @@ function DAPUIEventListenerClient.threads(listener, opts) end
 ---Arguments for `variables` request.
 ---@class dapui.types.VariablesArguments
 ---@field variablesReference integer The variable for which to retrieve its children. The `variablesReference` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.
----@field filter? "indexed" Filter to limit the child variables to either named or indexed. If omitted, both types are fetched.
+---@field filter? "indexed"|"named" Filter to limit the child variables to either named or indexed. If omitted, both types are fetched.
 ---@field start? integer The index of the first variable to return; if omitted children start at 0.
 ---@field count? integer The number of variables to return. If count is missing or 0, all variables are returned.
 ---@field format? dapui.types.ValueFormat Specifies details on how to format the Variable values. The attribute is only honored by a debug adapter if the corresponding capability `supportsValueFormattingOptions` is true.
@@ -1380,7 +1380,7 @@ function DAPUIEventListenerClient.breakpoint(listener, opts) end
 ---@field completionTriggerCharacters? string[] The set of characters that should trigger completion in a REPL. If not specified, the UI should assume the `.` character.
 ---@field supportsModulesRequest? boolean The debug adapter supports the `modules` request.
 ---@field additionalModuleColumns? dapui.types.ColumnDescriptor[] The set of additional module information exposed by the debug adapter.
----@field supportedChecksumAlgorithms? "MD5"[] Checksum algorithms supported by the debug adapter.
+---@field supportedChecksumAlgorithms? "MD5"|"SHA1"|"SHA256"|"timestamp"[] Checksum algorithms supported by the debug adapter.
 ---@field supportsRestartRequest? boolean The debug adapter supports the `restart` request. In this case a client should not implement `restart` by terminating and relaunching the adapter but by calling the `restart` request.
 ---@field supportsExceptionOptions? boolean The debug adapter supports `exceptionOptions` on the `setExceptionBreakpoints` request.
 ---@field supportsValueFormattingOptions? boolean The debug adapter supports a `format` attribute on the `stackTrace`, `variables`, and `evaluate` requests.
@@ -1464,7 +1464,7 @@ function DAPUIEventListenerClient.initialized(listener, opts) end
 function DAPUIEventListenerClient.invalidated(listener, opts) end
 
 ---@class dapui.types.LoadedSourceEventArgs
----@field reason "new" The reason for the event.
+---@field reason "new"|"changed"|"removed" The reason for the event.
 ---@field source dapui.types.Source The new, changed, or removed source.
 
 ---The event indicates that some source has been added, changed, or removed from the set of all loaded sources.
@@ -1485,7 +1485,7 @@ function DAPUIEventListenerClient.loadedSource(listener, opts) end
 function DAPUIEventListenerClient.memory(listener, opts) end
 
 ---@class dapui.types.ModuleEventArgs
----@field reason "new" The reason for the event.
+---@field reason "new"|"changed"|"removed" The reason for the event.
 ---@field module dapui.types.Module The new, changed, or removed module. In case of `removed` only the module id is used.
 
 ---The event indicates that some information about a module has changed.
@@ -1496,7 +1496,7 @@ function DAPUIEventListenerClient.module(listener, opts) end
 ---@class dapui.types.OutputEventArgs
 ---@field category? string The output category. If not specified or if the category is not understood by the client, `console` is assumed.
 ---@field output string The output to report.
----@field group? "start" Support for keeping an output log organized by grouping related messages.
+---@field group? "start"|"startCollapsed"|"end" Support for keeping an output log organized by grouping related messages.
 ---@field variablesReference? integer If an attribute `variablesReference` exists and its value is > 0, the output contains objects which can be retrieved by passing `variablesReference` to the `variables` request as long as execution remains suspended. See 'Lifetime of Object References' in the Overview section for details.
 ---@field source? dapui.types.Source The source location where the output was produced.
 ---@field line? integer The source location's line where the output was produced.
@@ -1512,7 +1512,7 @@ function DAPUIEventListenerClient.output(listener, opts) end
 ---@field name string The logical name of the process. This is usually the full path to process's executable file. Example: /home/example/myproj/program.js.
 ---@field systemProcessId? integer The system process id of the debugged process. This property is missing for non-system processes.
 ---@field isLocalProcess? boolean If true, the process is running on the same computer as the debug adapter.
----@field startMethod? "launch" Describes how the debug engine started debugging this process.
+---@field startMethod? "launch"|"attach"|"attachForSuspendedLaunch" Describes how the debug engine started debugging this process.
 ---@field pointerSize? integer The size of a pointer or address for this process, in bits. This value may be used by clients when formatting addresses for display.
 
 ---The event indicates that the debugger has begun debugging a new process. Either one that it has launched, or one that it has attached to.

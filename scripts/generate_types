@@ -111,7 +111,7 @@ class DAPTypesGenerator:
         if t is bool:
             return "boolean"
         if i.isclass(t) and issubclass(t, Enum):
-            return f'"{list(t.__members__.values())[0].value}"'
+            return "|".join(f'"{member.value}"' for member in t.__members__.values())
         if get_origin(t) is Union:
             # Account for Optional with ? on field
             return " | ".join(
@@ -349,9 +349,7 @@ local DAPUIEventListenerClient = {}
                 output += "\n".join(self.create_event_listener(event))
             except Exception as e:
                 logger.exception(f"Failed to create {name}: {e}")
-        output += (
-            "\nreturn { request = DAPUIRequestsClient, listen = DAPUIEventListenerClient }"
-        )
+        output += "\nreturn { request = DAPUIRequestsClient, listen = DAPUIEventListenerClient }"
         return output
 
 
