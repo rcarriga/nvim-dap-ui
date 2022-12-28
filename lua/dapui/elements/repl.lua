@@ -10,16 +10,24 @@ return function()
   --- The REPL provided by nvim-dap.
   dapui.elements.repl = {}
 
-  dap.repl.close({ mode = "toggle" })
-  local win = vim.api.nvim_open_win(
-    0,
-    false,
-    { relative = "editor", row = 1, col = 1, height = 1, width = 1, style = "minimal" }
-  )
-  local wincmd = "call nvim_set_current_win(" .. tostring(win) .. ")"
-  dap.repl.open({}, wincmd)
-  local buf = async.api.nvim_win_get_buf(win)
-  async.api.nvim_win_close(win, true)
+  -- TODO: All of this is a hack because of an error with indentline when buffer
+  -- is opened in a window so have to manually find the window that was opened.
+  local all_wins = async.api.nvim_list_wins()
+  local open_wins = {}
+  for _, win in pairs(all_wins) do
+    open_wins[win] = true
+  end
+
+  pcall(dap.repl.open, {})
+
+  local buf = async.fn.bufnr("dap-repl")
+
+  for _, win in ipairs(async.api.nvim_list_wins()) do
+    if not open_wins[win] then
+      pcall(async.api.nvim_win_close, win, true)
+      break
+    end
+  end
 
   ---@nodoc
   function dapui.elements.repl.render() end

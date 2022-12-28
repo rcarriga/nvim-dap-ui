@@ -11,25 +11,25 @@ H.pattern_sets = {
   -- Determine if line is a function definition. Captures function name and
   -- arguments. For reference see '2.5.9 – Function Definitions' in Lua manual.
   afterline_fundef = {
-    '^function%s+(%S-)(%b())', -- Regular definition
-    '^local%s+function%s+(%S-)(%b())', -- Local definition
-    '^(%S+)%s*=%s*function(%b())', -- Regular assignment
-    '^local%s+(%S+)%s*=%s*function(%b())', -- Local assignment
+    "%s*function%s+(%S-)(%b())", -- Regular definition
+    "^local%s+function%s+(%S-)(%b())", -- Local definition
+    "^(%S+)%s*=%s*function(%b())", -- Regular assignment
+    "^local%s+(%S+)%s*=%s*function(%b())", -- Local assignment
   },
 
   -- Determine if line is a general assignment
   afterline_assign = {
-    '^(%S-)%s*=', -- General assignment
-    '^local%s+(%S-)%s*=', -- Local assignment
+    "^(%S-)%s*=", -- General assignment
+    "^local%s+(%S-)%s*=", -- Local assignment
   },
 
   -- Patterns to work with type descriptions
   -- (see https://github.com/sumneko/lua-language-server/wiki/EmmyLua-Annotations#types-and-type)
   types = {
-    'table%b<>',
-    'fun%b(): %S+', 'fun%b()', 'async fun%b(): %S+', 'async fun%b()',
-    'nil', 'any', 'boolean', 'string', 'number', 'integer', 'function', 'table', 'thread', 'userdata', 'lightuserdata',
-    '%.%.%.',
+    "table%b<>",
+    "fun%b(): %S+", "fun%b()", "async fun%b(): %S+", "async fun%b()",
+    "nil", "any", "boolean", "string", "number", "integer", "function", "table", "thread", "userdata", "lightuserdata",
+    "%.%.%.",
     "%S+",
 
   },
@@ -668,29 +668,34 @@ minidoc.generate(
   },
   nil,
   {
-    annotation_extractor = function(l) return string.find(l, '%s*%-%-%-(%S*) ?') end,
+    annotation_extractor = function(l) return string.find(l, "%s*%-%-%-(%S*) ?") end,
 
     hooks = vim.tbl_extend("force", minidoc.default_hooks, {
+      block_pre = function(b)
+        -- Infer metadata based on afterlines
+        if b:has_lines() and #b.info.afterlines > 0 then H.infer_header(b) end
+      end,
+
       block_post = function(b)
         if not b:has_lines() then return end
 
         local found_param, found_field = false, false
         local n_tag_sections = 0
         H.apply_recursively(function(x)
-          if not (type(x) == 'table' and x.type == 'section') then return end
+          if not (type(x) == "table" and x.type == "section") then return end
 
           -- Add headings before first occurence of a section which type usually
           -- appear several times
-          if not found_param and x.info.id == '@param' then
-            H.add_section_heading(x, 'Parameters')
+          if not found_param and x.info.id == "@param" then
+            H.add_section_heading(x, "Parameters")
             found_param = true
           end
-          if not found_field and x.info.id == '@field' then
-            H.add_section_heading(x, 'Fields')
+          if not found_field and x.info.id == "@field" then
+            H.add_section_heading(x, "Fields")
             found_field = true
           end
 
-          if x.info.id == '@tag' then
+          if x.info.id == "@tag" then
             local text = x[1]
             local tag = string.match(text, "%*.*%*")
             local prefix = (string.sub(tag, 2, #tag - 1))
@@ -708,56 +713,56 @@ minidoc.generate(
         end, b)
 
         -- b:insert(1, H.as_struct({ string.rep('=', 78) }, 'section'))
-        b:insert(H.as_struct({ '' }, 'section'))
+        b:insert(H.as_struct({ "" }, "section"))
       end,
 
 
       doc = function(d)
         -- Render table of contents
         H.apply_recursively(function(x)
-          if not (type(x) == 'table' and x.type == 'section' and x.info.id == '@toc') then return end
+          if not (type(x) == "table" and x.type == "section" and x.info.id == "@toc") then return end
           H.toc_insert(x)
         end, d)
 
         -- Insert modeline
         d:insert(
           H.as_struct(
-            { H.as_struct({ H.as_struct({ ' vim:tw=78:ts=8:noet:ft=help:norl:' }, 'section') }, 'block') },
-            'file'
+            { H.as_struct({ H.as_struct({ " vim:tw=78:ts=8:noet:ft=help:norl:" }, "section") }, "block") },
+            "file"
           )
         )
       end,
       sections = {
-        ['@generic'] = function(s)
+        ["@generic"] = function(s)
           s:remove(1)
         end,
-        ['@field'] = function(s)
+        ["@field"] = function(s)
           -- H.mark_optional(s)
           if string.find(s[1], "^private ") then
             s:remove(1)
             return
           end
           H.enclose_var_name(s)
-          H.enclose_type(s, '`%(%1%)`', s[1]:find('%s'))
+          H.enclose_type(s, "`%(%1%)`", s[1]:find("%s"))
         end,
-        ['@alias'] = function(s)
-          local name = s[1]:match('%s*(%S*)')
-          local alias = s[1]:match('%s(.*)$')
+        ["@alias"] = function(s)
+          local name = s[1]:match("%s*(%S*)")
+          local alias = s[1]:match("%s(.*)$")
           s[1] = ("`%s` → `%s`"):format(name, alias)
-          H.add_section_heading(s, 'Alias')
+          H.add_section_heading(s, "Alias")
           s:insert(1, H.as_struct({ ("*%s*"):format(name) }, "section", { id = "@tag" }))
         end,
 
-        ['@param'] = function(s)
+        ["@param"] = function(s)
           H.enclose_var_name(s)
-          H.enclose_type(s, '`%(%1%)`', s[1]:find('%s'))
+          H.enclose_type(s, "`%(%1%)`", s[1]:find("%s"))
         end,
-        ['@return'] = function(s)
-          H.enclose_type(s, '`%(%1%)`', 1)
-          H.add_section_heading(s, 'Return')
+        ["@return"] = function(s)
+          H.enclose_type(s, "`%(%1%)`", 1)
+          H.add_section_heading(s, "Return")
         end,
-        ['@nodoc'] = function(s) s.parent:clear_lines() end,
-        ['@class'] = function(s)
+        ["@nodoc"] = function(s) s.parent:clear_lines() end,
+        ["@class"] = function(s)
           H.enclose_var_name(s)
           -- Add heading
           local line = s[1]
@@ -771,7 +776,7 @@ minidoc.generate(
           s:insert(1, H.as_struct({ ("*%s*"):format(class_name) }, "section", { id = "@tag" }))
         end,
 
-        ['@signature'] = function(s)
+        ["@signature"] = function(s)
           s[1] = H.format_signature(s[1])
           if s[1] ~= "" then
             table.insert(s, "")

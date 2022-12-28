@@ -8,7 +8,7 @@ nvim-dap-ui                                                        *nvim-dap-ui*
   Repl...................................................|dapui.elements.repl|
   Watch Expressions...................................|dapui.elements.watches|
   Breakpoints.....................................|dapui.elements.breakpoints|
-  Console.............................................|dapui.elements.console|
+  Console..........................................................|get_buf()|
 
 A UI for nvim-dap which provides a good out of the box configuration.
 nvim-dap-ui is built on the idea of "elements". These elements are windows
@@ -69,7 +69,13 @@ Default values:
         position = "left",
         size = 40
       }, {
-        elements = { "repl", "console" },
+        elements = { {
+            id = "repl",
+            size = 0.5
+          }, {
+            id = "console",
+            size = 0.5
+          } },
         position = "bottom",
         size = 10
       } },
@@ -281,6 +287,50 @@ Mappings:
 - `edit`: Edit an expression or set the value of a child variable.
 - `repl`: Send expression to REPL
 
+                                                  *dapui.elements.watches.add()*
+`add`({expr})
+
+Add a new watch expression
+Parameters~
+{expr} `(string)`
+
+
+                                                 *dapui.elements.watches.edit()*
+`edit`({index}, {new_expr})
+
+Change the chosen watch expression
+Parameters~
+{index} `(integer)`
+{new_expr} `(string)`
+
+
+                                               *dapui.elements.watches.remove()*
+`remove`({index})
+
+Remove the chosen watch expression
+
+
+                                                  *dapui.elements.watches.get()*
+`get`()
+
+Get the current list of watched expressions
+Return~
+`(dapui.elements.watches.Watch[])`
+
+
+                                        *dapui.elements.watches.toggle_expand()*
+`toggle_expand`({index})
+
+Toggle the expanded state of the chosen watch expression
+Parameters~
+{index} `(integer)`
+
+
+                                                  *dapui.elements.watches.Watch*
+Fields~
+{expression} `(string)`
+{expanded} `(boolean)`
+
 
 ==============================================================================
 dapui.elements.breakpoints                          *dapui.elements.breakpoints*
@@ -293,7 +343,9 @@ Mappings:
 
 
 ==============================================================================
-dapui.elements.console                                  *dapui.elements.console*
+                                                                     *get_buf()*
+`get_buf`()
+
 
 The console window used by nvim-dap for the integrated terminal.
 

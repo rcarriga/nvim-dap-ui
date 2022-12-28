@@ -19,7 +19,6 @@ return function(client)
   --- - `remove`: Remove the watched expression.
   --- - `edit`: Edit an expression or set the value of a child variable.
   --- - `repl`: Send expression to REPL
-
   dapui.elements.watches = {}
   local send_ready = util.create_render_loop(function()
     dapui.elements.watches.render()
@@ -32,12 +31,53 @@ return function(client)
     omnifunc = "v:lua.require'dap'.omnifunc",
   })
 
+  --- Add a new watch expression
+  ---@param expr string
+  ---@async
+  function dapui.elements.watches.add(expr)
+    watches.add(expr)
+  end
+
+  --- Change the chosen watch expression
+  ---@param index integer
+  ---@param new_expr string
+  ---@async
+  function dapui.elements.watches.edit(index, new_expr)
+    watches.edit(new_expr, index)
+  end
+
+  --- Remove the chosen watch expression
+  ---@async
+  function dapui.elements.watches.remove(index)
+    watches.remove(index)
+  end
+
+  --- Get the current list of watched expressions
+  ---@return dapui.elements.watches.Watch[]
+  ---@async
+  function dapui.elements.watches.get()
+    return watches.get()
+  end
+
+  --- Toggle the expanded state of the chosen watch expression
+  ---@param index integer
+  ---@async
+  function dapui.elements.watches.toggle_expand(index)
+    watches.expand(index)
+  end
+
+  ---@class dapui.elements.watches.Watch
+  ---@field expression string
+  ---@field expanded boolean
+
+  ---@nodoc
   function dapui.elements.watches.render()
     local canvas = Canvas.new()
     watches.render(canvas)
     canvas:render_buffer(buf, config.element_mapping("watches"))
   end
 
+  ---@nodoc
   function dapui.elements.watches.buffer()
     return buf
   end

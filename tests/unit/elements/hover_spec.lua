@@ -67,13 +67,11 @@ describe("hover element", function()
   a.it("renders highlights with expandable expression", function()
     hover.set_expression("c")
     async.util.sleep(10)
-    local extmarks =
-      async.api.nvim_buf_get_extmarks(buf, tests.namespace, 0, -1, { details = true })
-    local formatted = tests.util.convert_extmarks(extmarks)
+    local formatted = tests.util.get_highlights(buf)
     assert.same({
-      { "DapUIDecoration", 0, 0, 0, 0 },
-      { "DapUIType", 0, 6, 0, 6 },
-      { "DapUIValue", 0, 14, 0, 14 },
+      { "DapUIDecoration", 0, 0, 0, 4 },
+      { "DapUIType", 0, 6, 0, 11 },
+      { "DapUIValue", 0, 14, 0, 23 },
     }, formatted)
   end)
 
@@ -93,17 +91,15 @@ describe("hover element", function()
       local keymaps = tests.util.get_mappings(hover.buffer())
       keymaps["<CR>"](1)
 
-      local extmarks =
-        async.api.nvim_buf_get_extmarks(buf, tests.namespace, 0, -1, { details = true })
-      local formatted = tests.util.convert_extmarks(extmarks)
+      local formatted = tests.util.get_highlights(buf)
       assert.same({
-        { "DapUIDecoration", 0, 0, 0, 0 },
-        { "DapUIType", 0, 6, 0, 6 },
-        { "DapUIValue", 0, 14, 0, 14 },
-        { "DapUIDecoration", 1, 1, 1, 1 },
-        { "DapUIVariable", 1, 3, 1, 3 },
-        { "DapUIType", 1, 5, 1, 5 },
-        { "DapUIValue", 1, 14, 1, 14 },
+        { "DapUIDecoration", 0, 0, 0, 4 },
+        { "DapUIType", 0, 6, 0, 11 },
+        { "DapUIValue", 0, 14, 0, 23 },
+        { "DapUIDecoration", 1, 1, 1, 2 },
+        { "DapUIVariable", 1, 3, 1, 4 },
+        { "DapUIType", 1, 5, 1, 11 },
+        { "DapUIValue", 1, 14, 1, 15 },
       }, formatted)
     end)
   end)

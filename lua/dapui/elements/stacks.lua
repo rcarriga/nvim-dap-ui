@@ -25,12 +25,14 @@ return function(client)
     filetype = "dapui_stacks",
   })
 
+  ---@nodoc
   function dapui.elements.stacks.render()
     local canvas = Canvas.new()
     threads.render(canvas)
     canvas:render_buffer(buf, config.element_mapping("stacks"))
   end
 
+  ---@nodoc
   function dapui.elements.stacks.buffer()
     return buf
   end

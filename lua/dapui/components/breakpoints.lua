@@ -48,7 +48,6 @@ return function(client, send_ready)
     send_ready()
   end
 
-  ---@return table<integer, dapui.types.DAPBreakpoint[]>
   local function _get_breakpoints()
     ---@type table<integer, dapui.types.DAPBreakpoint[]>
     local bps = client.breakpoints.get()
@@ -76,7 +75,18 @@ return function(client, send_ready)
         return a.line < b.line
       end)
     end
-    return merged_breakpoints
+    local sorted = {}
+    for buffer, breakpoints in pairs(merged_breakpoints) do
+      sorted[#sorted + 1] = {
+        name = async.api.nvim_buf_get_name(buffer),
+        buffer = buffer,
+        breakpoints = breakpoints,
+      }
+    end
+    table.sort(sorted, function(a, b)
+      return a.name < b.name
+    end)
+    return sorted
   end
 
   return {
@@ -90,8 +100,10 @@ return function(client, send_ready)
         current_line = current_frame.line
       end
       local indent = config.render.indent
-      for buffer, breakpoints in pairs(_get_breakpoints()) do
-        local bufname = async.fn.bufname(buffer)
+      for _, data in ipairs(_get_breakpoints()) do
+        local buffer, bufname = data.buffer, data.name
+        ---@type dapui.types.DAPBreakpoint[]
+        local breakpoints = data.breakpoints
         local name = util.pretty_name(bufname)
         canvas:write(name, { group = "DapUIBreakpointsPath" })
         canvas:write(":\n")

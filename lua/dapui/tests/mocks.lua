@@ -107,9 +107,38 @@ function M.client(args)
     end,
   }
 
+  ---@type table<integer, dapui.types.DAPBreakpoint[]>
+  local breakpoints = {}
+
   return Client(function()
     return session
-  end)
+  end, {
+    get = function(bufnr)
+      if bufnr then
+        return breakpoints[bufnr]
+      end
+      return breakpoints
+    end,
+    ---@param bp_args dapui.client.BreakpointArgs
+    toggle = function(bp_args, bufnr, line)
+      local buf_bps = breakpoints[bufnr] or {}
+      for i, bp in ipairs(buf_bps) do
+        if bp.line == line then
+          table.remove(buf_bps, i)
+          return
+        end
+      end
+
+      ---@type dapui.types.DAPBreakpoint
+      buf_bps[#buf_bps + 1] = {
+        condition = bp_args.condition,
+        hitCondition = bp_args.hit_condition,
+        line = line,
+        logMessage = bp_args.log_message,
+      }
+      breakpoints[bufnr] = buf_bps
+    end,
+  })
 end
 
 return M

@@ -84,24 +84,22 @@ describe("scopes element", function()
   end)
 
   a.it("renders initial highlights", function()
-    local extmarks =
-      async.api.nvim_buf_get_extmarks(buf, tests.namespace, 0, -1, { details = true })
-    local formatted = tests.util.convert_extmarks(extmarks)
+    local formatted = tests.util.get_highlights(buf)
     assert.same({
-      { "DapUIScope", 0, 0, 0, 0 },
-      { "DapUIDecoration", 1, 1, 1, 1 },
-      { "DapUIVariable", 1, 3, 1, 3 },
-      { "DapUIType", 1, 5, 1, 5 },
-      { "DapUIValue", 1, 14, 1, 14 },
-      { "DapUIDecoration", 2, 1, 2, 1 },
-      { "DapUIVariable", 2, 5, 2, 5 },
-      { "DapUIType", 2, 7, 2, 7 },
-      { "DapUIValue", 2, 16, 2, 16 },
-      { "DapUIScope", 4, 0, 4, 0 },
-      { "DapUIDecoration", 5, 1, 5, 1 },
-      { "DapUIVariable", 5, 3, 5, 3 },
-      { "DapUIType", 5, 11, 5, 11 },
-      { "DapUIValue", 5, 21, 5, 21 },
+      { "DapUIScope", 0, 0, 0, 6 },
+      { "DapUIDecoration", 1, 1, 1, 2 },
+      { "DapUIVariable", 1, 3, 1, 4 },
+      { "DapUIType", 1, 5, 1, 11 },
+      { "DapUIValue", 1, 14, 1, 15 },
+      { "DapUIDecoration", 2, 1, 2, 4 },
+      { "DapUIVariable", 2, 5, 2, 6 },
+      { "DapUIType", 2, 7, 2, 13 },
+      { "DapUIValue", 2, 16, 2, 17 },
+      { "DapUIScope", 4, 0, 4, 7 },
+      { "DapUIDecoration", 5, 1, 5, 2 },
+      { "DapUIVariable", 5, 3, 5, 10 },
+      { "DapUIType", 5, 11, 5, 18 },
+      { "DapUIValue", 5, 21, 5, 25 },
     }, formatted)
   end)
 
@@ -123,28 +121,26 @@ describe("scopes element", function()
     a.it("renders expanded highlights", function()
       local keymaps = tests.util.get_mappings(scopes.buffer())
       keymaps["<CR>"](3)
-      local extmarks =
-        async.api.nvim_buf_get_extmarks(buf, tests.namespace, 0, -1, { details = true })
-      local formatted = tests.util.convert_extmarks(extmarks)
+      local formatted = tests.util.get_highlights(buf)
       assert.same({
-        { "DapUIScope", 0, 0, 0, 0 },
-        { "DapUIDecoration", 1, 1, 1, 1 },
-        { "DapUIVariable", 1, 3, 1, 3 },
-        { "DapUIType", 1, 5, 1, 5 },
-        { "DapUIValue", 1, 14, 1, 14 },
-        { "DapUIDecoration", 2, 1, 2, 1 },
-        { "DapUIVariable", 2, 5, 2, 5 },
-        { "DapUIType", 2, 7, 2, 7 },
-        { "DapUIValue", 2, 16, 2, 16 },
-        { "DapUIDecoration", 3, 2, 3, 2 },
-        { "DapUIVariable", 3, 4, 3, 4 },
-        { "DapUIType", 3, 6, 3, 6 },
-        { "DapUIValue", 3, 15, 3, 15 },
-        { "DapUIScope", 5, 0, 5, 0 },
-        { "DapUIDecoration", 6, 1, 6, 1 },
-        { "DapUIVariable", 6, 3, 6, 3 },
-        { "DapUIType", 6, 11, 6, 11 },
-        { "DapUIValue", 6, 21, 6, 21 },
+        { "DapUIScope", 0, 0, 0, 6 },
+        { "DapUIDecoration", 1, 1, 1, 2 },
+        { "DapUIVariable", 1, 3, 1, 4 },
+        { "DapUIType", 1, 5, 1, 11 },
+        { "DapUIValue", 1, 14, 1, 15 },
+        { "DapUIDecoration", 2, 1, 2, 4 },
+        { "DapUIVariable", 2, 5, 2, 6 },
+        { "DapUIType", 2, 7, 2, 13 },
+        { "DapUIValue", 2, 16, 2, 17 },
+        { "DapUIDecoration", 3, 2, 3, 3 },
+        { "DapUIVariable", 3, 4, 3, 5 },
+        { "DapUIType", 3, 6, 3, 12 },
+        { "DapUIValue", 3, 15, 3, 18 },
+        { "DapUIScope", 5, 0, 5, 7 },
+        { "DapUIDecoration", 6, 1, 6, 2 },
+        { "DapUIVariable", 6, 3, 6, 10 },
+        { "DapUIType", 6, 11, 6, 18 },
+        { "DapUIValue", 6, 21, 6, 25 },
       }, formatted)
     end)
   end)

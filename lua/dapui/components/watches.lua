@@ -29,8 +29,8 @@ return function(client, send_ready)
     send_ready()
   end
 
-  local function edit_expr(new_value)
-    local index = edit_index
+  local function edit_expr(new_value, index)
+    index = index or edit_index
     edit_index = nil
     if new_value == "" then
       send_ready()
@@ -51,6 +51,13 @@ return function(client, send_ready)
   end
 
   return {
+    add = add_watch,
+    edit = edit_expr,
+    remove = remove_expr,
+    get = function()
+      return vim.deepcopy(watches)
+    end,
+    expand = toggle_expression,
     ---@param canvas dapui.Canvas
     render = function(canvas)
       if not edit_index then

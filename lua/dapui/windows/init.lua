@@ -11,21 +11,6 @@ local float_windows = {}
 ---@type dapui.WindowLayout[]
 M.layouts = {}
 
-local function create_win_states(win_configs)
-  local win_states = {}
-  for _, win_state in pairs(win_configs) do
-    local exists, element = pcall(require, "dapui.elements." .. win_state.id)
-    if exists then
-      win_state.element = element
-      win_state.init_size = win_state.size
-      win_states[#win_states + 1] = win_state
-    else
-      util.notify("nvim-dap-ui: Element " .. win_state.id .. " does not exist", vim.log.levels.WARN)
-    end
-  end
-  return win_states
-end
-
 local function horizontal_layout(height, position, win_configs, buffers)
   local open_cmd = position == "top" and "topleft" or "botright"
 
@@ -65,8 +50,8 @@ local function vertical_layout(width, position, win_configs, buffers)
   })
 end
 
-local function area_layout(size, position, win_configs, buffers)
-  local win_states = create_win_states(win_configs)
+function M.area_layout(size, position, win_configs, buffers)
+  local win_states = vim.deepcopy(win_configs)
   local layout_func
   if position == "top" or position == "bottom" then
     layout_func = horizontal_layout
@@ -88,7 +73,7 @@ function M.setup(element_buffers)
     for index, win_config in ipairs(layout.elements) do
       buffers[index] = element_buffers[win_config.id]
     end
-    M.layouts[i] = area_layout(layout.size, layout.position, layout.elements, buffers)
+    M.layouts[i] = M.area_layout(layout.size, layout.position, layout.elements, buffers)
   end
   vim.cmd([[
     augroup DapuiWindowsSetup
