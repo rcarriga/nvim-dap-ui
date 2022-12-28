@@ -136,6 +136,8 @@ function M.open_float(name, element, position, settings)
     end,
   })
   element.render()
+  -- In case render doesn't trigger on_lines
+  resize()
 
   util.apply_mapping(config.floating.mappings["close"], "<Cmd>q<CR>", buf)
   local close_cmd = "lua require('dapui.windows').close_float('" .. name .. "')"

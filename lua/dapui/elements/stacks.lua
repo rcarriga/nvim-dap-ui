@@ -12,7 +12,7 @@ return function(client)
   ---
   --- Mappings:
   --- - `open`: Jump to a place within the stack frame.
-  --- - `toggle`: Toggle displaying [subtle](https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame) frames
+  --- - `toggle`: Toggle displaying subtle frames
   dapui.elements.stacks = {}
 
   local send_ready = util.create_render_loop(function()

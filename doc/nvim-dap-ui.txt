@@ -118,7 +118,10 @@ Parameters~
 
                                                                 *dapui.EvalArgs*
 Fields~
-{context} `(string)` Context to use for evalutate request, defaults to "hover". Hover requests should have no side effects, if you have errors with evaluation, try changing context to "repl". See the DAP specification for more details.
+{context} `(string)` Context to use for evalutate request, defaults to
+"hover". Hover requests should have no side effects, if you have errors
+with evaluation, try changing context to "repl". See the DAP specification
+for more details.
 {width} `(integer)` Fixed width of window
 {height} `(integer)` Fixed height of window
 {enter} `(boolean)` Whether or not to enter the window after opening
@@ -131,7 +134,8 @@ Open a floating window containing the result of evaluting an expression
 If no fixed dimensions are given, the window will expand to fit the contents
 of the buffer.
 Parameters~
-{expr} `(string)` Expression to evaluate. If nil, then in normal more the current word is used, and in visual mode the currently highlighted text.
+{expr} `(string)` Expression to evaluate. If nil, then in normal more the
+current word is used, and in visual mode the currently highlighted text.
 {args} `(dapui.EvalArgs)`
 
                                                          *dapui.update_render()*
@@ -139,7 +143,8 @@ Parameters~
 
 Update the config.render settings and re-render windows
 Parameters~
-{update} `(dapui.Config.render)` Updated settings, from the `render` table of the config
+{update} `(dapui.Config.render)` Updated settings, from the `render` table of
+the config
 
                                                                *dapui.CloseArgs*
 Fields~
@@ -176,6 +181,38 @@ Toggle one or all of the window layouts.
 Parameters~
 {args?} `(dapui.ToggleArgs)`
 
+dapui.elements                                                  *dapui.elements*
+
+
+Access the elements currently registered. See elements corresponding help
+tag for API information.
+Fields~
+{hover} `(dapui.elements.hover)`
+{breakpoints} `(dapui.elements.breakpoints)`
+{repl} `(dapui.elements.repl)`
+{scopes} `(dapui.elements.scopes)`
+{stack} `(dapui.elements.stacks)`
+{watches} `(dapui.elements.watches)`
+{console} `(dapui.elements.console)`
+
+                                                                 *dapui.Element*
+Fields~
+{render} `(fun())` Triggers the element to refresh its buffer. Used when
+render settings have changed
+{buffer} `(fun(): integer)` Gets the current buffer for the element. The
+buffer can change over repeated calls
+{float_defaults?} `(fun(): dapui.FloatElementArgs)` Default settings for
+floating windows. Useful for element windows which should be larger than
+their content
+
+                                                      *dapui.register_element()*
+`register_element`({name}, {element})
+
+Registers a new element that can be used within layouts or floating windows
+Parameters~
+{name} `(string)` Name of the element
+{element} `(dapui.Element)`
+
 
 ==============================================================================
 dapui.config                                                      *dapui.config*
@@ -183,13 +220,18 @@ dapui.config                                                      *dapui.config*
                                                                   *dapui.Config*
 Fields~
 {icons} `(dapui.Config.icons)`
-{mappings} `(table<dapui.Action, string|string[]>)` Keys to trigger actions in elements
-{element_mappings} `(table<string, table<dapui.Action, string|string[]>>)` Per-element overrides of global mappings
-{expand_lines} `(boolean)` Expand current line to hover window if larger than window size
-{layouts} `(dapui.Config.layout[])` Layouts to display elements within. Layouts are opened in the order defined
+{mappings} `(table<dapui.Action, string|string[]>)` Keys to trigger actions
+in elements
+{element_mappings} `(table<string, table<dapui.Action, string|string[]>>)`
+Per-element overrides of global mappings
+{expand_lines} `(boolean)` Expand current line to hover window if larger
+than window size
+{layouts} `(dapui.Config.layout[])` Layouts to display elements within.
+Layouts are opened in the order defined
 {floating} `(dapui.Config.floating)` Floating window specific options
 {controls} `(dapui.Config.controls)` Controls configuration
-{render} `(dapui.Config.render)` Rendering options which can be updated after initial setup
+{render} `(dapui.Config.render)` Rendering options which can be updated
+after initial setup
 
                                                             *dapui.Config.icons*
 Fields~
@@ -199,19 +241,25 @@ Fields~
 
                                                            *dapui.Config.layout*
 Fields~
-{elements} `(string[]|dapui.Config.layout.element[])` Elements to display in this layout
+{elements} `(string[]|dapui.Config.layout.element[])` Elements to display
+in this layout
 {size} `(number)` Size of the layout in lines/columns
-{position} `("left"|"right"|"top"|"bottom")` Which side of editor to open layout on
+{position} `("left"|"right"|"top"|"bottom")` Which side of editor to open
+layout on
 
 {id} `(string)` Element ID
-{size} `(number)` Size of the element in lines/columns or as proportion of total editor size (0-1)
+{size} `(number)` Size of the element in lines/columns or as proportion of
+total editor size (0-1)
 
                                                          *dapui.Config.floating*
 Fields~
-{max_height?} `(number)` Maximum height of floating window (integer or float between 0 and 1)
-{max_width?} `(number)` Maximum width of floating window (integer or float between 0 and 1)
+{max_height?} `(number)` Maximum height of floating window (integer or float 
+between 0 and 1)
+{max_width?} `(number)` Maximum width of floating window (integer or float 
+between 0 and 1)
 {border} `(string|string[])` Border argument supplied to `nvim_open_win`
-{mappings} `(table<dapui.FloatingAction, string|string[]>)` Keys to trigger actions in elements
+{mappings} `(table<dapui.FloatingAction, string|string[]>)` Keys to trigger 
+actions in elements
 
                                                          *dapui.Config.controls*
 Fields~
@@ -233,8 +281,10 @@ Fields~
                                                            *dapui.Config.render*
 Fields~
 {indent} `(integer)` Default indentation size
-{max_type_length?} `(integer)` Maximum number of characters to allow a type name to fill before trimming
-{max_value_lines?} `(integer)` Maximum number of lines to allow a value to fill before trimming
+{max_type_length?} `(integer)` Maximum number of characters to allow a type 
+name to fill before trimming
+{max_value_lines?} `(integer)` Maximum number of lines to allow a value to 
+fill before trimming
 
                                                                   *dapui.Action*
 Alias~
@@ -263,7 +313,7 @@ Displays the running threads and their stack frames.
 
 Mappings:
 - `open`: Jump to a place within the stack frame.
-- `toggle`: Toggle displaying [subtle](https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame) frames
+- `toggle`: Toggle displaying subtle frames
 
 
 ==============================================================================

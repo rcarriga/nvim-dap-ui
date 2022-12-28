@@ -20,6 +20,8 @@ local elements = {}
 
 local open_float = nil
 
+local refresh_control_panel = function() end
+
 local function query_elem_name()
   local entries = {}
   for name, _ in pairs(elements) do
@@ -180,7 +182,10 @@ end
 local prev_expr = nil
 
 ---@class dapui.EvalArgs
----@field context string Context to use for evalutate request, defaults to "hover". Hover requests should have no side effects, if you have errors with evaluation, try changing context to "repl". See the DAP specification for more details.
+---@field context string Context to use for evalutate request, defaults to
+--- "hover". Hover requests should have no side effects, if you have errors
+--- with evaluation, try changing context to "repl". See the DAP specification
+--- for more details.
 ---@field width integer Fixed width of window
 ---@field height integer Fixed height of window
 ---@field enter boolean Whether or not to enter the window after opening
@@ -189,7 +194,8 @@ local prev_expr = nil
 ---
 --- If no fixed dimensions are given, the window will expand to fit the contents
 --- of the buffer.
----@param expr string Expression to evaluate. If nil, then in normal more the current word is used, and in visual mode the currently highlighted text.
+---@param expr string Expression to evaluate. If nil, then in normal more the
+--- current word is used, and in visual mode the currently highlighted text.
 ---@param args dapui.EvalArgs
 function dapui.eval(expr, args)
   async.run(function()
@@ -217,7 +223,7 @@ function dapui.eval(expr, args)
       end
     end
     prev_expr = expr
-    local elem = elements.hover
+    local elem = dapui.elements.hover
     elem.set_expression(expr, args.context)
     local line_no = async.fn.screenrow()
     local col_no = async.fn.screencol()
@@ -231,10 +237,9 @@ function dapui.eval(expr, args)
   end)
 end
 
-local refresh_control_panel = function() end
-
 --- Update the config.render settings and re-render windows
----@param update dapui.Config.render Updated settings, from the `render` table of the config
+---@param update dapui.Config.render Updated settings, from the `render` table of
+--- the config
 function dapui.update_render(update)
   config.update_render(update)
   async.run(function()
@@ -400,6 +405,45 @@ setmetatable(_dapui, {
     end
   end,
 })
+
+---@text
+--- Access the elements currently registered. See elements corresponding help
+--- tag for API information.
+---@class dapui.elements
+---@field hover dapui.elements.hover
+---@field breakpoints dapui.elements.breakpoints
+---@field repl dapui.elements.repl
+---@field scopes dapui.elements.scopes
+---@field stack dapui.elements.stacks
+---@field watches dapui.elements.watches
+---@field console dapui.elements.console
+dapui.elements = setmetatable({}, {
+  __newindex = function()
+    error("Elements should be registered instead of adding them to the elements table")
+  end,
+  __index = function(_, key)
+    return elements[key]
+  end,
+})
+
+---@class dapui.Element
+---@field render fun() Triggers the element to refresh its buffer. Used when
+--- render settings have changed
+---@field buffer fun(): integer Gets the current buffer for the element. The
+--- buffer can change over repeated calls
+---@field float_defaults? fun(): dapui.FloatElementArgs Default settings for
+--- floating windows. Useful for element windows which should be larger than
+--- their content
+
+--- Registers a new element that can be used within layouts or floating windows
+---@param name string Name of the element
+---@param element dapui.Element
+function dapui.register_element(name, element)
+  if elements[name] then
+    error("Element " .. name .. " already exists")
+  end
+  elements[name] = element
+end
 
 function dapui.controls(is_active)
   local session = dap.session()
