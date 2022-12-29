@@ -3,7 +3,7 @@ local util = require("dapui.util")
 local partial = util.partial
 
 ---@class Variables
----@field expanded_children table
+---@field frame_expanded_children table
 ---@field child_components table<number, Variables>
 ---@field var_to_set table | nil
 ---@field mode "set" | nil
@@ -20,20 +20,19 @@ return function(client, send_ready)
   local prompt_func
   ---@type string | nil
   local prompt_fill
-  local rendered_step = client.lib.step_number()
   ---@type table<string, string>
   local rendered_vars = {}
 
-  local function reference_prefix(path, variable)
+  local function reference_prefix(frame_id, path, variable)
     if variable.variablesReference == 0 then
       return " "
     end
-    return config.icons[expanded_children[path] and "expanded" or "collapsed"]
+    return config.icons[expanded_children[frame_id][path] and "expanded" or "collapsed"]
   end
 
   ---@param path string
-  local function path_changed(path, value)
-    return rendered_vars[path] and rendered_vars[path] ~= value
+  local function path_changed(frame_id, path, value)
+    return rendered_vars[frame_id][path] and rendered_vars[frame_id][path] ~= value
   end
 
   ---@param canvas dapui.Canvas
@@ -41,39 +40,45 @@ return function(client, send_ready)
   ---@param parent_ref integer
   ---@param indent integer
   local function render(canvas, parent_path, parent_ref, indent)
+    local frame_id = client.session.current_frame and client.session.current_frame.id
+    if not frame_id then
+      return
+    end
+    expanded_children[frame_id] = expanded_children[frame_id] or {}
+    rendered_vars[frame_id] = rendered_vars[frame_id] or {}
+
     if not canvas.prompt and prompt_func then
       canvas:set_prompt("> ", prompt_func, { fill = prompt_fill })
     end
     indent = indent or 0
     local success, var_data = pcall(client.request.variables, { variablesReference = parent_ref })
     local variables = success and var_data.variables or {}
-    local cur_frame_id = client.session.current_frame and client.session.current_frame.id
     for _, variable in pairs(variables) do
       local var_path = parent_path .. "." .. variable.name
 
-      canvas:write(string.rep(" ", indent))
-      local prefix = reference_prefix(var_path, variable)
-      canvas:write(prefix, { group = "DapUIDecoration" })
-      canvas:write(" ")
-      canvas:write(variable.name, { group = "DapUIVariable" })
+      canvas:write({
+        string.rep(" ", indent),
+        { reference_prefix(frame_id, var_path, variable), group = "DapUIDecoration" },
+        " ",
+        { variable.name, group = "DapUIVariable" },
+      })
 
       local var_type = util.render_type(variable.type)
       if #var_type > 0 then
-        canvas:write(" ")
-        canvas:write(var_type, { group = "DapUIType" })
+        canvas:write({ " ", { var_type, group = "DapUIType" } })
       end
 
       local var_group
-      if path_changed(var_path, variable.value) then
+      if path_changed(frame_id, var_path, variable.value) then
         var_group = "DapUIModifiedValue"
       else
         var_group = "DapUIValue"
       end
-      rendered_vars[var_path] = variable.value
+      rendered_vars[frame_id][var_path] = variable.value
       local function add_var_line(line)
         if variable.variablesReference > 0 then
           canvas:add_mapping("expand", function()
-            expanded_children[var_path] = not expanded_children[var_path]
+            expanded_children[frame_id][var_path] = not expanded_children[frame_id][var_path]
             send_ready()
           end)
           if variable.evaluateName then
@@ -105,15 +110,13 @@ return function(client, send_ready)
         add_var_line(variable.value)
       end
 
-      if expanded_children[var_path] and variable.variablesReference ~= 0 then
+      if expanded_children[frame_id][var_path] and variable.variablesReference ~= 0 then
         render(canvas, var_path, variable.variablesReference, indent + config.render.indent)
       end
     end
-    if cur_frame_id and cur_frame_id ~= rendered_step then
-      rendered_vars = {}
-      rendered_step = cur_frame_id
-    end
   end
 
-  return { render = render }
+  return {
+    render = render,
+  }
 end

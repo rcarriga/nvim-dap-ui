@@ -1,3 +1,5 @@
+*neotest.txt*	A UI for nvim-dap.
+
 ==============================================================================
 nvim-dap-ui                                                        *nvim-dap-ui*
 
@@ -5,14 +7,39 @@ nvim-dap-ui                                                        *nvim-dap-ui*
   Configuration Options.........................................|dapui.config|
   Variable Scopes......................................|dapui.elements.scopes|
   Threads and Stack Frames.............................|dapui.elements.stacks|
-  Repl...................................................|dapui.elements.repl|
+  REPL...................................................|dapui.elements.repl|
   Watch Expressions...................................|dapui.elements.watches|
   Breakpoints.....................................|dapui.elements.breakpoints|
-  Console..........................................................|get_buf()|
+  Console.............................................|dapui.elements.console|
 
 A UI for nvim-dap which provides a good out of the box configuration.
 nvim-dap-ui is built on the idea of "elements". These elements are windows
 which provide different features.
+Elements are grouped into layouts which can be placed on any side of the
+screen. There can be any number of layouts, containing whichever elements
+desired.
+
+Elements can also be displayed temporarily in a floating window.
+
+See `:h dapui.setup()` for configuration options and defaults
+
+It is highly recommended to use neodev.nvim to enable type checking for
+nvim-dap-ui to get type checking, documentation and autocompletion for
+all API functions.
+
+>lua
+  require("neodev").setup({
+    library = { plugins = { "nvim-dap-ui" }, types = true },
+    ...
+  })
+<
+
+The default icons use codicons(https://github.com/microsoft/vscode-codicons).
+It's recommended to use this fork(https://github.com/ChristianChiarulli/neovim-codicons)
+which fixes alignment issues for the terminal. If your terminal doesn't
+support font fallback and you need to have icons included in your font,
+you can patch it via Font Patcher(https://github.com/ryanoasis/nerd-fonts#option-8-patch-your-own-font).
+There is a simple step by step guide here: https://github.com/mortepau/codicons.nvim#how-to-patch-fonts.
 
                                                                  *dapui.setup()*
 `setup`({user_config})
@@ -114,7 +141,7 @@ If no fixed dimensions are given, the window will expand to fit the contents
 of the buffer.
 Parameters~
 {elem_name} `(string)`
-{args} `(dapui.FloatElementArgs)`
+{args?} `(dapui.FloatElementArgs)`
 
                                                                 *dapui.EvalArgs*
 Fields~
@@ -186,6 +213,17 @@ dapui.elements                                                  *dapui.elements*
 
 Access the elements currently registered. See elements corresponding help
 tag for API information.
+
+Most API functions are asynchronous, meaning that they must be run within an
+async context. This can be done by wrapping the function in `async.run`.
+>lua
+  local async = require("dapui.async")
+  local dapui = require("dapui")
+  async.run(function()
+    dapui.elements.watches.add("some_variable")
+  end)
+<
+
 Fields~
 {hover} `(dapui.elements.hover)`
 {breakpoints} `(dapui.elements.breakpoints)`
@@ -220,10 +258,8 @@ dapui.config                                                      *dapui.config*
                                                                   *dapui.Config*
 Fields~
 {icons} `(dapui.Config.icons)`
-{mappings} `(table<dapui.Action, string|string[]>)` Keys to trigger actions
-in elements
-{element_mappings} `(table<string, table<dapui.Action, string|string[]>>)`
-Per-element overrides of global mappings
+{mappings} `(table<dapui.Action, string|string[]>)` Keys to trigger actions in elements
+{element_mappings} `(table<string, table<dapui.Action, string|string[]>>)` Per-element overrides of global mappings
 {expand_lines} `(boolean)` Expand current line to hover window if larger
 than window size
 {layouts} `(dapui.Config.layout[])` Layouts to display elements within.
@@ -253,12 +289,12 @@ total editor size (0-1)
 
                                                          *dapui.Config.floating*
 Fields~
-{max_height?} `(number)` Maximum height of floating window (integer or float 
+{max_height?} `(number)` Maximum height of floating window (integer or float
 between 0 and 1)
-{max_width?} `(number)` Maximum width of floating window (integer or float 
+{max_width?} `(number)` Maximum width of floating window (integer or float
 between 0 and 1)
 {border} `(string|string[])` Border argument supplied to `nvim_open_win`
-{mappings} `(table<dapui.FloatingAction, string|string[]>)` Keys to trigger 
+{mappings} `(table<dapui.FloatingAction, string|string[]>)` Keys to trigger
 actions in elements
 
                                                          *dapui.Config.controls*
@@ -281,9 +317,9 @@ Fields~
                                                            *dapui.Config.render*
 Fields~
 {indent} `(integer)` Default indentation size
-{max_type_length?} `(integer)` Maximum number of characters to allow a type 
+{max_type_length?} `(integer)` Maximum number of characters to allow a type
 name to fill before trimming
-{max_value_lines?} `(integer)` Maximum number of lines to allow a value to 
+{max_value_lines?} `(integer)` Maximum number of lines to allow a value to
 fill before trimming
 
                                                                   *dapui.Action*
@@ -393,9 +429,7 @@ Mappings:
 
 
 ==============================================================================
-                                                                     *get_buf()*
-`get_buf`()
-
+dapui.elements.console                                  *dapui.elements.console*
 
 The console window used by nvim-dap for the integrated terminal.
 

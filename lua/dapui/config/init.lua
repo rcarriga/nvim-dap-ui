@@ -5,10 +5,8 @@ local dapui = {}
 
 ---@class dapui.Config
 ---@field icons dapui.Config.icons
----@field mappings table<dapui.Action, string|string[]> Keys to trigger actions
---- in elements
----@field element_mappings table<string, table<dapui.Action, string|string[]>>
---- Per-element overrides of global mappings
+---@field mappings table<dapui.Action, string|string[]> Keys to trigger actions in elements
+---@field element_mappings table<string, table<dapui.Action, string|string[]>> Per-element overrides of global mappings
 ---@field expand_lines boolean Expand current line to hover window if larger
 --- than window size
 ---@field layouts dapui.Config.layout[] Layouts to display elements within.

@@ -13,6 +13,7 @@ return function()
 
   local console_buf = -1
   local autoscroll = true
+  ---@nodoc
   local function get_buf()
     if async.api.nvim_buf_is_valid(console_buf) then
       return console_buf

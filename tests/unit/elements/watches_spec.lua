@@ -59,7 +59,7 @@ describe("watches element", function()
     watches.add("a")
     watches.add("b - 1")
     watches.add("c")
-    async.util.sleep(10)
+    async.sleep(10)
     local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
     assert.same(
       { " a = 'a value'", " b - 1 number = 1", " c table = { d = 1 }", "" },
@@ -71,7 +71,7 @@ describe("watches element", function()
     watches.add("a")
     watches.add("b - 1")
     watches.add("c")
-    async.util.sleep(10)
+    async.sleep(10)
     local highlights = tests.util.get_highlights(buf)
     assert.same({
       { "DapUIWatchesValue", 0, 0, 0, 3 },
@@ -89,7 +89,7 @@ describe("watches element", function()
     a.it("renders expanded lines", function()
       watches.add("c")
       watches.toggle_expand(1)
-      async.util.sleep(10)
+      async.sleep(10)
 
       local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.same({ " c table = { d = 1 }", "   d number = 1", "" }, lines)
@@ -97,7 +97,7 @@ describe("watches element", function()
     a.it("renders expanded highlights", function()
       watches.add("c")
       watches.toggle_expand(1)
-      async.util.sleep(10)
+      async.sleep(10)
 
       local highlights = tests.util.get_highlights(buf)
       assert.same({

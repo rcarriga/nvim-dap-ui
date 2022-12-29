@@ -5,7 +5,7 @@ return function()
   local dapui = { elements = {} }
 
   ---@class dapui.elements.repl
-  ---@toc_entry Repl
+  ---@toc_entry REPL
   ---@text
   --- The REPL provided by nvim-dap.
   dapui.elements.repl = {}

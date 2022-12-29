@@ -57,6 +57,17 @@ function Canvas:invalidate()
 end
 
 function Canvas:write(text, opts)
+  if type(text) == "table" then
+    for _, line in pairs(text) do
+      if type(line) == "table" then
+        self:write(line[1], line)
+      else
+        self:write(line)
+      end
+    end
+    return
+  end
+
   if type(text) ~= "string" then
     text = tostring(text)
   end
@@ -219,10 +230,10 @@ function Canvas:render_buffer(buffer, action_keys)
     vim.cmd("augroup DAPUIPromptSetUnmodified" .. buffer)
     vim.cmd(
       "autocmd ExitPre <buffer="
-        .. buffer
-        .. "> call nvim_buf_set_option("
-        .. buffer
-        .. ", 'modified', v:false)"
+      .. buffer
+      .. "> call nvim_buf_set_option("
+      .. buffer
+      .. ", 'modified', v:false)"
     )
     vim.cmd("augroup END")
   else

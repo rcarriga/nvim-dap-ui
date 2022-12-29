@@ -79,8 +79,10 @@ return function(client, send_ready)
         )
         local prefix = config.icons[watch.expanded and "expanded" or "collapsed"]
 
-        canvas:write(prefix, { group = success and "DapUIWatchesValue" or "DapUIWatchesError" })
-        canvas:write(" " .. watch.expression)
+        canvas:write({
+          { prefix, group = success and "DapUIWatchesValue" or "DapUIWatchesError" },
+          " " .. watch.expression,
+        })
 
         local value = ""
         if not success then
@@ -90,8 +92,7 @@ return function(client, send_ready)
         else
           local eval_type = util.render_type(evaluated.type)
           if #eval_type > 0 then
-            canvas:write(" ")
-            canvas:write(eval_type, { group = "DapUIType" })
+            canvas:write({ " ", { eval_type, group = "DapUIType" } })
           end
           canvas:write(" = ")
           value = evaluated.result

@@ -790,7 +790,7 @@ minidoc.generate(
           return
         end
 
-        if f.info.path ~= "./lua/neotest/init.lua" then
+        if f.info.path ~= "./lua/dapui/init.lua" then
           f:insert(1, H.as_struct({ H.as_struct({ string.rep("=", 78) }, "section") }, "block"))
           f:insert(H.as_struct({ H.as_struct({ "" }, "section") }, "block"))
         else

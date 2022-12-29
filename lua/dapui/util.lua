@@ -7,26 +7,26 @@ local api = vim.api
 
 ---@return function
 function M.create_render_loop(render)
-  local render_cond = async.control.Condvar.new()
+  local render_event = async.control.event()
   local pending = false
 
   async.run(function()
     while true do
       if not pending then
-        render_cond:wait()
+        render_event.wait()
       end
       pending = false
       xpcall(render, function(msg)
         local traceback = debug.traceback(msg, 1)
         M.notify(("Rendering failed: %s"):format(traceback), vim.log.levels.WARN)
       end)
-      async.util.sleep(10)
+      async.sleep(10)
     end
   end)
 
   return function()
     pending = true
-    render_cond:notify_all()
+    render_event.set()
   end
 end
 

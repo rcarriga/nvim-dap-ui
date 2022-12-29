@@ -17,8 +17,7 @@ return function(client, send_ready)
       local function render_thread(thread, match_group)
         local first_line = canvas:length()
 
-        canvas:write(thread.name, { group = match_group })
-        canvas:write(":\n")
+        canvas:write({ { thread.name, group = match_group }, ":\n" })
 
         render_frames.render(
           canvas,

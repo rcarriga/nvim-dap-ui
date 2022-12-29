@@ -5,8 +5,36 @@
 --- A UI for nvim-dap which provides a good out of the box configuration.
 --- nvim-dap-ui is built on the idea of "elements". These elements are windows
 --- which provide different features.
+--- Elements are grouped into layouts which can be placed on any side of the
+--- screen. There can be any number of layouts, containing whichever elements
+--- desired.
+---
+--- Elements can also be displayed temporarily in a floating window.
+---
+--- See `:h dapui.setup()` for configuration options and defaults
+---
+--- It is highly recommended to use neodev.nvim to enable type checking for
+--- nvim-dap-ui to get type checking, documentation and autocompletion for
+--- all API functions.
+---
+--- >lua
+---   require("neodev").setup({
+---     library = { plugins = { "nvim-dap-ui" }, types = true },
+---     ...
+---   })
+--- <
+---
+--- The default icons use codicons(https://github.com/microsoft/vscode-codicons).
+--- It's recommended to use this fork(https://github.com/ChristianChiarulli/neovim-codicons)
+--- which fixes alignment issues for the terminal. If your terminal doesn't
+--- support font fallback and you need to have icons included in your font,
+--- you can patch it via Font Patcher(https://github.com/ryanoasis/nerd-fonts#option-8-patch-your-own-font).
+--- There is a simple step by step guide here: https://github.com/mortepau/codicons.nvim#how-to-patch-fonts.
 
 local dap = require("dap")
+
+---@class dapui
+---@nodoc
 local dapui = {}
 
 local windows = require("dapui.windows")
@@ -153,7 +181,7 @@ end
 --- If no fixed dimensions are given, the window will expand to fit the contents
 --- of the buffer.
 ---@param elem_name string
----@param args dapui.FloatElementArgs
+---@param args? dapui.FloatElementArgs
 function dapui.float_element(elem_name, args)
   async.run(function()
     if open_float then
@@ -168,8 +196,8 @@ function dapui.float_element(elem_name, args)
     end
     local elem = elements[elem_name]
     args =
-      vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
-    async.util.scheduler()
+    vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
+    async.scheduler()
     open_float = require("dapui.windows").open_float(elem_name, elem, position, args)
     if open_float then
       open_float:listen("close", function()
@@ -409,6 +437,17 @@ setmetatable(_dapui, {
 ---@text
 --- Access the elements currently registered. See elements corresponding help
 --- tag for API information.
+---
+--- Most API functions are asynchronous, meaning that they must be run within an
+--- async context. This can be done by wrapping the function in `async.run`.
+--- >lua
+---   local async = require("dapui.async")
+---   local dapui = require("dapui")
+---   async.run(function()
+---     dapui.elements.watches.add("some_variable")
+---   end)
+--- <
+---
 ---@class dapui.elements
 ---@field hover dapui.elements.hover
 ---@field breakpoints dapui.elements.breakpoints
