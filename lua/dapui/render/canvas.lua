@@ -230,10 +230,10 @@ function Canvas:render_buffer(buffer, action_keys)
     vim.cmd("augroup DAPUIPromptSetUnmodified" .. buffer)
     vim.cmd(
       "autocmd ExitPre <buffer="
-      .. buffer
-      .. "> call nvim_buf_set_option("
-      .. buffer
-      .. ", 'modified', v:false)"
+        .. buffer
+        .. "> call nvim_buf_set_option("
+        .. buffer
+        .. ", 'modified', v:false)"
     )
     vim.cmd("augroup END")
   else

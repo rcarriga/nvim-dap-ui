@@ -9,20 +9,19 @@ dapui.async.tests = {}
 
 local with_timeout = function(func, timeout)
   return function()
-    local stat, err
-
-    async.run(function()
-      stat = xpcall(func, function(msg)
-        err = debug.traceback(msg)
-      end)
-    end)
+    local task = async.run(func)
 
     vim.wait(timeout or 2000, function()
-      return stat ~= nil
+      return task.done()
     end, 20, false)
 
-    if not stat then
-      error(string.format("Blocking on future timed out or was interrupted.\n%s", err))
+    if not task.done() or task.error() then
+      error(
+        string.format(
+          "Blocking on future timed out or was interrupted.\n%s",
+          task.error() or "Timed out"
+        )
+      )
     end
   end
 end

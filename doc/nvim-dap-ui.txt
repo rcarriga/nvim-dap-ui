@@ -438,42 +438,69 @@ The console window used by nvim-dap for the integrated terminal.
 dapui.async                                                        *dapui.async*
 
 
-This library was originally taken from https://github.com/lewis6991/async.nvim with
-some refactoring and convenience functions added.
+This library was originally taken from https://github.com/lewis6991/async.nvim.
+The API is heavily inspired by Python's asyncio module
 
+
+Tasks represent a top level running asynchronous function
+Only one task is ever executing at any time.
                                                               *dapui.async.Task*
 Fields~
 {cancel} `(fun(): nil)` Cancels the task
+{done} `(fun(): boolean)` Returns true if the task is done
+{cancelled} `(fun(): boolean)` Returns true if the task is cancelled
+{parent?} `(dapui.async.Task)` Parent task
+{name} `(fun(): string)` Get the name of the task
+{set_name} `(fun(name: string): nil)` Sets the name of the task
+{error} `(fun(): dapui.async.TaskError)` Get the error of the task
+{result} `(fun(): any)` Get the result of the task
+{add_callback} `(fun(cb: fun(task: dapui.async.Task)): nil)`
 
-                                                            *dapui.async.sync()*
-`sync`({func}, {argc})
-
-Use this to create a function which executes in an async context but
-called from a non-async context. Inherently this cannot return anything
-since it is non-blocking
-Parameters~
-{func} `(function)`
-{argc} `(number)` The number of arguments of func. Defaults to 0
-
-                                                            *dapui.async.void()*
-`void`({func})
-
-Create a function which executes in an async context but
-called from a non-async context.
-Parameters~
-{func} `(function)`
+                                                         *dapui.async.TaskError*
+Fields~
+{message} `(string)`
+{traceback?} `(string)`
 
                                                              *dapui.async.run()*
 `run`({func})
 
-Run a function in an async context
+Run a function in an async context. This is the entrypoint to all async
+functionality.
+>lua
+  local async = require("dapui").async
+  async.run(function()
+    async.sleep(10)
+    print("Hello world")
+  end)
+
+<
 Parameters~
 {func} `(function)`
+Return~
+`(dapui.async.Task)`
+
+                                                    *dapui.async.current_task()*
+`current_task`()
+
+Get the current running task
+Return~
+`(dapui.async.Task|nil)`
 
                                                             *dapui.async.wrap()*
 `wrap`({func}, {argc}, {protected})
 
 Creates an async function with a callback style function.
+>lua
+  local async = require("dapui").async
+  local sleep = async.wrap(function(ms, cb)
+    vim.defer_fn(cb, ms)
+  end, 2)
+
+  async.run(function()
+    sleep(10)
+    print("Slept for 10ms")
+  end)
+<
 Parameters~
 {func} `(function)` A callback style function to be converted. The last argument must be the callback.
 {argc} `(integer)` The number of arguments of func. Must be included.
@@ -482,14 +509,28 @@ Return~
 `(function)` Returns an async function
 
                                                             *dapui.async.join()*
-`join`({n}, {interrupt_check}, {thunks})
+`join`({thunks}, {args})
 
 Run a collection of async functions (`thunks`) concurrently and return when
 all have finished.
 Parameters~
-{n} `(integer)` Max number of thunks to run concurrently
-{interrupt_check} `(function)` Function to abort thunks between calls
-function[] thunks
+{thunks} `(function[])`
+{args?} `(dapui.async.JoinArgs)`
+Return~
+`(boolean,)` any[][]|string Whether all thunks completed or not and packed results of the thunks or error
+
+                                                          *dapui.async.JoinArgs*
+Fields~
+{concurrent?} `(integer)` Max number of thunks to run concurrently, defaults to no
+limit
+{interrupt_check?} `(function)` Function to abort thunks between calls
+
+                                                           *dapui.async.sleep()*
+`sleep`({ms})
+
+Suspend the current task for given time.
+Parameters~
+{ms} `(number)` Time in milliseconds
 
                                                        *dapui.async.scheduler()*
 `scheduler`()
@@ -520,8 +561,8 @@ Provides primitives for flow control to be used in async functions
 An event can signal to multiple listeners to resume execution
                                                      *dapui.async.control.Event*
 Fields~
-{set} `(fun(): nil)` Set the event and signal to all listeners that the event has occurred
-{wait} `(fun(): nil)` Wait for the event to occur, returning immediately if
+{set} `(fun(max_woken?: integer): nil)` Set the event and signal to all (or limited number of) listeners that the event has occurred. If max_woken is provided and there are more listeners then the event is cleared immediately
+{wait} `(async fun(): nil)` Wait for the event to occur, returning immediately if
 already set
 {clear} `(fun(): nil)` Clear the event
 {is_set} `(fun(): boolean)` Returns true if the event is set
@@ -532,6 +573,21 @@ already set
 Create a new event
 Return~
 `(dapui.async.control.Event)`
+
+                                                   *dapui.async.control.queue()*
+`queue`({maxsize})
+
+
+A FIFO queue with async support.
+Fields~
+{size} `(fun(): number)` Returns the number of items in the queue
+{max_size} `(fun(): number|nil)` Returns the maximum number of items in the queue
+{get} `(async fun(): any)` Get a value from the queue, blocking if the queue is empty
+{get_nowait} `(fun(): any)` Get a value from the queue, erroring if queue is
+empty.
+{put} `(async fun(value: any): nil)` Put a value into the queue
+{put_nowait} `(fun(value: any): nil)` Put a value into the queue, erroring if
+queue is full.
 
 
 ==============================================================================

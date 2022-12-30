@@ -10,8 +10,8 @@ dapui.async.control = {}
 ---@text
 --- An event can signal to multiple listeners to resume execution
 ---@class dapui.async.control.Event
----@field set fun(): nil Set the event and signal to all listeners that the event has occurred
----@field wait fun(): nil Wait for the event to occur, returning immediately if
+---@field set fun(max_woken?: integer): nil Set the event and signal to all (or limited number of) listeners that the event has occurred. If max_woken is provided and there are more listeners then the event is cleared immediately
+---@field wait async fun(): nil Wait for the event to occur, returning immediately if
 --- already set
 ---@field clear fun(): nil Clear the event
 ---@field is_set fun(): boolean Returns true if the event is set
@@ -25,11 +25,18 @@ function dapui.async.control.event()
     is_set = function()
       return is_set
     end,
-    set = function()
+    set = function(max_woken)
+      if is_set then
+        return
+      end
       is_set = true
       local waiters_to_notify = {}
-      while #waiters > 0 do
+      max_woken = max_woken or #waiters
+      while #waiters > 0 and #waiters_to_notify < max_woken do
         waiters_to_notify[#waiters_to_notify + 1] = table.remove(waiters)
+      end
+      if #waiters > 0 then
+        is_set = false
       end
       for _, waiter in ipairs(waiters_to_notify) do
         waiter()
@@ -44,6 +51,97 @@ function dapui.async.control.event()
     end, 1),
     clear = function()
       is_set = false
+    end,
+  }
+end
+
+---@text
+--- A FIFO queue with async support.
+---@class dapui.async.control.Queue
+---@field size fun(): number Returns the number of items in the queue
+---@field max_size fun(): number|nil Returns the maximum number of items in the queue
+---@field get async fun(): any Get a value from the queue, blocking if the queue is empty
+---@field get_nowait fun(): any Get a value from the queue, erroring if queue is
+--- empty.
+---@field put async fun(value: any): nil Put a value into the queue
+---@field put_nowait fun(value: any): nil Put a value into the queue, erroring if
+--- queue is full.
+
+function dapui.async.control.queue(maxsize)
+  local items = {}
+  local left_i = 0
+  local right_i = 0
+  local non_empty = dapui.async.control.event()
+  local non_full = dapui.async.control.event()
+  non_full.set()
+
+  local queue = {}
+
+  function queue.size()
+    return right_i - left_i
+  end
+
+  function queue.max_size()
+    return maxsize
+  end
+
+  function queue.put(value)
+    non_full.wait()
+    queue.put_nowait(value)
+  end
+
+  function queue.get()
+    non_empty.wait()
+    return queue.get_nowait()
+  end
+
+  function queue.get_nowait()
+    if queue.size() == 0 then
+      error("Queue is empty")
+    end
+    left_i = left_i + 1
+    local item = items[left_i]
+    items[left_i] = nil
+    if left_i == right_i then
+      non_empty.clear()
+    end
+    non_full.set()
+    return item
+  end
+
+  function queue.put_nowait(value)
+    if not non_full.is_set() then
+      error("Queue is full")
+    end
+    right_i = right_i + 1
+    items[right_i] = value
+    non_empty.set(1)
+    if maxsize and queue.size() == maxsize then
+      non_full.clear()
+    end
+  end
+
+  return queue
+end
+
+function dapui.async.control.semaphore(value)
+  value = value or 1
+  local released_event = dapui.async.control.event()
+  released_event.set()
+  return {
+    with = function(cb)
+      released_event.wait()
+      value = value - 1
+      assert(value >= 0, "Semaphore value is negative")
+      if value == 0 then
+        released_event.clear()
+      end
+      local success, err = pcall(cb)
+      value = value + 1
+      released_event.set(1)
+      if not success then
+        error(err)
+      end
     end,
   }
 end
