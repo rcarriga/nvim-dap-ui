@@ -42,6 +42,8 @@ local config = require("dapui.config")
 local util = require("dapui.util")
 local async = require("dapui.async")
 
+dapui.async = async
+
 ---@type table<string, dapui.Element>
 ---@nodoc
 local elements = {}
@@ -441,9 +443,8 @@ setmetatable(_dapui, {
 --- Most API functions are asynchronous, meaning that they must be run within an
 --- async context. This can be done by wrapping the function in `async.run`.
 --- >lua
----   local async = require("dapui.async")
 ---   local dapui = require("dapui")
----   async.run(function()
+---   dapui.async.run(function()
 ---     dapui.elements.watches.add("some_variable")
 ---   end)
 --- <

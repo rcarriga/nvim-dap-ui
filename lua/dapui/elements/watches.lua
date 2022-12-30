@@ -59,16 +59,16 @@ return function(client)
     return watches.get()
   end
 
+  ---@class dapui.elements.watches.Watch
+  ---@field expression string
+  ---@field expanded boolean
+
   --- Toggle the expanded state of the chosen watch expression
   ---@param index integer
   ---@async
   function dapui.elements.watches.toggle_expand(index)
     watches.expand(index)
   end
-
-  ---@class dapui.elements.watches.Watch
-  ---@field expression string
-  ---@field expanded boolean
 
   ---@nodoc
   function dapui.elements.watches.render()

@@ -665,6 +665,9 @@ minidoc.generate(
     "./lua/dapui/elements/watches.lua",
     "./lua/dapui/elements/breakpoints.lua",
     "./lua/dapui/elements/console.lua",
+    "./lua/dapui/async/base.lua",
+    "./lua/dapui/async/control.lua",
+    "./lua/dapui/async/tests.lua",
   },
   nil,
   {

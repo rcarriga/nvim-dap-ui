@@ -2,17 +2,21 @@ local async = require("dapui.async")
 
 local dapui = { async = {} }
 
+---@text
+--- Provides primitives for flow control to be used in async functions
 ---@class dapui.async.control
 dapui.async.control = {}
 
 ---@text
 --- An event can signal to multiple listeners to resume execution
----@class dapui.async.control.Event()
+---@class dapui.async.control.Event
 ---@field set fun(): nil Set the event and signal to all listeners that the event has occurred
----@field wait fun(): nil Wait for the event to occur
+---@field wait fun(): nil Wait for the event to occur, returning immediately if
+--- already set
 ---@field clear fun(): nil Clear the event
 ---@field is_set fun(): boolean Returns true if the event is set
 
+--- Create a new event
 ---@return dapui.async.control.Event
 function dapui.async.control.event()
   local waiters = {}

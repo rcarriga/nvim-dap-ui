@@ -11,6 +11,7 @@ nvim-dap-ui                                                        *nvim-dap-ui*
   Watch Expressions...................................|dapui.elements.watches|
   Breakpoints.....................................|dapui.elements.breakpoints|
   Console.............................................|dapui.elements.console|
+  Async Library..................................................|dapui.async|
 
 A UI for nvim-dap which provides a good out of the box configuration.
 nvim-dap-ui is built on the idea of "elements". These elements are windows
@@ -217,9 +218,8 @@ tag for API information.
 Most API functions are asynchronous, meaning that they must be run within an
 async context. This can be done by wrapping the function in `async.run`.
 >lua
-  local async = require("dapui.async")
   local dapui = require("dapui")
-  async.run(function()
+  dapui.async.run(function()
     dapui.elements.watches.add("some_variable")
   end)
 <
@@ -404,6 +404,11 @@ Return~
 `(dapui.elements.watches.Watch[])`
 
 
+                                                  *dapui.elements.watches.Watch*
+Fields~
+{expression} `(string)`
+{expanded} `(boolean)`
+
                                         *dapui.elements.watches.toggle_expand()*
 `toggle_expand`({index})
 
@@ -411,11 +416,6 @@ Toggle the expanded state of the chosen watch expression
 Parameters~
 {index} `(integer)`
 
-
-                                                  *dapui.elements.watches.Watch*
-Fields~
-{expression} `(string)`
-{expanded} `(boolean)`
 
 
 ==============================================================================
@@ -432,6 +432,132 @@ Mappings:
 dapui.elements.console                                  *dapui.elements.console*
 
 The console window used by nvim-dap for the integrated terminal.
+
+
+==============================================================================
+dapui.async                                                        *dapui.async*
+
+
+This library was originally taken from https://github.com/lewis6991/async.nvim with
+some refactoring and convenience functions added.
+
+                                                              *dapui.async.Task*
+Fields~
+{cancel} `(fun(): nil)` Cancels the task
+
+                                                            *dapui.async.sync()*
+`sync`({func}, {argc})
+
+Use this to create a function which executes in an async context but
+called from a non-async context. Inherently this cannot return anything
+since it is non-blocking
+Parameters~
+{func} `(function)`
+{argc} `(number)` The number of arguments of func. Defaults to 0
+
+                                                            *dapui.async.void()*
+`void`({func})
+
+Create a function which executes in an async context but
+called from a non-async context.
+Parameters~
+{func} `(function)`
+
+                                                             *dapui.async.run()*
+`run`({func})
+
+Run a function in an async context
+Parameters~
+{func} `(function)`
+
+                                                            *dapui.async.wrap()*
+`wrap`({func}, {argc}, {protected})
+
+Creates an async function with a callback style function.
+Parameters~
+{func} `(function)` A callback style function to be converted. The last argument must be the callback.
+{argc} `(integer)` The number of arguments of func. Must be included.
+{protected} `(boolean?)` Call the function in protected mode (like pcall), except on error a third value is returned which is the stack trace of where the error occurred.
+Return~
+`(function)` Returns an async function
+
+                                                            *dapui.async.join()*
+`join`({n}, {interrupt_check}, {thunks})
+
+Run a collection of async functions (`thunks`) concurrently and return when
+all have finished.
+Parameters~
+{n} `(integer)` Max number of thunks to run concurrently
+{interrupt_check} `(function)` Function to abort thunks between calls
+function[] thunks
+
+                                                       *dapui.async.scheduler()*
+`scheduler`()
+
+Yields to the Neovim scheduler to be able to call the API.
+
+
+dapui.async.api                                                *dapui.async.api*
+
+Safely proxies calls to the vim.api module while in an async context.
+
+dapui.async.fn                                                  *dapui.async.fn*
+
+Safely proxies calls to the vim.fn module while in an async context.
+
+dapui.async.ui                                                  *dapui.async.ui*
+
+Async versions of vim.ui functions
+
+
+==============================================================================
+dapui.async.control                                        *dapui.async.control*
+
+
+Provides primitives for flow control to be used in async functions
+
+
+An event can signal to multiple listeners to resume execution
+                                                     *dapui.async.control.Event*
+Fields~
+{set} `(fun(): nil)` Set the event and signal to all listeners that the event has occurred
+{wait} `(fun(): nil)` Wait for the event to occur, returning immediately if
+already set
+{clear} `(fun(): nil)` Clear the event
+{is_set} `(fun(): boolean)` Returns true if the event is set
+
+                                                   *dapui.async.control.event()*
+`event`()
+
+Create a new event
+Return~
+`(dapui.async.control.Event)`
+
+
+==============================================================================
+dapui.async.tests                                            *dapui.async.tests*
+
+
+Async versions of plenary's test functions.
+
+                                                        *dapui.async.tests.it()*
+`it`({name}, {async_func})
+
+Parameters~
+{name} `(string)`
+{async_func} `(function)`
+
+                                               *dapui.async.tests.before_each()*
+`before_each`({async_func})
+
+Parameters~
+{async_func} `(function)`
+
+                                                *dapui.async.tests.after_each()*
+`after_each`({async_func})
+
+Parameters~
+{async_func} `(function)`
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:
