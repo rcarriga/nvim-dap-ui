@@ -8,7 +8,11 @@ M.bootstrap = function()
   assert:add_formatter(vim.inspect)
 
   A = function(...)
-    print(vim.inspect(...))
+    local obj = select("#", ...) == 1 and select(1, ...) or { ... }
+    local s = type(obj) == "string" and obj or vim.inspect(obj)
+    vim.schedule(function()
+      print(s)
+    end)
   end
 end
 

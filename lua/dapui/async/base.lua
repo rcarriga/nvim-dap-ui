@@ -59,8 +59,8 @@ local TaskError = function(message, traceback)
   }, {
     __tostring = function()
       return string.format(
-        "The coroutine failed with this message: \n%s\nCoroutine %s",
-        message,
+        "The coroutine failed with this message: %s\n%s",
+        vim.startswith(traceback, message) and "" or ("\n" .. message),
         traceback
       )
     end,
@@ -87,6 +87,7 @@ function dapui.async.run(func)
   local final_err
   local callbacks = {}
   local task = { parent = current_co and tasks[current_co] }
+  local done
 
   function task.cancel()
     if coroutine.status(co) == "dead" then
@@ -104,7 +105,7 @@ function dapui.async.run(func)
   end
 
   function task.done()
-    return coroutine.status(co) == "dead"
+    return done
   end
 
   function task.cancelled()
@@ -127,21 +128,24 @@ function dapui.async.run(func)
     end
   end
 
-  local function run_callbacks()
+  local function close(result, err)
+    final_result = result or {}
+    final_err = err
+    done = true
     for _, cb in ipairs(callbacks) do
       xpcall(cb, function(msg)
         logger.error(("Error in callback for task %s: %s"):format(name, debug.traceback(msg)))
       end, task)
     end
     callbacks = {}
+    tasks[co] = nil
   end
 
   tasks[co] = task
 
   local function step(...)
     if cancelled then
-      final_err = TaskError("Task was cancelled")
-      run_callbacks()
+      close(nil, TaskError("Task was cancelled"))
       return
     end
 
@@ -149,15 +153,13 @@ function dapui.async.run(func)
     local success = ret[1]
 
     if not success then
-      final_err = TaskError(ret[2], debug.traceback(co))
-      run_callbacks()
+      close(nil, TaskError(ret[2], debug.traceback(co)))
       return
     end
     local _, nargs, protected, err_or_fn = unpack(ret)
 
     if coroutine.status(co) == "dead" then
-      final_result = { unpack(ret, 2) }
-      run_callbacks()
+      close({ unpack(ret, 2) })
       return
     end
 
@@ -168,18 +170,24 @@ function dapui.async.run(func)
 
     local args = { select(5, unpack(ret)) }
 
-    if protected then
-      args[nargs] = function(...)
-        step(true, ...)
-      end
-      local ok, err = pcall(err_or_fn, unpack(args, 1, nargs))
-      if not ok then
-        step(false, err, debug.traceback(co, err, 2))
-      end
-    else
-      args[nargs] = step
-      err_or_fn(unpack(args, 1, nargs))
+    args[nargs] = protected and function(...)
+      step(true, ...)
+    end or step
+
+    local ok, err = pcall(err_or_fn, unpack(args, 1, nargs))
+
+    if ok then
+      return
     end
+
+    if protected then
+      step(false, err, debug.traceback(co, err))
+      return
+    end
+
+    -- We are leaving the coroutine alive here.
+    -- GC should take care of it.
+    close(nil, TaskError(err, debug.traceback(co, err)))
   end
 
   step()
