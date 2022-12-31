@@ -61,13 +61,14 @@ end
 ---@field size fun(): number Returns the number of items in the queue
 ---@field max_size fun(): number|nil Returns the maximum number of items in the queue
 ---@field get async fun(): any Get a value from the queue, blocking if the queue is empty
----@field get_nowait fun(): any Get a value from the queue, erroring if queue is
---- empty.
+---@field get_nowait fun(): any Get a value from the queue, erroring if queue is empty.
 ---@field put async fun(value: any): nil Put a value into the queue
----@field put_nowait fun(value: any): nil Put a value into the queue, erroring if
---- queue is full.
+---@field put_nowait fun(value: any): nil Put a value into the queue, erroring if queue is full.
 
-function dapui.async.control.queue(maxsize)
+--- Create a new queue
+---@param max_size? integer The maximum number of items in the queue, defaults to no limit
+---@return dapui.async.control.Queue
+function dapui.async.control.queue(max_size)
   local items = {}
   local left_i = 0
   local right_i = 0
@@ -82,7 +83,7 @@ function dapui.async.control.queue(maxsize)
   end
 
   function queue.max_size()
-    return maxsize
+    return max_size
   end
 
   function queue.put(value)
@@ -116,7 +117,7 @@ function dapui.async.control.queue(maxsize)
     right_i = right_i + 1
     items[right_i] = value
     non_empty.set(1)
-    if maxsize and queue.size() == maxsize then
+    if max_size and queue.size() == max_size then
       non_full.clear()
     end
   end

@@ -75,7 +75,6 @@ end
 ---     async.sleep(10)
 ---     print("Hello world")
 ---   end)
----
 --- <
 ---@param func function
 ---@return dapui.async.Task
@@ -333,6 +332,7 @@ if false then
   dapui.async.api = vim.api
   dapui.async.fn = vim.fn
   dapui.async.control = require("dapui.async.control")
+  dapui.async.uv = require("dapui.async.uv")
   dapui.async.tests = require("dapui.async.tests")
 end
 
