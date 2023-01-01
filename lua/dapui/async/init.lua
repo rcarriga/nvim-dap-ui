@@ -3,6 +3,7 @@ local tasks = require("dapui.async.tasks")
 local control = require("dapui.async.control")
 local uv = require("dapui.async.uv")
 local tests = require("dapui.async.tests")
+local ui = require("dapui.async.ui")
 
 ---@toc_entry Async Library
 ---@text
@@ -12,15 +13,21 @@ local tests = require("dapui.async.tests")
 ---@class dapui.async
 dapui.async = {}
 
+dapui.async.control = control
+dapui.async.uv = uv
+dapui.async.ui = ui
+dapui.async.tests = tests
+dapui.async.tasks = tasks
+
 --- Run a function in an async context. This is the entrypoint to all async
 --- functionality.
---- >lua
+--- ```lua
 ---   local async = require("dapui").async
 ---   async.run(function()
 ---     async.sleep(10)
 ---     print("Hello world")
 ---   end)
---- <
+--- ```
 ---@param func function
 ---@return dapui.async.tasks.Task
 function dapui.async.run(func)
@@ -28,7 +35,7 @@ function dapui.async.run(func)
 end
 
 --- Creates an async function with a callback style function.
---- >lua
+--- ```lua
 ---   local async = require("dapui").async
 ---   local sleep = async.wrap(function(ms, cb)
 ---     vim.defer_fn(cb, ms)
@@ -38,7 +45,7 @@ end
 ---     sleep(10)
 ---     print("Slept for 10ms")
 ---   end)
---- <
+--- ```
 ---@param func function A callback style function to be converted. The last argument must be the callback.
 ---@param argc integer The number of arguments of func. Must be included.
 ---@param protected boolean? Call the function in protected mode (like pcall), except on error a third value is returned which is the stack trace of where the error occurred.
@@ -157,19 +164,6 @@ dapui.async.api = proxy_vim("api")
 --- Safely proxies calls to the vim.fn module while in an async context.
 dapui.async.fn = proxy_vim("fn")
 --- Async versions of vim.ui functions
-dapui.async.ui = {
-  ---@type fun(entries: string[], opts: table): string
-  ---@nodoc
-  select = dapui.async.wrap(vim.ui.select, 3),
-  ---@type fun(opts: table): string
-  ---@nodoc
-  input = dapui.async.wrap(vim.ui.input, 2),
-}
-
-dapui.async.control = control
-dapui.async.uv = uv
-dapui.async.tests = tests
-dapui.async.tasks = tasks
 
 -- For type checking
 if false then

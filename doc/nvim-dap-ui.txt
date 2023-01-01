@@ -515,8 +515,6 @@ dapui.async.fn                                                  *dapui.async.fn*
 
 Safely proxies calls to the vim.fn module while in an async context.
 
-dapui.async.ui                                                  *dapui.async.ui*
-
 Async versions of vim.ui functions
 
 
@@ -528,6 +526,7 @@ Provides primitives for flow control to be used in async functions
 
 
 An event can signal to multiple listeners to resume execution
+The event can be set from a non-async context.
                                                      *dapui.async.control.Event*
 Fields~
 {set} `(fun(max_woken?: integer): nil)` Set the event and signal to all (or limited number of) listeners that the event has occurred. If max_woken is provided and there are more listeners then the event is cleared immediately
@@ -670,6 +669,41 @@ Fields~
                                                             *dapui.async.uv.Dir*
 
                                                        *dapui.async.uv.DirEntry*
+
+
+==============================================================================
+dapui.async.ui                                                  *dapui.async.ui*
+
+
+Async versions of vim.ui functions.
+
+                                                        *dapui.async.ui.input()*
+`input`({args})
+
+
+Parameters~
+{args} `(dapui.async.ui.InputArgs)`
+
+                                                      *dapui.async.ui.InputArgs*
+Fields~
+{prompt} `(string|nil)` Text of the prompt
+{default} `(string|nil)` Default reply to the input
+{completion} `(string|nil)` Specifies type of completion supported for input. Supported types are the same that can be supplied to a user-defined command using the "-complete=" argument. See |:command-completion|
+{highlight} `(function)` Function that will be used for highlighting user inputs.
+
+                                                       *dapui.async.ui.select()*
+`select`({items}, {args})
+
+
+Parameters~
+{items} `(any[])`
+{args} `(dapui.async.ui.SelectArgs)`
+
+                                                     *dapui.async.ui.SelectArgs*
+Fields~
+{prompt} `(string|nil)` Text of the prompt. Defaults to `Select one of:`
+{format_item} `(function|nil)` Function to format an individual item from `items`. Defaults to `tostring`.
+{kind} `(string|nil)` Arbitrary hint string indicating the item shape. Plugins reimplementing `vim.ui.select` may wish to use this to infer the structure or semantics of `items`, or the context in which select() was called.
 
 
 ==============================================================================

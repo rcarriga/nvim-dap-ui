@@ -668,6 +668,7 @@ minidoc.generate(
     "./lua/dapui/async/init.lua",
     "./lua/dapui/async/control.lua",
     "./lua/dapui/async/uv.lua",
+    "./lua/dapui/async/ui.lua",
     "./lua/dapui/async/tests.lua",
   },
   nil,
@@ -735,6 +736,19 @@ minidoc.generate(
             "file"
           )
         )
+      end,
+      section_post = function(section)
+
+        for i, line in ipairs(section) do
+          if type(line) == "string" then
+            if string.find(line, "^```") then
+              string.gsub(line, "```(.*)", function(lang)
+                section[i] = lang == "" and "<" or (">%s"):format(lang)
+              end)
+            end
+          end
+        end
+
       end,
       sections = {
         ["@generic"] = function(s)

@@ -17,12 +17,12 @@
 --- nvim-dap-ui to get type checking, documentation and autocompletion for
 --- all API functions.
 ---
---- >lua
+--- ```lua
 ---   require("neodev").setup({
 ---     library = { plugins = { "nvim-dap-ui" }, types = true },
 ---     ...
 ---   })
---- <
+--- ```
 ---
 --- The default icons use codicons(https://github.com/microsoft/vscode-codicons).
 --- It's recommended to use this fork(https://github.com/ChristianChiarulli/neovim-codicons)
