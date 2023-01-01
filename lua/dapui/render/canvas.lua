@@ -1,6 +1,5 @@
 local M = {}
 
-local _mappings = {}
 local api = vim.api
 
 local util = require("dapui.util")
@@ -15,18 +14,6 @@ M.namespace = api.nvim_create_namespace("dapui")
 ---@field valid boolean
 ---@field expand_lines boolean
 local Canvas = {}
-
-local function run_mapping(action, buffer, line)
-  line = line or vim.fn.line(".")
-  local callbacks = _mappings[buffer][action][line]
-  if not callbacks then
-    util.notify("No " .. action .. " action for current line", vim.log.levels.INFO)
-    return
-  end
-  for _, callback in pairs(callbacks) do
-    callback()
-  end
-end
 
 ---@type dapui.Action[]
 local all_actions = { "expand", "open", "remove", "edit", "repl", "toggle" }
@@ -48,12 +35,6 @@ function Canvas:new()
   setmetatable(canvas, self)
   self.__index = self
   return canvas
-end
-
--- Used by components waiting on state update to render.
--- This is to avoid flickering updates as information is updated.
-function Canvas:invalidate()
-  self.valid = false
 end
 
 function Canvas:write(text, opts)
@@ -106,22 +87,6 @@ function Canvas:reset()
   end
 end
 
----Add a new highlight match to pass to matchaddpos
----@param group string Highlight group
----@param line number Line to add match for
----@param start_col number First column to start match
----@param length number Length of match
-function Canvas:add_match(group, line, start_col, length)
-  local pos = { line }
-  if start_col ~= nil then
-    pos[#pos + 1] = start_col
-  end
-  if length ~= nil then
-    pos[#pos + 1] = length
-  end
-  self.matches[#self.matches + 1] = { group, pos }
-end
-
 ---Add a mapping for a specific line
 ---@param action dapui.Action
 ---@param callback function Callback for when mapping is used
@@ -169,10 +134,17 @@ function Canvas:render_buffer(buffer, action_keys)
     return false
   end
 
-  _mappings[buffer] = self.mappings
-  for action, _ in pairs(self.mappings) do
+  for action, line_callbacks in pairs(self.mappings) do
     util.apply_mapping(action_keys[action], function(line)
-      run_mapping(action, buffer, line)
+      line = line or vim.fn.line(".")
+      local callbacks = line_callbacks[line]
+      if not callbacks then
+        util.notify("No " .. action .. " action for current line", vim.log.levels.INFO)
+        return
+      end
+      for _, callback in pairs(callbacks) do
+        callback()
+      end
     end, buffer)
   end
 
@@ -220,22 +192,14 @@ function Canvas:render_buffer(buffer, action_keys)
       api.nvim_input("A")
     end
     api.nvim_buf_set_option(buffer, "modified", false)
-    api.nvim_buf_set_keymap(
-      buffer,
-      "i",
-      "<BS>",
-      "<cmd>lua require('dapui.render.canvas')._prompt_backspace()<CR>",
-      { noremap = true }
-    )
-    vim.cmd("augroup DAPUIPromptSetUnmodified" .. buffer)
-    vim.cmd(
-      "autocmd ExitPre <buffer="
-        .. buffer
-        .. "> call nvim_buf_set_option("
-        .. buffer
-        .. ", 'modified', v:false)"
-    )
-    vim.cmd("augroup END")
+    local group = api.nvim_create_augroup("DAPUIPromptSetUnmodified" .. buffer, {})
+    api.nvim_create_autocmd({ "ExitPre" }, {
+      buffer = buffer,
+      group = group,
+      callback = function()
+        api.nvim_buf_set_option(buffer, "modified", false)
+      end,
+    })
   else
     api.nvim_buf_set_option(buffer, "modifiable", false)
     api.nvim_buf_set_option(buffer, "buftype", "nofile")
@@ -246,18 +210,6 @@ end
 --- @return dapui.Canvas
 function M.new()
   return Canvas:new()
-end
-
-function M._prompt_backspace()
-  local cursor = vim.api.nvim_win_get_cursor(0)
-  local cur_line = cursor[1]
-  local cur_col = cursor[2]
-  local prompt_length = vim.str_utfindex(vim.fn["prompt_getprompt"]("%"))
-
-  if cur_col ~= prompt_length then
-    vim.api.nvim_buf_set_text(0, cur_line - 1, cur_col - 1, cur_line - 1, cur_col, { "" })
-    vim.api.nvim_win_set_cursor(0, { cur_line, cur_col - 1 })
-  end
 end
 
 return M
