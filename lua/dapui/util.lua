@@ -17,7 +17,7 @@ function M.create_render_loop(render)
         local traceback = debug.traceback(msg, 1)
         M.notify(("Rendering failed: %s"):format(traceback), vim.log.levels.WARN)
       end)
-      async.sleep(30)
+      async.sleep(10)
     end
   end)
 

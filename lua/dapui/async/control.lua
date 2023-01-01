@@ -9,6 +9,7 @@ dapui.async.control = {}
 
 ---@text
 --- An event can signal to multiple listeners to resume execution
+--- The event can be set from a non-async context.
 ---@class dapui.async.control.Event
 ---@field set fun(max_woken?: integer): nil Set the event and signal to all (or limited number of) listeners that the event has occurred. If max_woken is provided and there are more listeners then the event is cleared immediately
 ---@field wait async fun(): nil Wait for the event to occur, returning immediately if
@@ -111,13 +112,13 @@ function dapui.async.control.queue(max_size)
   end
 
   function queue.put_nowait(value)
-    if not non_full.is_set() then
+    if queue.size() == max_size then
       error("Queue is full")
     end
     right_i = right_i + 1
     items[right_i] = value
     non_empty.set(1)
-    if max_size and queue.size() == max_size then
+    if queue.size() == max_size then
       non_full.clear()
     end
   end

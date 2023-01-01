@@ -8,6 +8,7 @@ local tests = require("dapui.async.tests")
 ---@text
 --- This library was originally taken from https://github.com/lewis6991/async.nvim.
 --- The API is heavily inspired by Python's asyncio module
+--- Users of nvim-da-ui should not need to use this module directly.
 ---@class dapui.async
 dapui.async = {}
 

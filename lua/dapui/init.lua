@@ -89,8 +89,10 @@ function dapui.setup(user_config)
     "hover",
     "console",
   }) do
+    ---@type dapui.Element
     local elem = require("dapui.elements." .. module)(client)
 
+    async.run(elem.render)
     elements[module] = elem
   end
 
@@ -439,15 +441,6 @@ setmetatable(_dapui, {
 ---@text
 --- Access the elements currently registered. See elements corresponding help
 --- tag for API information.
----
---- Most API functions are asynchronous, meaning that they must be run within an
---- async context. This can be done by wrapping the function in `async.run`.
---- >lua
----   local dapui = require("dapui")
----   dapui.async.run(function()
----     dapui.elements.watches.add("some_variable")
----   end)
---- <
 ---
 ---@class dapui.elements
 ---@field hover dapui.elements.hover

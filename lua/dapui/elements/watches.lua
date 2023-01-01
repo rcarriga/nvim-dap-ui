@@ -33,7 +33,6 @@ return function(client)
 
   --- Add a new watch expression
   ---@param expr string
-  ---@async
   function dapui.elements.watches.add(expr)
     watches.add(expr)
   end
@@ -41,20 +40,17 @@ return function(client)
   --- Change the chosen watch expression
   ---@param index integer
   ---@param new_expr string
-  ---@async
   function dapui.elements.watches.edit(index, new_expr)
     watches.edit(new_expr, index)
   end
 
   --- Remove the chosen watch expression
-  ---@async
   function dapui.elements.watches.remove(index)
     watches.remove(index)
   end
 
   --- Get the current list of watched expressions
   ---@return dapui.elements.watches.Watch[]
-  ---@async
   function dapui.elements.watches.get()
     return watches.get()
   end
@@ -65,7 +61,6 @@ return function(client)
 
   --- Toggle the expanded state of the chosen watch expression
   ---@param index integer
-  ---@async
   function dapui.elements.watches.toggle_expand(index)
     watches.expand(index)
   end
