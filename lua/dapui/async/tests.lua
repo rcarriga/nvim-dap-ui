@@ -1,4 +1,4 @@
-local async = require("dapui.async")
+local tasks = require("dapui.async.tasks")
 
 local dapui = { async = {} }
 
@@ -9,19 +9,16 @@ dapui.async.tests = {}
 
 local with_timeout = function(func, timeout)
   return function()
-    local task = async.run(func)
+    local task = tasks.run(func)
 
     vim.wait(timeout or 2000, function()
       return task.done()
     end, 20, false)
 
-    if not task.done() or task.error() then
-      error(
-        string.format(
-          "Blocking on future timed out or was interrupted.\n%s",
-          task.error() or "Timed out"
-        )
-      )
+    if not task.done() then
+      error(string.format("Task timed out\n%s", task.trace()))
+    elseif task.error() then
+      error(string.format("Task failed with message:\n%s", task.error()))
     end
   end
 end

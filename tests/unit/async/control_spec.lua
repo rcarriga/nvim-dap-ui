@@ -112,8 +112,7 @@ describe("semaphore", function()
     for _ = 1, 10 do
       table.insert(workers, worker)
     end
-    local success, err = async.join(workers)
-    assert(success, err)
+    async.gather(workers)
 
     assert.same(max_concurrent, allowed)
   end)

@@ -441,26 +441,6 @@ dapui.async                                                        *dapui.async*
 This library was originally taken from https://github.com/lewis6991/async.nvim.
 The API is heavily inspired by Python's asyncio module
 
-
-Tasks represent a top level running asynchronous function
-Only one task is ever executing at any time.
-                                                              *dapui.async.Task*
-Fields~
-{cancel} `(fun(): nil)` Cancels the task
-{done} `(fun(): boolean)` Returns true if the task is done
-{cancelled} `(fun(): boolean)` Returns true if the task is cancelled
-{parent?} `(dapui.async.Task)` Parent task
-{name} `(fun(): string)` Get the name of the task
-{set_name} `(fun(name: string): nil)` Sets the name of the task
-{error} `(fun(): dapui.async.TaskError)` Get the error of the task
-{result} `(fun(): any)` Get the result of the task
-{add_callback} `(fun(cb: fun(task: dapui.async.Task)): nil)`
-
-                                                         *dapui.async.TaskError*
-Fields~
-{message} `(string)`
-{traceback?} `(string)`
-
                                                              *dapui.async.run()*
 `run`({func})
 
@@ -476,14 +456,7 @@ functionality.
 Parameters~
 {func} `(function)`
 Return~
-`(dapui.async.Task)`
-
-                                                    *dapui.async.current_task()*
-`current_task`()
-
-Get the current running task
-Return~
-`(dapui.async.Task|nil)`
+`(dapui.async.tasks.Task)`
 
                                                             *dapui.async.wrap()*
 `wrap`({func}, {argc}, {protected})
@@ -507,22 +480,27 @@ Parameters~
 Return~
 `(function)` Returns an async function
 
-                                                            *dapui.async.join()*
-`join`({thunks}, {args})
+                                                          *dapui.async.gather()*
+`gather`({functions})
 
-Run a collection of async functions (`thunks`) concurrently and return when
+Run a collection of async functions concurrently and return when
 all have finished.
-Parameters~
-{thunks} `(function[])`
-{args?} `(dapui.async.JoinArgs)`
-Return~
-`(boolean,)` any[][]|string Whether all thunks completed or not and packed results of the thunks or error
 
-                                                          *dapui.async.JoinArgs*
-Fields~
-{concurrent?} `(integer)` Max number of thunks to run concurrently, defaults to no
-limit
-{interrupt_check?} `(function)` Function to abort thunks between calls
+Parameters~
+{functions} `(function[])`
+Return~
+`(any[][])` Packed results of all functions
+
+                                                           *dapui.async.first()*
+`first`({functions})
+
+Run a collection of async functions concurrently and return the result of
+the first to finish.
+
+Parameters~
+{functions} `(function[])`
+Return~
+`(any)`
 
                                                            *dapui.async.sleep()*
 `sleep`({ms})
@@ -592,6 +570,19 @@ Parameters~
 {max_size?} `(integer)` The maximum number of items in the queue, defaults to no limit
 Return~
 `(dapui.async.control.Queue)`
+
+
+An async semaphore that allows up to a given number of acquisitions.
+                                                 *dapui.async.control.Semaphore*
+Fields~
+{with} `(async fun(callback: fun(): nil): nil)` Run the callback with the semaphore acquired
+
+                                               *dapui.async.control.semaphore()*
+`semaphore`({value})
+
+Create a new semaphore
+Parameters~
+{value} `(integer)` The number of allowed concurrent acquisitions
 
 
 ==============================================================================

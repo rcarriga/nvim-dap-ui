@@ -10,9 +10,13 @@ M.bootstrap = function()
   A = function(...)
     local obj = select("#", ...) == 1 and select(1, ...) or { ... }
     local s = type(obj) == "string" and obj or vim.inspect(obj)
-    vim.schedule(function()
+    if vim.in_fast_event() then
+      vim.schedule(function()
+        print(s)
+      end)
+    else
       print(s)
-    end)
+    end
   end
 end
 

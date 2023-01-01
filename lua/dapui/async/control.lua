@@ -1,4 +1,4 @@
-local async = require("dapui.async")
+local tasks = require("dapui.async.tasks")
 
 local dapui = { async = {} }
 
@@ -42,7 +42,7 @@ function dapui.async.control.event()
         waiter()
       end
     end,
-    wait = async.wrap(function(callback)
+    wait = tasks.wrap(function(callback)
       if is_set then
         callback()
       else
@@ -125,6 +125,13 @@ function dapui.async.control.queue(max_size)
   return queue
 end
 
+---@text
+--- An async semaphore that allows up to a given number of acquisitions.
+---@class dapui.async.control.Semaphore
+---@field with async fun(callback: fun(): nil): nil Run the callback with the semaphore acquired
+
+--- Create a new semaphore
+---@param value integer The number of allowed concurrent acquisitions
 function dapui.async.control.semaphore(value)
   value = value or 1
   local released_event = dapui.async.control.event()

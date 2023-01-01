@@ -1,4 +1,4 @@
-local async = require("dapui.async.base")
+local tasks = require("dapui.async.tasks")
 
 local dapui = { async = {} }
 
@@ -91,7 +91,7 @@ dapui.async.uv = {}
 
 ---@nodoc
 local function add(name, argc)
-  local success, ret = pcall(async.wrap, vim.loop[name], argc)
+  local success, ret = pcall(tasks.wrap, vim.loop[name], argc)
 
   if not success then
     error("Failed to add function with name " .. name)
@@ -134,7 +134,7 @@ add("fs_chown", 4)
 add("fs_fchown", 4)
 -- 'fs_lchown',
 add("fs_copyfile", 4)
-dapui.async.uv.fs_opendir = async.wrap(function(path, entries, cb)
+dapui.async.uv.fs_opendir = tasks.wrap(function(path, entries, cb)
   vim.loop.fs_opendir(path, cb, entries)
 end, 3)
 add("fs_readdir", 2)
