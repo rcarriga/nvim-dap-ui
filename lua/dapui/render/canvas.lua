@@ -13,7 +13,7 @@ M.namespace = api.nvim_create_namespace("dapui")
 ---@field mappings table
 ---@field prompt table
 ---@field valid boolean
----@field expand_lines table
+---@field expand_lines boolean
 local Canvas = {}
 
 local function run_mapping(action, buffer, line)
@@ -43,7 +43,7 @@ function Canvas:new()
     mappings = mappings,
     prompt = nil,
     valid = true,
-    expand_lines = false,
+    expand_lines = config.expand_lines,
   }
   setmetatable(canvas, self)
   self.__index = self

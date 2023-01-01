@@ -40,6 +40,9 @@ end
 
 function M.show()
   local buffer = api.nvim_get_current_buf()
+  if api.nvim_win_get_config(0).relative ~= "" then
+    return
+  end
   local orig_line = vim.fn.line(".")
   local orig_col = vim.fn.col(".")
 
