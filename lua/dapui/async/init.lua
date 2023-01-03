@@ -4,6 +4,7 @@ local control = require("dapui.async.control")
 local uv = require("dapui.async.uv")
 local tests = require("dapui.async.tests")
 local ui = require("dapui.async.ui")
+local lsp = require("dapui.async.lsp")
 
 ---@toc_entry Async Library
 ---@text
@@ -18,6 +19,7 @@ dapui.async.uv = uv
 dapui.async.ui = ui
 dapui.async.tests = tests
 dapui.async.tasks = tasks
+dapui.async.lsp = lsp
 
 --- Run a function in an async context. This is the entrypoint to all async
 --- functionality.
@@ -108,7 +110,10 @@ function dapui.async.first(functions)
 
   for _, func in ipairs(functions) do
     local task = tasks.run(func)
-    task.add_callback(function()
+    task.add_callback(function(t)
+      if event.is_set() then
+        return
+      end
       err, result = task.error(), { task.result() }
       event.set()
     end)

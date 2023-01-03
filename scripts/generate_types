@@ -54,7 +54,7 @@ class DAPTypesGenerator:
             logger.info("Downloading protocol")
             protocol_path.write_bytes(
                 requests.get(
-                    "https://raw.githubusercontent.com/microsoft/debug-adapter-protocol/gh-pages/debugAdapterProtocol.json"
+                    "https://raw.githubusercontent.com/microsoft/lsprotocol/main/generator/lsp.json"
                 ).content
             )
 
@@ -68,8 +68,13 @@ class DAPTypesGenerator:
         with open(output_path) as f:
             data = f.readlines()
         # Remove the update_forward_refs calls which cause errors
+        while "update_forward_refs" in data[-1]:
+            data.pop()
+
         with open(output_path, "w") as f:
-            f.writelines(data[:-2])
+            f.writelines(data)
+        with open("model.py", "w") as f:
+            f.writelines(data)
 
         # Import mymodule
         loader = importlib.machinery.SourceFileLoader("models", str(output_path))

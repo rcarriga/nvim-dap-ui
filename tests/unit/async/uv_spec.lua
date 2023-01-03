@@ -20,11 +20,11 @@ describe("file operations", function()
   end)
 
   a.it("writes a file", function()
-    local _, file = async.uv.fs_open("test.lua", "w", 438)
+    local _, file = async.uv.fs_open(path, "w", 438)
     async.uv.fs_write(file, "test write")
     async.uv.fs_close(file)
 
-    local file = assert(io.open("test.lua", "r"))
+    local file = assert(io.open(path, "r"))
     local data = file:read()
     file:close()
 

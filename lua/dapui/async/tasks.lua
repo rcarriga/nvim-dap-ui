@@ -55,6 +55,9 @@ local TaskError = function(message, traceback)
     traceback = traceback,
   }, {
     __tostring = function()
+      if type(message) ~= "string" then
+        message = tostring(message)
+      end
       return string.format(
         "The coroutine failed with this message: %s\n%s",
         vim.startswith(traceback, message) and "" or ("\n" .. message),
@@ -126,7 +129,7 @@ function dapui.async.tasks.run(func)
     end
   end
 
-  local function close(result, err)
+  local function close_task(result, err)
     final_result = result or {}
     final_err = err
     done = true
@@ -142,7 +145,7 @@ function dapui.async.tasks.run(func)
 
   local function step(...)
     if cancelled then
-      close(nil, TaskError("Task was cancelled"))
+      close_task(nil, TaskError("Task was cancelled"))
       return
     end
 
@@ -150,12 +153,16 @@ function dapui.async.tasks.run(func)
     local success = ret[1]
 
     if not success then
-      close(nil, TaskError(ret[2], debug.traceback(co)))
+      close_task(nil, TaskError(ret[2], debug.traceback(co)))
       return
     end
 
     if coroutine.status(co) == "dead" then
-      close({ unpack(ret, 2) })
+      local result = {}
+      for i, v in pairs(ret) do
+        result[i - 1] = v
+      end
+      close_task(result)
       return
     end
 
@@ -185,7 +192,7 @@ function dapui.async.tasks.run(func)
 
     -- We are leaving the coroutine alive here.
     -- GC should take care of it.
-    close(nil, TaskError(err, debug.traceback(co, err)))
+    close_task(nil, TaskError(err, debug.traceback(co, err)))
   end
 
   step()
