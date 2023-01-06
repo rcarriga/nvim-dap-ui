@@ -12,11 +12,15 @@ describe("async helpers", function()
   end)
 
   a.it("wrap returns values provided to callback", function()
-    local task = async.run(async.wrap(function(_, _, cb)
+    local result
+    local wrapped = async.wrap(function(_, _, cb)
       cb(1, 2)
-    end, 3))
+    end, 3)
+    async.run(wrapped, function(_, ...)
+      result = { ... }
+    end)
 
-    assert.same({ 1, 2 }, { task.result() })
+    assert.same({ 1, 2 }, result)
   end)
 
   a.it("gather returns results", function()

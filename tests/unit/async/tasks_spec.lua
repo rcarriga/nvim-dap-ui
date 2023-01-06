@@ -5,52 +5,29 @@ local tests = require("dapui.tests")
 tests.bootstrap()
 
 describe("task", function()
-  a.it("provides result in callbacks when already complete", function()
-    local task = tasks.run(function()
-      return "test"
-    end)
+  a.it("provides result in callback", function()
     local result
-    async.sleep(10)
-    task.add_callback(function()
-      result = task.result()
-    end)
-    assert.equals("test", result)
-  end)
-
-  a.it("provides result in callbacks", function()
-    local task = tasks.run(function()
+    tasks.run(function()
       async.sleep(5)
       return "test"
-    end)
-    local result
-    task.add_callback(function()
-      result = task.result()
+    end, function(_, result_)
+      result = result_
     end)
     async.sleep(10)
     assert.equals("test", result)
   end)
 
   a.it("cancels", function()
+    local err
     local task = tasks.run(function()
       async.sleep(10)
       return "test"
+    end, function(_, err_)
+      err = err_
     end)
     task.cancel()
     async.sleep(10)
-    assert.True(task.cancelled())
-    assert.same("Task was cancelled", task.error().message)
-    assert.Nil(task.result())
-  end)
-
-  a.it("returns result if cancelled when completed", function()
-    local task = tasks.run(function()
-      return "test"
-    end)
-    async.sleep(10)
-    task.cancel()
-    assert.False(task.cancelled())
-    assert.Nil(task.error())
-    assert.same("test", task.result())
+    assert.same("Task was cancelled", err)
   end)
 
   a.it("assigns parent task", function()
@@ -61,6 +38,7 @@ describe("task", function()
     assert.Not.Nil(task.parent)
     assert.equal(current, task.parent)
   end)
+
   it("assigns no parent task", function()
     local task = tasks.run(function()
       return "test"
@@ -69,34 +47,46 @@ describe("task", function()
   end)
 
   a.it("returns error in function", function()
-    local task = tasks.run(function()
+    local success, err
+    tasks.run(function()
       error("test")
+    end, function(success_, err_)
+      success, err = success_, err_
     end)
     async.sleep(10)
-    assert.True(task.done())
-    assert.False(task.cancelled())
-    assert.True(vim.endswith(task.error().message, "test"))
-    assert.Nil(task.result())
+    assert.False(success)
+    assert.True(vim.endswith(err, "test"))
   end)
 
-  a.it("sets error when callback errors", function()
+  a.it("returns error when callback errors", function()
+    local success, err
     local bad_wrapped = tasks.wrap(function()
       error("test")
     end, 1)
-    local task = tasks.run(bad_wrapped)
-    assert.True(task.done())
-    assert.True(vim.endswith(task.error().message, "test"))
+    tasks.run(bad_wrapped, function(success_, err_)
+      success, err = success_, err_
+    end)
+    async.sleep(10)
+    assert.False(success)
+    assert.True(vim.endswith(err, "test"))
   end)
 
-  a.it("sets name on creation", function()
-    local task1 = tasks.run(function()
-      return "test"
+  a.it("pcall returns result", function()
+    local success, a, b = tasks.pcall(function()
+      return 1, 2
     end)
-    local task2 = tasks.run(function()
-      return "test"
+    assert.True(success)
+    assert.equals(1, a)
+    assert.equals(2, b)
+  end)
+
+  a.it("pcall returns error", function()
+    local success, err, trace = tasks.pcall(function()
+      error("test")
     end)
-    assert.matches("Task %d+", task1.name())
-    assert.matches("Task %d+", task2.name())
+    assert.False(success)
+    assert.True(vim.endswith(err, "test"))
+    assert.Not.Nil(trace)
   end)
 
   a.it("current task", function()

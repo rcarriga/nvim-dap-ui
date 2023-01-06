@@ -32,8 +32,8 @@ dapui.async.lsp = lsp
 --- ```
 ---@param func function
 ---@return dapui.async.tasks.Task
-function dapui.async.run(func)
-  return tasks.run(func)
+function dapui.async.run(func, cb)
+  return tasks.run(func, cb)
 end
 
 --- Creates an async function with a callback style function.
@@ -50,10 +50,9 @@ end
 --- ```
 ---@param func function A callback style function to be converted. The last argument must be the callback.
 ---@param argc integer The number of arguments of func. Must be included.
----@param protected boolean? Call the function in protected mode (like pcall), except on error a third value is returned which is the stack trace of where the error occurred.
 ---@return function Returns an async function
-function dapui.async.wrap(func, argc, protected)
-  return tasks.wrap(func, argc, protected)
+function dapui.async.wrap(func, argc)
+  return tasks.wrap(func, argc)
 end
 
 --- Run a collection of async functions concurrently and return when
@@ -71,13 +70,12 @@ function dapui.async.gather(functions)
   local err
   local running = {}
   for i, func in ipairs(functions) do
-    local task = tasks.run(func)
-    task.add_callback(function()
-      if task.error() then
-        err = task.error()
+    local task = tasks.run(func, function(success, ...)
+      if not success then
+        err = { ... }
         done_event.set()
       end
-      results[#results + 1] = { i = i, error = task.error(), result = { task.result() } }
+      results[#results + 1] = { i = i, success = success, result = { ... } }
       if #results == #functions then
         done_event.set()
       end
@@ -89,7 +87,7 @@ function dapui.async.gather(functions)
     for _, task in ipairs(running) do
       task.cancel()
     end
-    error(err)
+    error(("%s\n%s"):format(unpack(err)))
   end
   local sorted = {}
   for _, result in ipairs(results) do
@@ -106,15 +104,15 @@ end
 function dapui.async.first(functions)
   local running_tasks = {}
   local event = control.event()
-  local err, result
+  local failed, result
 
   for _, func in ipairs(functions) do
-    local task = tasks.run(func)
-    task.add_callback(function(t)
+    local task = tasks.run(func, function(success, ...)
       if event.is_set() then
         return
       end
-      err, result = task.error(), { task.result() }
+      failed = not success
+      result = { ... }
       event.set()
     end)
     table.insert(running_tasks, task)
@@ -123,8 +121,8 @@ function dapui.async.first(functions)
   for _, task in ipairs(running_tasks) do
     task.cancel()
   end
-  if err then
-    error(err)
+  if failed then
+    error(("%s\n%s"):format(unpack(result)))
   end
   return unpack(result)
 end
@@ -140,7 +138,7 @@ function dapui.async.sleep(ms)
   async_defer(ms)
 end
 
-local wrapped_schedule = dapui.async.wrap(vim.schedule, 1, false)
+local wrapped_schedule = dapui.async.wrap(vim.schedule, 1)
 
 --- Yields to the Neovim scheduler to be able to call the API.
 ---@async

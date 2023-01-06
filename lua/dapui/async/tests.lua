@@ -8,17 +8,24 @@ local dapui = { async = {} }
 dapui.async.tests = {}
 
 local with_timeout = function(func, timeout)
+  local success, err, trace
   return function()
-    local task = tasks.run(func)
+    local task = tasks.run(func, function(success_, err_, trace_)
+      success = success_
+      if not success_ then
+        err = err_
+        trace = trace_
+      end
+    end)
 
     vim.wait(timeout or 2000, function()
-      return task.done()
+      return success ~= nil
     end, 20, false)
 
-    if not task.done() then
+    if success == nil then
       error(string.format("Task timed out\n%s", task.trace()))
-    elseif task.error() then
-      error(string.format("Task failed with message:\n%s", task.error()))
+    elseif not success then
+      error(string.format("Task failed with message:\n%s\n%s", err, trace))
     end
   end
 end
