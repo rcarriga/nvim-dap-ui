@@ -30,6 +30,20 @@ describe("task", function()
     assert.same("Task was cancelled", err)
   end)
 
+  a.it("cancels children", function()
+    local should_be_nil
+    local task = tasks.run(function()
+      tasks.run(function()
+        async.sleep(10)
+        should_be_nil = "not nil"
+      end)
+      async.sleep(10)
+    end)
+    task.cancel()
+    async.sleep(20)
+    assert.Nil(should_be_nil)
+  end)
+
   a.it("assigns parent task", function()
     local current = tasks.current_task()
     local task = tasks.run(function()

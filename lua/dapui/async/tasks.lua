@@ -6,6 +6,9 @@ dapui.async.tasks = {}
 ---@type table<thread, dapui.async.tasks.Task>
 ---@nodoc
 local tasks = {}
+---@type table<dapui.async.tasks.Task, dapui.async.tasks.Task[]>
+---@nodoc
+local child_tasks = {}
 
 -- Coroutine.running() was changed between Lua 5.1 and 5.2:
 -- - 5.1: Returns the running coroutine, or nil when called by the main thread.
@@ -33,8 +36,8 @@ end
 --- Tasks represent a top level running asynchronous function
 --- Only one task is ever executing at any time.
 ---@class dapui.async.tasks.Task
----@field cancel fun(): nil Cancels the task
 ---@field parent? dapui.async.tasks.Task Parent task
+---@field cancel fun(): nil Cancels the task
 ---@field trace fun(): string Get the stack trace of the task
 
 ---@class dapui.async.tasks.TaskError
@@ -65,10 +68,17 @@ function dapui.async.tasks.run(func, cb)
   local co = coroutine.create(func)
   local cancelled = false
   local task = { parent = dapui.async.tasks.current_task() }
+  if task.parent then
+    child_tasks[task.parent] = child_tasks[task.parent] or {}
+    table.insert(child_tasks[task.parent], task)
+  end
 
   function task.cancel()
     if coroutine.status(co) == "dead" then
       return
+    end
+    for _, child in pairs(child_tasks[task] or {}) do
+      child.cancel()
     end
     cancelled = true
   end
