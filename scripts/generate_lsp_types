@@ -529,7 +529,7 @@ class Generator:
     def prepare_doc(self, doc: str, multiline: bool) -> list[str]:
         lines = doc.strip().splitlines()
         if multiline:
-            return [f"--- {line.strip()}" for line in lines]
+            return [f"--- {line.strip()}" if line else "---" for line in lines]
         return [" ".join(line.strip() for line in lines)]
 
     def structure(self, structure: Structure) -> list[str]:
@@ -570,7 +570,7 @@ class Generator:
             lines.append(f"---@return {self.type_name(request.result)}")
 
         lines.append(
-            f"function LSPRequestClient.{self.convert_method_name(request.method)}(bufnr {',args' if request.params else ''}, opts) end"
+            f"function LSPRequestClient.{self.convert_method_name(request.method)}(bufnr{', args' if request.params else ''}, opts) end"
         )
         lines.append("")
         return lines
@@ -612,7 +612,7 @@ class Generator:
         for obj in self.model.structures + self.model.typeAliases:
             self.register(obj)
         for request in self.model.requests:
-            if request.messageDirection == MessageDirection.clientToServer:
+            if request.messageDirection in [MessageDirection.clientToServer, MessageDirection.both]:
                 logger.info(f"Generating request {request.method}")
                 lines.extend(self.request(request))
         lines.extend(
@@ -623,7 +623,7 @@ class Generator:
             ]
         )
         for notification in self.model.notifications:
-            if notification.messageDirection == MessageDirection.clientToServer:
+            if notification.messageDirection in [MessageDirection.clientToServer, MessageDirection.both]:
                 logger.info(f"Generating notification {notification.method}")
                 lines.extend(self.notification(notification))
         for enum in self.model.enumerations:

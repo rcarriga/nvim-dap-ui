@@ -57,6 +57,62 @@ function dapui.async.control.event()
 end
 
 ---@text
+--- An future represents a value that will be available in the future.
+--- The future result can be set from a non-async context.
+---@class dapui.async.control.Future
+---@field set fun(value): nil Set the future value and wake all waiters.
+---@field set_error fun(message): nil Set the error for this future to raise to
+---the waiters
+---@field wait async fun(): any Wait for the value to be set, returning immediately if already set
+
+--- Create a new future
+---@return dapui.async.control.Future
+function dapui.async.control.future()
+  local waiters = {}
+  local result, err, is_set
+  local wait = tasks.wrap(function(callback)
+    if is_set then
+      callback()
+    else
+      waiters[#waiters + 1] = callback
+    end
+  end, 1)
+  local wake = function()
+    for _, waiter in ipairs(waiters) do
+      waiter()
+    end
+  end
+  return {
+    set = function(value)
+      if is_set then
+        error("Future already set")
+      end
+      result = value
+      is_set = true
+      wake()
+    end,
+    set_error = function(message)
+      if is_set then
+        error("Future already set")
+      end
+      err = message
+      is_set = true
+      wake()
+    end,
+    wait = function()
+      if not is_set then
+        wait()
+      end
+
+      if err then
+        error(err)
+      end
+      return result
+    end,
+  }
+end
+
+---@text
 --- A FIFO queue with async support.
 ---@class dapui.async.control.Queue
 ---@field size fun(): number Returns the number of items in the queue

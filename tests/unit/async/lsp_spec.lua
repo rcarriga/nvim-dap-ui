@@ -14,6 +14,7 @@ describe("lsp client", function()
           assert.equals(0, bufnr)
           assert.same(params, params)
           callback(nil, expected_result)
+          return true, 1
         end,
       }
     end
@@ -30,6 +31,7 @@ describe("lsp client", function()
       return {
         request = function(method, params, callback, bufnr)
           callback({ message = "error" }, nil)
+          return true, 1
         end,
       }
     end
@@ -48,18 +50,59 @@ describe("lsp client", function()
     vim.lsp.get_client_by_id = function(id)
       return {
         request = function(method, params, callback, bufnr)
-          vim.defer_fn(function()
-            callback(nil, {})
-          end, 100)
+          return true, 1
         end,
       }
     end
 
     local client = async.lsp.client(1)
 
-    local success, err =
-      pcall(client.request.textDocument_diagnostic, 0, expected_params, { timeout = 10 })
+    local success, err = async.pcall(
+      client.request.textDocument_diagnostic,
+      0,
+      {},
+      { timeout = 10 }
+    )
     assert.False(success)
     assert.same(err.message, "Request timed out")
+  end)
+
+  a.it("cancels request on timeout", function()
+    local cancel_received = false
+    vim.lsp.get_client_by_id = function(id)
+      return {
+        request = function(method, params, callback, bufnr)
+          if method == "$/cancelRequest" then
+            cancel_received = true
+          end
+          return true, 1
+        end,
+      }
+    end
+
+    local client = async.lsp.client(1)
+
+    async.pcall(client.request.textDocument_diagnostic, 0, {}, { timeout = 10 })
+    assert.True(cancel_received)
+  end)
+
+  a.it("raises errors on client shutdown", function()
+    vim.lsp.get_client_by_id = function(id)
+      return {
+        request = function(method, params, callback, bufnr)
+          return false
+        end,
+      }
+    end
+
+    local client = async.lsp.client(1)
+
+    local success, err = async.pcall(
+      client.request.textDocument_diagnostic,
+      0,
+      {},
+      { timeout = 10 }
+    )
+    assert.Not.Nil(string.find(err, "Client 1 has shut down"))
   end)
 end)

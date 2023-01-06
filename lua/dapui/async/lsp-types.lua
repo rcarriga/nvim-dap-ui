@@ -1,4 +1,4 @@
----Generated on 2023-01-03 21:36:00.630982
+---Generated on 2023-01-06 20:15:10.205617
 
 ---@class dapui.async.lsp.RequestClient
 local LSPRequestClient = {}
@@ -692,6 +692,14 @@ function LSPNotifyClient.workspace_didChangeWatchedFiles(args) end
 ---@async
 ---@param args dapui.async.lsp.types.SetTraceParams
 function LSPNotifyClient.__setTrace(args) end
+
+---@async
+---@param args dapui.async.lsp.types.CancelParams
+function LSPNotifyClient.__cancelRequest(args) end
+
+---@async
+---@param args dapui.async.lsp.types.ProgressParams
+function LSPNotifyClient.__progress(args) end
 
 --- A set of predefined token types. This set is not fixed
 --- an clients can specify additional token types via the

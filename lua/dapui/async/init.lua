@@ -55,6 +55,27 @@ function dapui.async.wrap(func, argc)
   return tasks.wrap(func, argc)
 end
 
+--- Call an async function in protected mode. Similar to the built-in pcall
+--- except on failure the third return value is the traceback for where the async
+--- context failed.
+--- ```lua
+---   local async = require("dapui").async
+---   local bad_function = async.wrap(function(ms, cb)
+---     error("This will be caught")
+---   end, 2)
+---
+---   async.run(function()
+---     local success, err, trace = async.pcall(bad_function)
+---     prinn(success, err, trace)
+---   end)
+--- ```
+---@async
+---@param func function Async function to run
+---@param ... any Arguments for the function
+---@return boolean, ... Returns an async function
+function dapui.async.pcall(func, ...)
+  return tasks.pcall(func, ...)
+end
 --- Run a collection of async functions concurrently and return when
 --- all have finished.
 --- If any of the functions fail, all pending tasks will be cancelled and the

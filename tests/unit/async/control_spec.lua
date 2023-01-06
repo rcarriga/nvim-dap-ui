@@ -48,6 +48,49 @@ describe("event", function()
   end)
 end)
 
+describe("future", function()
+  a.it("provides listeners result", function()
+    local future = async.control.future()
+    local notified = 0
+    for _ = 1, 10 do
+      async.run(function()
+        local val = future.wait()
+        notified = notified + val
+      end)
+    end
+
+    future.set(1)
+    async.sleep(10)
+    assert.equals(10, notified)
+  end)
+
+  a.it("notifies listeners when already set", function()
+    local future = async.control.future()
+    local notified = 0
+    future.set(1)
+    for _ = 1, 10 do
+      async.run(function()
+        notified = notified + future.wait()
+      end)
+    end
+
+    async.sleep(10)
+    assert.equals(10, notified)
+  end)
+
+  a.it("raises error for listeners", function()
+    local future = async.control.future()
+    local notified = 0
+    future.set_error("test")
+    local success, err = async.pcall(function()
+      return future.wait()
+    end)
+
+    async.sleep(10)
+    assert.False(success)
+    assert.True(vim.endswith(err, "test"))
+  end)
+end)
 describe("queue", function()
   a.it("adds and removes items", function()
     local queue = async.control.queue()

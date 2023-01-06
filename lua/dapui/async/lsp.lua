@@ -1,4 +1,5 @@
 local tasks = require("dapui.async.tasks")
+local control = require("dapui.async.control")
 
 local dapui = { async = {} }
 
@@ -33,9 +34,18 @@ function dapui.async.lsp.client(client_id)
   local internal_client =
     assert(vim.lsp.get_client_by_id(client_id), ("Client not found with ID %s"):format(client_id))
 
-  local async_request = tasks.wrap(function(method, params, bufnr, cb)
-    internal_client.request(method, params, cb, bufnr)
-  end, 4)
+  local async_request = tasks.wrap(function(method, params, bufnr, request_id_future, cb)
+    local success, req_id = internal_client.request(method, params, cb, bufnr)
+    if not success then
+      if request_id_future then
+        request_id_future.set_error("Request failed")
+      end
+      error(("Failed to send request. Client %s has shut down"):format(client_id))
+    end
+    if request_id_future then
+      request_id_future.set(req_id)
+    end
+  end, 5)
 
   ---@param name string
   local convert_method = function(name)
@@ -60,13 +70,18 @@ function dapui.async.lsp.client(client_id)
           local err, result
 
           if opts.timeout then
+            local req_future = control.future()
             err, result = async.first({
               function()
                 async.sleep(opts.timeout)
+                local req_id = req_future.wait()
+                async.run(function()
+                  async_request("$/cancelRequest", { requestId = req_id }, bufnr)
+                end)
                 return { message = "Request timed out" }
               end,
               function()
-                return async_request(method, params, bufnr)
+                return async_request(method, params, bufnr, req_future)
               end,
             })
           else
