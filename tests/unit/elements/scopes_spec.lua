@@ -6,7 +6,9 @@ tests.bootstrap()
 local mocks = tests.mocks
 
 describe("scopes element", function()
-  local client, scopes, buf
+  ---@type dapui.DAPClient
+  local client
+  local scopes, buf
   a.before_each(function()
     client = mocks.client({
       current_frame = {
@@ -64,8 +66,8 @@ describe("scopes element", function()
       },
     })
     scopes = Scopes(client)
-    scopes.render()
     buf = scopes.buffer()
+    client.request.scopes({ frameId = 1 })
   end)
   after_each(function()
     pcall(vim.api.nvim_buf_delete, buf, { force = true })
@@ -107,6 +109,7 @@ describe("scopes element", function()
     a.it("renders expanded lines", function()
       local keymaps = tests.util.get_mappings(scopes.buffer())
       keymaps["<CR>"](3)
+      async.sleep(10)
       local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.same({
         "Locals:",
@@ -121,6 +124,7 @@ describe("scopes element", function()
     a.it("renders expanded highlights", function()
       local keymaps = tests.util.get_mappings(scopes.buffer())
       keymaps["<CR>"](3)
+      async.sleep(10)
       local formatted = tests.util.get_highlights(buf)
       assert.same({
         { "DapUIScope", 0, 0, 0, 6 },

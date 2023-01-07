@@ -12,10 +12,11 @@ return function(client, send_ready)
     "setInstructionBreakpoints",
     "setDataBreakpoints",
     "stackTrace",
+    "terminated",
+    "exited",
+    "disconnect",
   }) do
-    client.listen[event](function()
-      send_ready()
-    end)
+    client.listen[event](send_ready)
   end
 
   ---@param bp dapui.types.DAPBreakpoint
@@ -92,7 +93,7 @@ return function(client, send_ready)
   return {
     ---@param canvas dapui.Canvas
     render = function(canvas)
-      local current_frame = client.session.current_frame
+      local current_frame = client.session and client.session.current_frame
       local current_line = 0
       local current_file = ""
       if current_frame and current_frame.source and current_frame.source.path then

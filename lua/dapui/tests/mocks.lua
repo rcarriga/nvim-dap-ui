@@ -1,3 +1,4 @@
+local dap = require("dap")
 local Client = require("dapui.client")
 
 local M = {}
@@ -103,7 +104,13 @@ function M.client(args)
         error("No request handler for " .. command)
       end
       local response = args.requests[command](request_args)
-      callback(nil, response)
+      for _, c in pairs(dap.listeners.before[command]) do
+        c(session, nil, response, request_args)
+      end
+      callback(nil, response, session.seq)
+      for _, c in pairs(dap.listeners.after[command]) do
+        c(session, nil, response, request_args)
+      end
     end,
   }
 

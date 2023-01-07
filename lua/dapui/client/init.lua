@@ -97,9 +97,10 @@ local function create_client(session_factory, breakpoints)
   local request_seqs = {}
   local async_request = async.wrap(function(command, args, cb)
     local session = session_factory()
-    request_seqs[session.seq] = true
+    request_seqs[session] = request_seqs[session] or {}
+    request_seqs[session][session.seq] = true
     session:request(command, args, function(...)
-      request_seqs[session.seq] = nil
+      request_seqs[session][session.seq] = nil
       cb(...)
     end)
   end, 3)
@@ -123,6 +124,7 @@ local function create_client(session_factory, breakpoints)
 
   local listener_prefix = "DAPClient" .. tostring(vim.loop.now())
   local listener_count = 0
+  local listener_ids = {}
   local listen = setmetatable({}, {
     __index = function(_, event)
       return function(listener, opts)
@@ -137,6 +139,7 @@ local function create_client(session_factory, breakpoints)
         listener_count = listener_count + 1
         local is_event = not types.request[event]
         local key = is_event and "event_" .. event or event
+        listener_ids[#listener_ids + 1] = { key, listener_id }
 
         local wrap = function(inner)
           listeners[key][listener_id] = function(_, ...)
@@ -150,7 +153,7 @@ local function create_client(session_factory, breakpoints)
           wrap(listener)
         else
           wrap(function(err, body, req, req_seq)
-            if request_seqs[req_seq] then
+            if (request_seqs[session_factory()] or {})[req_seq] then
               return
             end
             return listener({ error = err, response = body, request = req })
@@ -164,10 +167,20 @@ local function create_client(session_factory, breakpoints)
     breakpoints = create_breakpoints_proxy(breakpoints),
     request = request,
     listen = listen,
+    shutdown = function()
+      for _, listener in ipairs(listener_ids) do
+        dap.listeners.before[listener[1]][listener[2]] = nil
+        dap.listeners.after[listener[1]][listener[2]] = nil
+      end
+    end,
   }, {
     __index = function(_, key)
       if key == "session" then
-        return create_session_proxy(session_factory())
+        local session = session_factory()
+        if not session then
+          return nil
+        end
+        return create_session_proxy(session)
       end
     end,
   })

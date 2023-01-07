@@ -15,6 +15,9 @@ describe("watches element", function()
         id = 1,
       },
       requests = {
+        scopes = mocks.scopes({
+          scopes = { [1] = {} },
+        }),
         evaluate = mocks.evaluate({
           expressions = {
             a = "'a value'",
@@ -36,6 +39,7 @@ describe("watches element", function()
         }),
       },
     })
+    client.request.scopes({ frameId = 1 })
     watches = Watches(client)
     buf = watches.buffer()
     watches.render()

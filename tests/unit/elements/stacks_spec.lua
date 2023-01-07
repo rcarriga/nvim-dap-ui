@@ -13,6 +13,20 @@ describe("stacks element", function()
         id = 1,
       },
       requests = {
+        scopes = mocks.scopes({
+          scopes = {
+            [1] = {
+              {
+                name = "Locals",
+                variablesReference = 1,
+              },
+              {
+                name = "Globals",
+                variablesReference = 2,
+              },
+            },
+          },
+        }),
         threads = mocks.threads({
           threads = {
             {
@@ -69,14 +83,18 @@ describe("stacks element", function()
       },
     })
     stacks = Stacks(client)
-    stacks.render()
+    client.request.threads()
+    client.request.scopes({ frameId = 1 })
     buf = stacks.buffer()
+    async.sleep(10)
   end)
   after_each(function()
     pcall(vim.api.nvim_buf_delete, buf, { force = true })
     stacks = nil
+    client.shutdown()
   end)
   a.it("renders initial lines", function()
+    stacks.render()
     local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
     assert.same({
       "Thread 1:",
@@ -91,6 +109,7 @@ describe("stacks element", function()
   end)
 
   a.it("renders initial highlights", function()
+    stacks.render()
     local formatted = tests.util.get_highlights(buf)
     assert.same({
       { "DapUIThread", 0, 0, 0, 8 },
@@ -109,8 +128,10 @@ describe("stacks element", function()
 
   describe("with subtle frames shown", function()
     a.it("renders expanded lines", function()
+      stacks.render()
       local keymaps = tests.util.get_mappings(stacks.buffer())
       keymaps["t"](1)
+      async.sleep(10)
       local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.same({
         "Thread 1:",
@@ -125,8 +146,10 @@ describe("stacks element", function()
       }, lines)
     end)
     a.it("renders expanded highlights", function()
+      stacks.render()
       local keymaps = tests.util.get_mappings(stacks.buffer())
       keymaps["t"](1)
+      stacks.render()
       local formatted = tests.util.get_highlights(buf)
       assert.same({
         { "DapUIThread", 0, 0, 0, 8 },

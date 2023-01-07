@@ -10,15 +10,42 @@ function M.create_render_loop(render)
   local render_event = async.control.event()
 
   async.run(function()
+    local failed_renders = 0
     while true do
       render_event.wait()
       render_event.clear()
-      xpcall(render, function(msg)
-        local traceback = debug.traceback(msg, 1)
-        M.notify(("Rendering failed: %s"):format(traceback), vim.log.levels.WARN)
-      end)
+      local render_task
+      local render_fut = async.control.future()
+
+      async.first({
+        function()
+          render_task = async.run(render, function(success, err, trace)
+            if not success then
+              render_fut.set_error(("Rendering failed: %s\n%s"):format(err, trace))
+            else
+              render_fut.set()
+            end
+          end)
+        end,
+        function()
+          async.sleep(1000)
+          render_fut.set_error(("Rendering timed out\n%s"):format(render_task.trace()))
+        end,
+      })
+
+      local success, err = async.pcall(render_fut.wait)
+      if not success then
+        failed_renders = failed_renders + 1
+        if failed_renders > 0 then
+          M.notify(err, vim.log.levels.WARN)
+        end
+      else
+        failed_renders = 0
+      end
       async.sleep(10)
     end
+  end, function(_, err, trace)
+    M.notify(("Render loop stopped unexpectedly : %s/n%s"):format(err, trace), vim.log.levels.WARN)
   end)
 
   return function()
@@ -47,7 +74,7 @@ function M.round(num)
 end
 
 function M.notify(msg, level, opts)
-  return vim.notify(
+  return vim.schedule_wrap(vim.notify)(
     msg,
     level or vim.log.levels.INFO,
     vim.tbl_extend("keep", opts or {}, {

@@ -4,6 +4,10 @@ local util = require("dapui.util")
 ---@param client dapui.DAPClient
 return function(client, send_ready)
   client.listen.scopes(send_ready)
+  client.listen.terminated(send_ready)
+  client.listen.exited(send_ready)
+  client.listen.disconnect(send_ready)
+
   return {
     ---@async
     ---@param canvas dapui.Canvas

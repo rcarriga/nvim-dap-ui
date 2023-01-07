@@ -9,7 +9,20 @@ local partial = util.partial
 
 ---@param client dapui.DAPClient
 return function(client, send_ready)
-  client.listen.scopes(send_ready)
+  local running = false
+  client.listen.scopes(function()
+    running = true
+    send_ready()
+  end)
+  local on_exit = function()
+    running = false
+    send_ready()
+  end
+
+  client.listen.terminated(on_exit)
+  client.listen.exited(on_exit)
+  client.listen.disconnect(on_exit)
+
   ---@type dapui.watches.Watch[]
   local watches = {}
   local edit_index = nil
@@ -18,25 +31,21 @@ return function(client, send_ready)
   local render_vars = require("dapui.components.variables")(client, send_ready)
 
   local function add_watch(value)
-    if value == "" then
+    if #value > 0 then
+      watches[#watches + 1] = {
+        expression = value,
+        expanded = false,
+      }
       send_ready()
-      return
     end
-    watches[#watches + 1] = {
-      expression = value,
-      expanded = false,
-    }
-    send_ready()
   end
 
   local function edit_expr(new_value, index)
     index = index or edit_index
     edit_index = nil
-    if new_value == "" then
-      send_ready()
-      return
+    if #new_value > 0 then
+      watches[index].expression = new_value
     end
-    watches[index].expression = new_value
     send_ready()
   end
 
@@ -70,13 +79,20 @@ return function(client, send_ready)
         canvas:write("No Expressions\n", { group = "DapUIWatchesEmpty" })
         return
       end
-      local frame_id = client.session.current_frame and client.session.current_frame.id
+      local frame_id = client.session
+        and client.session.current_frame
+        and client.session.current_frame.id
       local step = client.lib.step_number()
       for i, watch in pairs(watches) do
-        local success, evaluated = pcall(
-          client.request.evaluate,
-          { context = "watch", expression = watch.expression, frameId = frame_id }
-        )
+        local success, evaluated
+        if running then
+          success, evaluated = pcall(
+            client.request.evaluate,
+            { context = "watch", expression = watch.expression, frameId = frame_id }
+          )
+        else
+          success, evaluated = false, { message = "No active session" }
+        end
         local prefix = config.icons[watch.expanded and "expanded" or "collapsed"]
 
         canvas:write({

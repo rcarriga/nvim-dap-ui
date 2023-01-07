@@ -4,14 +4,34 @@ local frame_renderer = require("dapui.components.frames")
 ---@param client dapui.DAPClient
 ---@param send_ready function
 return function(client, send_ready)
-  client.listen.stopped(send_ready)
+  ---@type dapui.types.Thread[] | nil
+  local threads = nil
+
+  client.listen.threads(function(args)
+    threads = args.response.threads
+  end)
+  client.listen.scopes(function()
+    send_ready()
+  end)
+
+  local on_exit = function()
+    threads = nil
+    send_ready()
+  end
+  client.listen.terminated(on_exit)
+  client.listen.exited(on_exit)
+  client.listen.disconnect(on_exit)
+
   local render_frames = frame_renderer(client, send_ready)
   local subtle_threads = {}
   return {
     ---@param canvas dapui.Canvas
     render = function(canvas, indent)
+      if not threads then
+        return
+      end
+
       indent = indent or 0
-      local threads = client.request.threads().threads
 
       ---@param thread dapui.types.Thread
       local function render_thread(thread, match_group)
