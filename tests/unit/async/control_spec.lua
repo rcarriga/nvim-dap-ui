@@ -82,9 +82,7 @@ describe("future", function()
     local future = async.control.future()
     local notified = 0
     future.set_error("test")
-    local success, err = async.pcall(function()
-      return future.wait()
-    end)
+    local success, err = pcall(future.wait)
 
     async.sleep(10)
     assert.False(success)

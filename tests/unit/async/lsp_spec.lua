@@ -57,12 +57,7 @@ describe("lsp client", function()
 
     local client = async.lsp.client(1)
 
-    local success, err = async.pcall(
-      client.request.textDocument_diagnostic,
-      0,
-      {},
-      { timeout = 10 }
-    )
+    local success, err = pcall(client.request.textDocument_diagnostic, 0, {}, { timeout = 10 })
     assert.False(success)
     assert.same(err.message, "Request timed out")
   end)
@@ -82,7 +77,7 @@ describe("lsp client", function()
 
     local client = async.lsp.client(1)
 
-    async.pcall(client.request.textDocument_diagnostic, 0, {}, { timeout = 10 })
+    pcall(client.request.textDocument_diagnostic, 0, {}, { timeout = 10 })
     assert.True(cancel_received)
   end)
 
@@ -97,12 +92,7 @@ describe("lsp client", function()
 
     local client = async.lsp.client(1)
 
-    local success, err = async.pcall(
-      client.request.textDocument_diagnostic,
-      0,
-      {},
-      { timeout = 10 }
-    )
+    local success, err = pcall(client.request.textDocument_diagnostic, 0, {}, { timeout = 10 })
     assert.Not.Nil(string.find(err, "Client 1 has shut down"))
   end)
 end)

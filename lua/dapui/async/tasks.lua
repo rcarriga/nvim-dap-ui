@@ -12,9 +12,7 @@ local child_tasks = {}
 
 -- Coroutine.running() was changed between Lua 5.1 and 5.2:
 -- - 5.1: Returns the running coroutine, or nil when called by the main thread.
--- - 5.2: Returns the running coroutine plus a boolean, true when the running
---   coroutine is the main one.
---
+-- - 5.2: Returns the running coroutine plus a boolean, true when the running coroutine is the main one.
 -- For LuaJIT, 5.2 behaviour is enabled with LUAJIT_ENABLE_LUA52COMPAT
 
 ---@nodoc
@@ -135,13 +133,7 @@ function dapui.async.tasks.run(func, cb)
 
     args[nargs] = step
 
-    local ok, err = pcall(err_or_fn, unpack(args, 1, nargs))
-
-    if not ok then
-      -- We are leaving the coroutine alive here.
-      -- GC should take care of it.
-      close_task(nil, TaskError(err, debug.traceback(co, err)))
-    end
+    err_or_fn(unpack(args, 1, nargs))
   end
 
   step()
@@ -151,24 +143,29 @@ end
 ---@nodoc
 function dapui.async.tasks.wrap(func, argc)
   assert(argc, "Must provide argc")
+  local protected = function(...)
+    local args = { ... }
+    local cb = args[argc]
+    args[argc] = function(...)
+      cb(true, ...)
+    end
+    xpcall(func, function(err)
+      cb(false, err, debug.traceback())
+    end, unpack(args, 1, argc))
+  end
+
   return function(...)
     if not current_non_main_co() then
       return func(...)
     end
-    return coroutine.yield(argc, func, ...)
+
+    local ret = { coroutine.yield(argc, protected, ...) }
+    local success = ret[1]
+    if not success then
+      error(("Wrapped function failed: %s\n%s"):format(ret[2], ret[3]))
+    end
+    return unpack(ret, 2, table.maxn(ret))
   end
-end
-
-local wrapped_run = dapui.async.tasks.wrap(dapui.async.tasks.run, 2)
-
----@async
----@param func function
----@param ... any
-function dapui.async.tasks.pcall(func, ...)
-  local args = { ... }
-  return wrapped_run(function()
-    return func(unpack(args))
-  end)
 end
 
 --- Get the current running task

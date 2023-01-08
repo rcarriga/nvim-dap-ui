@@ -46,25 +46,7 @@ return function()
     return console_buf
   end
 
-  dap.defaults.fallback.terminal_win_cmd = function()
-    -- TODO: Create a temp window so nvim-dap gets the width and height for the PTY.
-    -- Should make this configurable but the neovim terminal doesn't reflow so resizing looks bad.
-    -- https://github.com/neovim/neovim/issues/2514
-    local win = vim.api.nvim_open_win(get_buf(), true, {
-      relative = "editor",
-      width = 80,
-      height = 20,
-      row = 0,
-      col = 0,
-      border = nil,
-      style = "minimal",
-    })
-    vim.api.nvim_set_current_win(win)
-    vim.schedule(function()
-      vim.api.nvim_win_close(win, true)
-    end)
-    return get_buf(), win
-  end
+  dap.defaults.fallback.terminal_win_cmd = get_buf
 
   function dapui.elements.console.render() end
 

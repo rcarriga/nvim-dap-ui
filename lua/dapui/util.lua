@@ -33,10 +33,10 @@ function M.create_render_loop(render)
         end,
       })
 
-      local success, err = async.pcall(render_fut.wait)
+      local success, err = pcall(render_fut.wait)
       if not success then
         failed_renders = failed_renders + 1
-        if failed_renders > 0 then
+        if failed_renders > 3 then
           M.notify(err, vim.log.levels.WARN)
         end
       else

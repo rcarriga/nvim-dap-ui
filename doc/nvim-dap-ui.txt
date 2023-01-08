@@ -432,7 +432,7 @@ The API is heavily inspired by Python's asyncio module
 Users of nvim-da-ui should not need to use this module directly.
 
                                                              *dapui.async.run()*
-`run`({func})
+`run`({func}, {cb})
 
 Run a function in an async context. This is the entrypoint to all async
 functionality.
@@ -449,7 +449,7 @@ Return~
 `(dapui.async.tasks.Task)`
 
                                                             *dapui.async.wrap()*
-`wrap`({func}, {argc}, {protected})
+`wrap`({func}, {argc})
 
 Creates an async function with a callback style function.
 >lua
@@ -466,7 +466,6 @@ Creates an async function with a callback style function.
 Parameters~
 {func} `(function)` A callback style function to be converted. The last argument must be the callback.
 {argc} `(integer)` The number of arguments of func. Must be included.
-{protected} `(boolean?)` Call the function in protected mode (like pcall), except on error a third value is returned which is the stack trace of where the error occurred.
 Return~
 `(function)` Returns an async function
 
@@ -541,6 +540,23 @@ already set
 Create a new event
 Return~
 `(dapui.async.control.Event)`
+
+
+An future represents a value that will be available in the future.
+The future result can be set from a non-async context.
+                                                    *dapui.async.control.Future*
+Fields~
+{set} `(fun(value): nil)` Set the future value and wake all waiters.
+{set_error} `(fun(message): nil)` Set the error for this future to raise to
+waiters
+{wait} `(async fun(): any)` Wait for the value to be set, returning immediately if already set
+
+                                                  *dapui.async.control.future()*
+`future`()
+
+Create a new future
+Return~
+`(dapui.async.control.Future)`
 
 
 A FIFO queue with async support.

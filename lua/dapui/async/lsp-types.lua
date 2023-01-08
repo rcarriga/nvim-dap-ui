@@ -85,7 +85,7 @@ function LSPRequestClient.textDocument_selectionRange(bufnr, args, opts) end
 
 --- A request to result a `CallHierarchyItem` in a document at a given position.
 --- Can be used as an input to an incoming or outgoing call hierarchy.
---- 
+---
 --- @since 3.16.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -95,7 +95,7 @@ function LSPRequestClient.textDocument_selectionRange(bufnr, args, opts) end
 function LSPRequestClient.textDocument_prepareCallHierarchy(bufnr, args, opts) end
 
 --- A request to resolve the incoming calls for a given `CallHierarchyItem`.
---- 
+---
 --- @since 3.16.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -105,7 +105,7 @@ function LSPRequestClient.textDocument_prepareCallHierarchy(bufnr, args, opts) e
 function LSPRequestClient.callHierarchy_incomingCalls(bufnr, args, opts) end
 
 --- A request to resolve the outgoing calls for a given `CallHierarchyItem`.
---- 
+---
 --- @since 3.16.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -146,7 +146,7 @@ function LSPRequestClient.textDocument_semanticTokens_range(bufnr, args, opts) e
 function LSPRequestClient.workspace_semanticTokens_refresh(bufnr, opts) end
 
 --- A request to provide ranges that can be edited together.
---- 
+---
 --- @since 3.16.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -157,7 +157,7 @@ function LSPRequestClient.textDocument_linkedEditingRange(bufnr, args, opts) end
 
 --- The will create files request is sent from the client to the server before files are actually
 --- created as long as the creation is triggered from within the client.
---- 
+---
 --- @since 3.16.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -168,7 +168,7 @@ function LSPRequestClient.workspace_willCreateFiles(bufnr, args, opts) end
 
 --- The will rename files request is sent from the client to the server before files are actually
 --- renamed as long as the rename is triggered from within the client.
---- 
+---
 --- @since 3.16.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -179,7 +179,7 @@ function LSPRequestClient.workspace_willRenameFiles(bufnr, args, opts) end
 
 --- The did delete files notification is sent from the client to the server when
 --- files were deleted from within the client.
---- 
+---
 --- @since 3.16.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -200,7 +200,7 @@ function LSPRequestClient.textDocument_moniker(bufnr, args, opts) end
 
 --- A request to result a `TypeHierarchyItem` in a document at a given position.
 --- Can be used as an input to a subtypes or supertypes type hierarchy.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -210,7 +210,7 @@ function LSPRequestClient.textDocument_moniker(bufnr, args, opts) end
 function LSPRequestClient.textDocument_prepareTypeHierarchy(bufnr, args, opts) end
 
 --- A request to resolve the supertypes for a given `TypeHierarchyItem`.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -220,7 +220,7 @@ function LSPRequestClient.textDocument_prepareTypeHierarchy(bufnr, args, opts) e
 function LSPRequestClient.typeHierarchy_supertypes(bufnr, args, opts) end
 
 --- A request to resolve the subtypes for a given `TypeHierarchyItem`.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -232,7 +232,7 @@ function LSPRequestClient.typeHierarchy_subtypes(bufnr, args, opts) end
 --- A request to provide inline values in a document. The request's parameter is of
 --- type [InlineValueParams](#InlineValueParams), the response is of type
 --- [InlineValue[]](#InlineValue[]) or a Thenable that resolves to such.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -251,7 +251,7 @@ function LSPRequestClient.workspace_inlineValue_refresh(bufnr, opts) end
 --- A request to provide inlay hints in a document. The request's parameter is of
 --- type [InlayHintsParams](#InlayHintsParams), the response is of type
 --- [InlayHint[]](#InlayHint[]) or a Thenable that resolves to such.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -263,7 +263,7 @@ function LSPRequestClient.textDocument_inlayHint(bufnr, args, opts) end
 --- A request to resolve additional properties for an inlay hint.
 --- The request's parameter is of type [InlayHint](#InlayHint), the response is
 --- of type [InlayHint](#InlayHint) or a Thenable that resolves to such.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -280,7 +280,7 @@ function LSPRequestClient.inlayHint_resolve(bufnr, args, opts) end
 function LSPRequestClient.workspace_inlayHint_refresh(bufnr, opts) end
 
 --- The document diagnostic request definition.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -290,7 +290,7 @@ function LSPRequestClient.workspace_inlayHint_refresh(bufnr, opts) end
 function LSPRequestClient.textDocument_diagnostic(bufnr, args, opts) end
 
 --- The workspace diagnostic request definition.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -300,7 +300,7 @@ function LSPRequestClient.textDocument_diagnostic(bufnr, args, opts) end
 function LSPRequestClient.workspace_diagnostic(bufnr, args, opts) end
 
 --- The diagnostic refresh request definition.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -347,7 +347,7 @@ function LSPRequestClient.textDocument_willSaveWaitUntil(bufnr, args, opts) end
 --- parameter is of type [TextDocumentPosition](#TextDocumentPosition) the response
 --- is of type [CompletionItem[]](#CompletionItem) or [CompletionList](#CompletionList)
 --- or a Thenable that resolves to such.
---- 
+---
 --- The request can delay the computation of the [`detail`](#CompletionItem.detail)
 --- and [`documentation`](#CompletionItem.documentation) properties to the `completionItem/resolve`
 --- request. However, properties that are needed for the initial sorting and filtering, like `sortText`,
@@ -453,11 +453,11 @@ function LSPRequestClient.codeAction_resolve(bufnr, args, opts) end
 --- by the [WorkspaceSymbolParams](#WorkspaceSymbolParams). The response is
 --- of type [SymbolInformation[]](#SymbolInformation) or a Thenable that
 --- resolves to such.
---- 
+---
 --- @since 3.17.0 - support for WorkspaceSymbol in the returned data. Clients
 ---  need to advertise support for WorkspaceSymbols via the client capability
 ---  `workspace.symbol.resolveSupport`.
---- 
+---
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
 ---@param args dapui.async.lsp.types.WorkspaceSymbolParams
@@ -467,7 +467,7 @@ function LSPRequestClient.workspace_symbol(bufnr, args, opts) end
 
 --- A request to resolve the range inside the workspace
 --- symbol's location.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -543,7 +543,7 @@ function LSPRequestClient.textDocument_onTypeFormatting(bufnr, args, opts) end
 function LSPRequestClient.textDocument_rename(bufnr, args, opts) end
 
 --- A request to test and perform the setup necessary for a rename.
---- 
+---
 --- @since 3.16 - support for default behavior
 ---@async
 ---@param bufnr integer Buffer number (0 for current buffer)
@@ -578,7 +578,7 @@ function LSPNotifyClient.window_workDoneProgress_cancel(args) end
 
 --- The did create files notification is sent from the client to the server when
 --- files were created from within the client.
---- 
+---
 --- @since 3.16.0
 ---@async
 ---@param args dapui.async.lsp.types.CreateFilesParams
@@ -586,7 +586,7 @@ function LSPNotifyClient.workspace_didCreateFiles(args) end
 
 --- The did rename files notification is sent from the client to the server when
 --- files were renamed from within the client.
---- 
+---
 --- @since 3.16.0
 ---@async
 ---@param args dapui.async.lsp.types.RenameFilesParams
@@ -594,14 +594,14 @@ function LSPNotifyClient.workspace_didRenameFiles(args) end
 
 --- The will delete files request is sent from the client to the server before files are actually
 --- deleted as long as the deletion is triggered from within the client.
---- 
+---
 --- @since 3.16.0
 ---@async
 ---@param args dapui.async.lsp.types.DeleteFilesParams
 function LSPNotifyClient.workspace_didDeleteFiles(args) end
 
 --- A notification sent when a notebook opens.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param args dapui.async.lsp.types.DidOpenNotebookDocumentParams
@@ -612,14 +612,14 @@ function LSPNotifyClient.notebookDocument_didOpen(args) end
 function LSPNotifyClient.notebookDocument_didChange(args) end
 
 --- A notification sent when a notebook document is saved.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param args dapui.async.lsp.types.DidSaveNotebookDocumentParams
 function LSPNotifyClient.notebookDocument_didSave(args) end
 
 --- A notification sent when a notebook closes.
---- 
+---
 --- @since 3.17.0
 ---@async
 ---@param args dapui.async.lsp.types.DidCloseNotebookDocumentParams
@@ -717,13 +717,13 @@ function LSPNotifyClient.__progress(args) end
 ---@field augmentsSyntaxTokens? boolean Whether the client uses semantic tokens to augment existing syntax tokens. If set to `true` client side created syntax tokens and semantic tokens are both used for colorization. If set to `false` the client only uses the returned semantic tokens for colorization.  If the value is `undefined` then the client behavior is not specified.  @since 3.17.0
 
 --- Client capabilities for the linked editing range request.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.LinkedEditingRangeClientCapabilities
 ---@field dynamicRegistration? boolean Whether implementation supports dynamic registration. If this is set to `true` the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)` return value for the corresponding server capability as well.
 
 --- Client capabilities specific to the moniker request.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.MonikerClientCapabilities
 ---@field dynamicRegistration? boolean Whether moniker supports dynamic registration. If this is set to `true` the client supports the new `MonikerRegistrationOptions` return value for the corresponding server capability as well.
@@ -733,7 +733,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field dynamicRegistration? boolean Whether implementation supports dynamic registration. If this is set to `true` the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)` return value for the corresponding server capability as well.
 
 --- Client capabilities specific to inline values.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlineValueClientCapabilities
 ---@field dynamicRegistration? boolean Whether implementation supports dynamic registration for inline value providers.
@@ -742,21 +742,21 @@ function LSPNotifyClient.__progress(args) end
 ---@field valueSet? dapui.async.lsp.types.FoldingRangeKind[] The folding range kind values the client supports. When this property exists the client also guarantees that it will handle values outside its set gracefully and falls back to a default value when unknown.
 
 --- Inlay hint client capabilities.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlayHintClientCapabilities
 ---@field dynamicRegistration? boolean Whether inlay hints support dynamic registration.
 ---@field resolveSupport? dapui.async.lsp.types.Structure1 Indicates which properties a client can resolve lazily on an inlay hint.
 
 --- Client capabilities specific to diagnostic pull requests.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.DiagnosticClientCapabilities
 ---@field dynamicRegistration? boolean Whether implementation supports dynamic registration. If this is set to `true` the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)` return value for the corresponding server capability as well.
 ---@field relatedDocumentSupport? boolean Whether the clients supports related documents for document diagnostic pulls.
 
 --- Notebook specific client capabilities.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.NotebookDocumentSyncClientCapabilities
 ---@field dynamicRegistration? boolean Whether implementation supports dynamic registration. If this is set to `true` the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)` return value for the corresponding server capability as well.
@@ -777,7 +777,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field diagnostics dapui.async.lsp.types.Diagnostic[] An array of diagnostic information items.
 
 --- Client capabilities for the showDocument request.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.ShowDocumentClientCapabilities
 ---@field support boolean The client has support for the showDocument request.
@@ -817,7 +817,7 @@ function LSPNotifyClient.__progress(args) end
 --- A relative pattern is a helper to construct glob patterns that are matched
 --- relatively to a base URI. The common value for a `baseUri` is a workspace
 --- folder root, but it can be another absolute URI as well.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.RelativePattern
 ---@field baseUri dapui.async.lsp.types.WorkspaceFolder|dapui.async.lsp.types.URI A workspace folder or a base URI to which this pattern will be matched against relatively.
@@ -838,23 +838,22 @@ function LSPNotifyClient.__progress(args) end
 ---@alias dapui.async.lsp.types.ProgressToken integer|string
 --- A pattern kind describing if a glob pattern matches a file a folder or
 --- both.
---- 
+---
 --- @since 3.16.0
 ---@alias dapui.async.lsp.types.FileOperationPatternKind "file"|"folder"
-
 
 --- A literal to identify a text document in the client.
 ---@class dapui.async.lsp.types.TextDocumentIdentifier
 ---@field uri dapui.async.lsp.types.DocumentUri The text document's uri.
 
 --- Matching options for the file operation pattern.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.FileOperationPatternOptions
 ---@field ignoreCase? boolean The pattern should be matched ignoring casing.
 
 --- A full document diagnostic report for a workspace diagnostic result.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.WorkspaceFullDocumentDiagnosticReport : dapui.async.lsp.types.FullDocumentDiagnosticReport
 ---@field uri dapui.async.lsp.types.DocumentUri The URI for which diagnostic information is reported.
@@ -863,13 +862,13 @@ function LSPNotifyClient.__progress(args) end
 ---@class dapui.async.lsp.types.DocumentColorOptions : dapui.async.lsp.types.WorkDoneProgressOptions
 
 --- An unchanged document diagnostic report for a workspace diagnostic result.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.WorkspaceUnchangedDocumentDiagnosticReport : dapui.async.lsp.types.UnchangedDocumentDiagnosticReport
 ---@field uri dapui.async.lsp.types.DocumentUri The URI for which diagnostic information is reported.
 ---@field version integer|nil The version number for which the diagnostics are reported. If the document is not marked as open `null` can be provided.
 --- A notebook cell kind.
---- 
+---
 --- @since 3.17.0
 ---@alias dapui.async.lsp.types.NotebookCellKind 1|2
 
@@ -937,7 +936,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field diagnostic? dapui.async.lsp.types.DiagnosticClientCapabilities Capabilities specific to the diagnostic pull model.  @since 3.17.0
 
 --- Capabilities specific to the notebook document support.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.NotebookDocumentClientCapabilities
 ---@field synchronization dapui.async.lsp.types.NotebookDocumentSyncClientCapabilities Capabilities specific to notebook document synchronization  @since 3.17.0
@@ -955,7 +954,7 @@ function LSPNotifyClient.__progress(args) end
 ---@class dapui.async.lsp.types.DeclarationOptions : dapui.async.lsp.types.WorkDoneProgressOptions
 
 --- General client capabilities.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.GeneralClientCapabilities
 ---@field staleRequestSupport? dapui.async.lsp.types.Structure3 Client capability that signals how the client handles stale requests (e.g. a request for which the client will not process the response anymore since the information is outdated).  @since 3.17.0
@@ -965,19 +964,17 @@ function LSPNotifyClient.__progress(args) end
 
 ---@class dapui.async.lsp.types.SelectionRangeOptions : dapui.async.lsp.types.WorkDoneProgressOptions
 --- Symbol tags are extra annotations that tweak the rendering of a symbol.
---- 
+---
 --- @since 3.16
 ---@alias dapui.async.lsp.types.SymbolTag 1
-
 
 ---@class dapui.async.lsp.types.Structure13
 ---@field range dapui.async.lsp.types.Range
 ---@field placeholder string
 --- A set of predefined position encoding kinds.
---- 
+---
 --- @since 3.17.0
 ---@alias dapui.async.lsp.types.PositionEncodingKind "utf-8"|"utf-16"|"utf-32"
-
 
 ---@class dapui.async.lsp.types.Structure9
 ---@field commitCharacters? string[] A default commit character set.  @since 3.17.0
@@ -1011,22 +1008,21 @@ function LSPNotifyClient.__progress(args) end
 --- conversion from one encoding into another requires the content of the
 --- file / line the conversion is best done where the file is read which is
 --- usually on the server side.
---- 
+---
 --- Positions are line end character agnostic. So you can not specify a position
 --- that denotes `\r|\n` or `\n|` where `|` represents the character offset.
---- 
+---
 --- @since 3.17.0 - support for negotiated position encoding.
 ---@class dapui.async.lsp.types.Position
 ---@field line integer Line position in a document (zero-based).  If a line number is greater than the number of lines in a document, it defaults back to the number of lines in the document. If a line number is negative, it defaults to 0.
 ---@field character integer Character offset on a line in a document (zero-based).  The meaning of this offset is determined by the negotiated `PositionEncodingKind`.  If the character value is greater than the line length it defaults back to the line length.
 
 --- Call hierarchy options used during static registration.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.CallHierarchyOptions : dapui.async.lsp.types.WorkDoneProgressOptions
 --- The kind of a completion entry.
 ---@alias dapui.async.lsp.types.CompletionItemKind 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25
-
 
 --- Provider options for a [CodeActionRequest](#CodeActionRequest).
 ---@class dapui.async.lsp.types.CodeActionOptions : dapui.async.lsp.types.WorkDoneProgressOptions
@@ -1034,23 +1030,22 @@ function LSPNotifyClient.__progress(args) end
 ---@field resolveProvider? boolean The server provides support to resolve additional information for a code action.  @since 3.16.0
 --- Completion item tags are extra annotations that tweak the rendering of a completion
 --- item.
---- 
+---
 --- @since 3.15.0
 ---@alias dapui.async.lsp.types.CompletionItemTag 1
 
 --- Describes the content type that a client supports in various
 --- result literals like `Hover`, `ParameterInfo` or `CompletionItem`.
---- 
+---
 --- Please note that `MarkupKinds` must not start with a `$`. This kinds
 --- are reserved for internal usage.
 ---@alias dapui.async.lsp.types.MarkupKind "plaintext"|"markdown"
 
 --- How whitespace and indentation is handled during completion
 --- item insertion.
---- 
+---
 --- @since 3.16.0
 ---@alias dapui.async.lsp.types.InsertTextMode 1|2
-
 
 --- Server capabilities for a [WorkspaceSymbolRequest](#WorkspaceSymbolRequest).
 ---@class dapui.async.lsp.types.WorkspaceSymbolOptions : dapui.async.lsp.types.WorkDoneProgressOptions
@@ -1063,7 +1058,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field full? boolean|dapui.async.lsp.types.Structure5 Server supports providing semantic tokens for a full document.
 
 --- A range in a text document expressed as (zero-based) start and end positions.
---- 
+---
 --- If you want to specify a range that contains a line including the line ending
 --- character(s) then use an end position denoting the start of the next line.
 --- For example:
@@ -1090,17 +1085,16 @@ function LSPNotifyClient.__progress(args) end
 ---@class dapui.async.lsp.types.LinkedEditingRangeOptions : dapui.async.lsp.types.WorkDoneProgressOptions
 
 --- Represents information on a file/folder create.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.FileCreate
 ---@field uri string A file:// URI for the location of the file/folder being created.
 --- A set of predefined token types. This set is not fixed
 --- an clients can specify additional token types via the
 --- corresponding client capabilities.
---- 
+---
 --- @since 3.16.0
 ---@alias dapui.async.lsp.types.SemanticTokenTypes "namespace"|"type"|"class"|"enum"|"interface"|"struct"|"typeParameter"|"parameter"|"variable"|"property"|"enumMember"|"event"|"function"|"method"|"macro"|"keyword"|"modifier"|"comment"|"string"|"number"|"regexp"|"operator"|"decorator"
-
 
 --- Describes textual changes on a text document. A TextDocumentEdit describes all changes
 --- on a document version Si and after they are applied move the document to version Si+1.
@@ -1120,10 +1114,9 @@ function LSPNotifyClient.__progress(args) end
 
 ---@class dapui.async.lsp.types.DeclarationRegistrationOptions : dapui.async.lsp.types.DeclarationOptions,dapui.async.lsp.types.TextDocumentRegistrationOptions,dapui.async.lsp.types.StaticRegistrationOptions
 --- The document diagnostic report kinds.
---- 
+---
 --- @since 3.17.0
 ---@alias dapui.async.lsp.types.DocumentDiagnosticReportKind "full"|"unchanged"
-
 
 --- A selection range represents a part of a selection hierarchy. A selection range
 --- may have a parent selection range that contains it.
@@ -1140,7 +1133,7 @@ function LSPNotifyClient.__progress(args) end
 
 --- A filter to describe in which file operation requests or notifications
 --- the server is interested in receiving.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.FileOperationFilter
 ---@field scheme? string A Uri scheme like `file` or `untitled`.
@@ -1148,7 +1141,7 @@ function LSPNotifyClient.__progress(args) end
 
 --- Represents programming constructs like functions or constructors in the context
 --- of call hierarchy.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.CallHierarchyItem
 ---@field name string The name of this item.
@@ -1161,51 +1154,50 @@ function LSPNotifyClient.__progress(args) end
 ---@field data? dapui.async.lsp.types.LSPAny A data entry field that is preserved between a call hierarchy prepare and incoming calls or outgoing calls requests.
 
 --- The parameter of a `textDocument/prepareCallHierarchy` request.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.CallHierarchyPrepareParams : dapui.async.lsp.types.TextDocumentPositionParams,dapui.async.lsp.types.WorkDoneProgressParams
 
 --- Call hierarchy options used during static or dynamic registration.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.CallHierarchyRegistrationOptions : dapui.async.lsp.types.TextDocumentRegistrationOptions,dapui.async.lsp.types.CallHierarchyOptions,dapui.async.lsp.types.StaticRegistrationOptions
 
 --- Represents information on a file/folder delete.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.FileDelete
 ---@field uri string A file:// URI for the location of the file/folder being deleted.
 
 --- Represents an incoming call, e.g. a caller of a method or constructor.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.CallHierarchyIncomingCall
 ---@field from dapui.async.lsp.types.CallHierarchyItem The item that makes the call.
 ---@field fromRanges dapui.async.lsp.types.Range[] The ranges at which the calls appear. This is relative to the caller denoted by [`this.from`](#CallHierarchyIncomingCall.from).
 
 --- The parameter of a `callHierarchy/incomingCalls` request.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.CallHierarchyIncomingCallsParams : dapui.async.lsp.types.WorkDoneProgressParams,dapui.async.lsp.types.PartialResultParams
 ---@field item dapui.async.lsp.types.CallHierarchyItem
 
 --- Represents an outgoing call, e.g. calling a getter from a method or a method from a constructor etc.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.CallHierarchyOutgoingCall
 ---@field to dapui.async.lsp.types.CallHierarchyItem The item that is called.
 ---@field fromRanges dapui.async.lsp.types.Range[] The range at which this item is called. This is the range relative to the caller, e.g the item passed to [`provideCallHierarchyOutgoingCalls`](#CallHierarchyItemProvider.provideCallHierarchyOutgoingCalls) and not [`this.to`](#CallHierarchyOutgoingCall.to).
 
 --- The parameter of a `callHierarchy/outgoingCalls` request.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.CallHierarchyOutgoingCallsParams : dapui.async.lsp.types.WorkDoneProgressParams,dapui.async.lsp.types.PartialResultParams
 ---@field item dapui.async.lsp.types.CallHierarchyItem
 --- Moniker uniqueness level to define scope of the moniker.
---- 
+---
 --- @since 3.16.0
 ---@alias dapui.async.lsp.types.UniquenessLevel "document"|"project"|"group"|"scheme"|"global"
-
 
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.SemanticTokens
@@ -1248,13 +1240,13 @@ function LSPNotifyClient.__progress(args) end
 ---@field range dapui.async.lsp.types.Range The range the semantic tokens are requested for.
 
 --- The result of a showDocument request.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.ShowDocumentResult
 ---@field success boolean A boolean indicating if the show was successful.
 
 --- Params to show a document.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.ShowDocumentParams
 ---@field uri dapui.async.lsp.types.URI The document uri to show.
@@ -1268,7 +1260,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field stoppedLocation dapui.async.lsp.types.Range The document range where execution has stopped. Typically the end position of the range denotes the line where the inline values are shown.
 
 --- The result of a linked editing range request.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.LinkedEditingRanges
 ---@field ranges dapui.async.lsp.types.Range[] A list of ranges that can be edited together. The ranges must have identical length and contain identical text content. The ranges cannot overlap.
@@ -1281,12 +1273,12 @@ function LSPNotifyClient.__progress(args) end
 --- A workspace edit represents changes to many resources managed in the workspace. The edit
 --- should either provide `changes` or `documentChanges`. If documentChanges are present
 --- they are preferred over `changes` if the client can handle versioned document edits.
---- 
+---
 --- Since version 3.13.0 a workspace edit can contain resource operations as well. If resource
 --- operations are present clients need to execute the operations in the order in which they
 --- are provided. So a workspace edit for example can consist of the following two changes:
 --- (1) a create file a.txt and (2) a text document edit which insert text into file a.txt.
---- 
+---
 --- An invalid sequence (e.g. (1) delete file a.txt and (2) insert text into file a.txt) will
 --- cause failure of the operation. How the client recovers from the failure is described by
 --- the client capability: `workspace.workspaceEdit.failureHandling`
@@ -1297,7 +1289,7 @@ function LSPNotifyClient.__progress(args) end
 
 --- An inlay hint label part allows for interactive and composite labels
 --- of inlay hints.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlayHintLabelPart
 ---@field value string The value of this label part.
@@ -1306,19 +1298,18 @@ function LSPNotifyClient.__progress(args) end
 ---@field command? dapui.async.lsp.types.Command An optional command for this label part.  Depending on the client capability `inlayHint.resolveSupport` clients might resolve this property late using the resolve request.
 
 --- The options to register for file operations.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.FileOperationRegistrationOptions
 ---@field filters dapui.async.lsp.types.FileOperationFilter[] The actual filters.
 --- Inlay hint kinds.
---- 
+---
 --- @since 3.17.0
 ---@alias dapui.async.lsp.types.InlayHintKind 1|2
 
-
 --- The parameters sent in notifications/requests for user-initiated renames of
 --- files.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.RenameFilesParams
 ---@field files dapui.async.lsp.types.FileRename[] An array of all files/folders renamed in this operation. When a folder is renamed, only the folder will be included, and not its children.
@@ -1328,10 +1319,10 @@ function LSPNotifyClient.__progress(args) end
 
 --- A `MarkupContent` literal represents a string value which content is interpreted base on its
 --- kind flag. Currently the protocol supports `plaintext` and `markdown` as markup kinds.
---- 
+---
 --- If the kind is `markdown` then the value can contain fenced code blocks like in GitHub issues.
 --- See https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
---- 
+---
 --- Here is an example how such a string can be constructed using JavaScript / TypeScript:
 --- ```ts
 --- let markdown: MarkdownContent = {
@@ -1345,7 +1336,7 @@ function LSPNotifyClient.__progress(args) end
 ---  ].join('\n')
 --- };
 --- ```
---- 
+---
 --- *Please Note* that clients might sanitize the return markdown. A client could decide to
 --- remove HTML from the markdown to avoid script execution.
 ---@class dapui.async.lsp.types.MarkupContent
@@ -1354,7 +1345,7 @@ function LSPNotifyClient.__progress(args) end
 
 --- The parameters sent in notifications/requests for user-initiated deletes of
 --- files.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.DeleteFilesParams
 ---@field files dapui.async.lsp.types.FileDelete[] An array of all files/folders deleted in this operation.
@@ -1368,7 +1359,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field targetSelectionRange dapui.async.lsp.types.Range The range that should be selected and revealed when this link is being followed, e.g the name of a function. Must be contained by the `targetRange`. See also `DocumentSymbol#range`
 
 --- Moniker definition to match LSIF 0.5 moniker definition.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.Moniker
 ---@field scheme string The scheme of the moniker. For example tsc or .Net
@@ -1381,7 +1372,7 @@ function LSPNotifyClient.__progress(args) end
 ---@class dapui.async.lsp.types.MonikerRegistrationOptions : dapui.async.lsp.types.TextDocumentRegistrationOptions,dapui.async.lsp.types.MonikerOptions
 
 --- Inlay hint options used during static registration.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlayHintOptions : dapui.async.lsp.types.WorkDoneProgressOptions
 ---@field resolveProvider? boolean The server provides support to resolve additional information for an inlay hint item.
@@ -1398,17 +1389,17 @@ function LSPNotifyClient.__progress(args) end
 ---@field data? dapui.async.lsp.types.LSPAny A data entry field that is preserved between a type hierarchy prepare and supertypes or subtypes requests. It could also be used to identify the type hierarchy in the server, helping improve the performance on resolving supertypes and subtypes.
 
 --- The parameter of a `textDocument/prepareTypeHierarchy` request.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.TypeHierarchyPrepareParams : dapui.async.lsp.types.TextDocumentPositionParams,dapui.async.lsp.types.WorkDoneProgressParams
 
 --- Type hierarchy options used during static or dynamic registration.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.TypeHierarchyRegistrationOptions : dapui.async.lsp.types.TextDocumentRegistrationOptions,dapui.async.lsp.types.TypeHierarchyOptions,dapui.async.lsp.types.StaticRegistrationOptions
 
 --- A diagnostic report with a full set of problems.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.FullDocumentDiagnosticReport
 ---@field kind 'full' A full document diagnostic report.
@@ -1417,20 +1408,20 @@ function LSPNotifyClient.__progress(args) end
 
 --- A diagnostic report indicating that the last returned
 --- report is still accurate.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.UnchangedDocumentDiagnosticReport
 ---@field kind 'unchanged' A document diagnostic report indicating no changes to the last result. A server can only return `unchanged` if result ids are provided.
 ---@field resultId string A result id which will be sent on the next diagnostic request for the same document.
 
 --- The parameter of a `typeHierarchy/subtypes` request.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.TypeHierarchySubtypesParams : dapui.async.lsp.types.WorkDoneProgressParams,dapui.async.lsp.types.PartialResultParams
 ---@field item dapui.async.lsp.types.TypeHierarchyItem
 
 --- Diagnostic options.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.DiagnosticOptions : dapui.async.lsp.types.WorkDoneProgressOptions
 ---@field identifier? string An optional identifier under which the diagnostics are managed by the client.
@@ -1439,7 +1430,7 @@ function LSPNotifyClient.__progress(args) end
 ---@alias dapui.async.lsp.types.InlineValue dapui.async.lsp.types.InlineValueText|dapui.async.lsp.types.InlineValueVariableLookup|dapui.async.lsp.types.InlineValueEvaluatableExpression
 
 --- A parameter literal used in inline value requests.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlineValueParams : dapui.async.lsp.types.WorkDoneProgressParams
 ---@field textDocument dapui.async.lsp.types.TextDocumentIdentifier The text document.
@@ -1447,12 +1438,12 @@ function LSPNotifyClient.__progress(args) end
 ---@field context dapui.async.lsp.types.InlineValueContext Additional information about the context in which inline values were requested.
 
 --- Inline value options used during static or dynamic registration.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlineValueRegistrationOptions : dapui.async.lsp.types.InlineValueOptions,dapui.async.lsp.types.TextDocumentRegistrationOptions,dapui.async.lsp.types.StaticRegistrationOptions
 
 --- A previous result id in a workspace pull request.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.PreviousResultId
 ---@field uri dapui.async.lsp.types.DocumentUri The URI for which the client knowns a result id.
@@ -1504,12 +1495,12 @@ function LSPNotifyClient.__progress(args) end
 ---@field experimental? dapui.async.lsp.types.LSPAny Experimental server capabilities.
 
 --- Inlay hint options used during static or dynamic registration.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlayHintRegistrationOptions : dapui.async.lsp.types.InlayHintOptions,dapui.async.lsp.types.TextDocumentRegistrationOptions,dapui.async.lsp.types.StaticRegistrationOptions
 
 --- A notebook document.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.NotebookDocument
 ---@field uri dapui.async.lsp.types.URI The notebook document's uri.
@@ -1532,7 +1523,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field text string The content of the opened text document.
 
 --- Parameters of the document diagnostic request.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.DocumentDiagnosticParams : dapui.async.lsp.types.WorkDoneProgressParams,dapui.async.lsp.types.PartialResultParams
 ---@field textDocument dapui.async.lsp.types.TextDocumentIdentifier The text document.
@@ -1540,33 +1531,33 @@ function LSPNotifyClient.__progress(args) end
 ---@field previousResultId? string The result id of a previous response if provided.
 
 --- A partial result for a document diagnostic report.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.DocumentDiagnosticReportPartialResult
 ---@field relatedDocuments table<dapui.async.lsp.types.DocumentUri, dapui.async.lsp.types.FullDocumentDiagnosticReport|dapui.async.lsp.types.UnchangedDocumentDiagnosticReport>
 
 --- A versioned notebook document identifier.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.VersionedNotebookDocumentIdentifier
 ---@field version integer The version number of this notebook document.
 ---@field uri dapui.async.lsp.types.URI The notebook document's uri.
 
 --- Cancellation data returned from a diagnostic request.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.DiagnosticServerCancellationData
 ---@field retriggerRequest boolean
 
 --- A change event for a notebook document.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.NotebookDocumentChangeEvent
 ---@field metadata? dapui.async.lsp.types.LSPObject The changed meta data if any.  Note: should always be an object literal (e.g. LSPObject)
 ---@field cells? dapui.async.lsp.types.Structure7 Changes to cells
 
 --- A literal to identify a notebook document in the client.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.NotebookDocumentIdentifier
 ---@field uri dapui.async.lsp.types.URI The notebook document's uri.
@@ -1576,13 +1567,13 @@ function LSPNotifyClient.__progress(args) end
 ---@field version integer|nil The version number of this document. If a versioned text document identifier is sent from the server to the client and the file is not open in the editor (the server has not received an open notification before) the server can send `null` to indicate that the version is unknown and the content on disk is the truth (as specified with document content ownership).
 
 --- A partial result for a workspace diagnostic report.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.WorkspaceDiagnosticReportPartialResult
 ---@field items dapui.async.lsp.types.WorkspaceDocumentDiagnosticReport[]
 
 --- A special text edit with an additional change annotation.
---- 
+---
 --- @since 3.16.0.
 ---@class dapui.async.lsp.types.AnnotatedTextEdit : dapui.async.lsp.types.TextEdit
 ---@field annotationId dapui.async.lsp.types.ChangeAnnotationIdentifier The actual identifier of the change annotation
@@ -1678,7 +1669,7 @@ function LSPNotifyClient.__progress(args) end
 
 --- A pattern to describe in which file operation requests or notifications
 --- the server is interested in receiving.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.FileOperationPattern
 ---@field glob string The glob pattern to match. Glob patterns can have the following syntax: - `*` to match one or more characters in a path segment - `?` to match on one character in a path segment - `**` to match any number of path segments, including none - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}` matches all TypeScript and JavaScript files) - `[]` to declare a range of characters to match in a path segment (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …) - `[!...]` to negate a range of characters to match in a path segment (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
@@ -1755,7 +1746,7 @@ function LSPNotifyClient.__progress(args) end
 
 --- A code action represents a change that can be performed in code, e.g. to fix a problem or
 --- to refactor code.
---- 
+---
 --- A CodeAction must set either `edit` and/or a `command`. If both are supplied, the `edit` is applied first, then the `command` is executed.
 ---@class dapui.async.lsp.types.CodeAction
 ---@field title string A short, human-readable, title for this code action.
@@ -1779,16 +1770,16 @@ function LSPNotifyClient.__progress(args) end
 --- Provide an inline value through an expression evaluation.
 --- If only a range is specified, the expression will be extracted from the underlying document.
 --- An optional expression can be used to override the extracted expression.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlineValueEvaluatableExpression
 ---@field range dapui.async.lsp.types.Range The document range for which the inline value applies. The range is used to extract the evaluatable expression from the underlying document.
 ---@field expression? string If specified the expression overrides the extracted expression.
 
 --- A special workspace symbol that supports locations without a range.
---- 
+---
 --- See also SymbolInformation.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.WorkspaceSymbol : dapui.async.lsp.types.BaseSymbolInformation
 ---@field location dapui.async.lsp.types.Location|dapui.async.lsp.types.Structure11 The location of the symbol. Whether a server is allowed to return a location without a range depends on the client capability `workspace.symbol.resolveSupport`.  See SymbolInformation#location for more details.
@@ -1805,7 +1796,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field valueSet dapui.async.lsp.types.SymbolTag[] The tags supported by the client.
 
 --- Inline value options used during static registration.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlineValueOptions : dapui.async.lsp.types.WorkDoneProgressOptions
 
@@ -1819,7 +1810,7 @@ function LSPNotifyClient.__progress(args) end
 
 --- A code lens represents a [command](#Command) that should be shown along with
 --- source text, like the number of references, a way to run tests, etc.
---- 
+---
 --- A code lens is _unresolved_ when no command is associated to it. For performance
 --- reasons the creation of a code lens and resolving should be done in two stages.
 ---@class dapui.async.lsp.types.CodeLens
@@ -1855,7 +1846,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field codeActionKind dapui.async.lsp.types.Structure47 The code action kind is support with the following value set.
 
 --- A full diagnostic report with a set of related documents.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.RelatedFullDocumentDiagnosticReport : dapui.async.lsp.types.FullDocumentDiagnosticReport
 ---@field relatedDocuments? table<dapui.async.lsp.types.DocumentUri, dapui.async.lsp.types.FullDocumentDiagnosticReport|dapui.async.lsp.types.UnchangedDocumentDiagnosticReport> Diagnostics of related documents. This information is useful in programming languages where code in a file A can generate diagnostics in a file B which A depends on. An example of such a language is C/C++ where marco definitions in a file a.cpp and result in errors in a header file b.hpp.  @since 3.17.0
@@ -1982,7 +1973,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field properties string[] The properties that a client can resolve lazily. Usually `location.range`
 
 --- The result returned from the apply workspace edit request.
---- 
+---
 --- @since 3.17 renamed from ApplyWorkspaceEditResponse
 ---@class dapui.async.lsp.types.ApplyWorkspaceEditResult
 ---@field applied boolean Indicates whether the edit was applied or not.
@@ -1990,11 +1981,11 @@ function LSPNotifyClient.__progress(args) end
 ---@field failedChange? integer Depending on the client's failure handling strategy `failedChange` might contain the index of the change that failed. This property is only available if the client signals a `failureHandlingStrategy` in its client capabilities.
 
 --- A notebook cell.
---- 
+---
 --- A cell's document URI must be unique across ALL notebook
 --- cells and can therefore be used to uniquely identify a
 --- notebook cell or the cell's text document.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.NotebookCell
 ---@field kind dapui.async.lsp.types.NotebookCellKind The cell's kind
@@ -2056,7 +2047,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field text string The new text for the provided range.
 
 --- The params sent in an open notebook document notification.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.DidOpenNotebookDocumentParams
 ---@field notebookDocument dapui.async.lsp.types.NotebookDocument The notebook document that got opened.
@@ -2074,7 +2065,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field delta? boolean The client will send the `textDocument/semanticTokens/full/delta` request if the server provides a corresponding handler.
 
 --- The params sent in a change notebook document notification.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.DidChangeNotebookDocumentParams
 ---@field notebookDocument dapui.async.lsp.types.VersionedNotebookDocumentIdentifier The notebook document that did change. The version number points to the version after all provided changes have been applied. If only the text document content of a cell changes the notebook version doesn't necessarily have to change.
@@ -2083,7 +2074,7 @@ function LSPNotifyClient.__progress(args) end
 ---@class dapui.async.lsp.types.Structure17
 
 --- The params sent in a save notebook document notification.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.DidSaveNotebookDocumentParams
 ---@field notebookDocument dapui.async.lsp.types.NotebookDocumentIdentifier The notebook document that got saved.
@@ -2099,7 +2090,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field label? string A human-readable string that is shown when multiple outlines trees are shown for the same document.  @since 3.16.0
 
 --- The params sent in a close notebook document notification.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.DidCloseNotebookDocumentParams
 ---@field notebookDocument dapui.async.lsp.types.NotebookDocumentIdentifier The notebook document that got closed.
@@ -2108,7 +2099,7 @@ function LSPNotifyClient.__progress(args) end
 --- Provide inline value through a variable lookup.
 --- If only a range is specified, the variable name will be extracted from the underlying document.
 --- An optional variable name can be used to override the extracted name.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlineValueVariableLookup
 ---@field range dapui.async.lsp.types.Range The document range for which the inline value applies. The range is used to extract the variable name from the underlying document.
@@ -2187,7 +2178,6 @@ function LSPNotifyClient.__progress(args) end
 --- A symbol kind.
 ---@alias dapui.async.lsp.types.SymbolKind 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26
 
-
 --- The parameters sent in a save text document notification
 ---@class dapui.async.lsp.types.DidSaveTextDocumentParams
 ---@field textDocument dapui.async.lsp.types.TextDocumentIdentifier The document that was saved.
@@ -2203,7 +2193,6 @@ function LSPNotifyClient.__progress(args) end
 
 ---@alias dapui.async.lsp.types.PrepareSupportDefaultBehavior 1
 
-
 --- Defines the capabilities provided by the client.
 ---@class dapui.async.lsp.types.ClientCapabilities
 ---@field workspace? dapui.async.lsp.types.WorkspaceClientCapabilities Workspace specific client capabilities.
@@ -2214,7 +2203,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field experimental? dapui.async.lsp.types.LSPAny Experimental client capabilities.
 
 --- Additional details for a completion item label.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.CompletionItemLabelDetails
 ---@field detail? string An optional string which is rendered less prominently directly after {@link CompletionItem.label label}, without any spacing. Should be used for function signatures and type annotations.
@@ -2229,17 +2218,15 @@ function LSPNotifyClient.__progress(args) end
 
 ---@alias dapui.async.lsp.types.FailureHandlingKind "abort"|"transactional"|"textOnlyTransactional"|"undo"
 
-
 --- Parameters for a [HoverRequest](#HoverRequest).
 ---@class dapui.async.lsp.types.HoverParams : dapui.async.lsp.types.TextDocumentPositionParams,dapui.async.lsp.types.WorkDoneProgressParams
 --- How a completion was triggered
 ---@alias dapui.async.lsp.types.CompletionTriggerKind 1|2|3
 
 --- The diagnostic tags.
---- 
+---
 --- @since 3.15.0
 ---@alias dapui.async.lsp.types.DiagnosticTag 1|2
-
 
 ---@class dapui.async.lsp.types.TextDocumentSyncOptions
 ---@field openClose? boolean Open and close notifications are sent to the server. If omitted open close notification should not be sent.
@@ -2252,23 +2239,23 @@ function LSPNotifyClient.__progress(args) end
 
 --- Options specific to a notebook plus its cells
 --- to be synced to the server.
---- 
+---
 --- If a selector provides a notebook document
 --- filter but no cell selector all cells of a
 --- matching notebook document will be synced.
---- 
+---
 --- If a selector provides no notebook document
 --- filter but only a cell selector all notebook
 --- document that contain at least one matching
 --- cell will be synced.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.NotebookDocumentSyncOptions
 ---@field notebookSelector dapui.async.lsp.types.Structure19|dapui.async.lsp.types.Structure20[] The notebooks to be synced
 ---@field save? boolean Whether save notification should be forwarded to the server. Will only be honored if mode === `notebook`.
 
 --- Registration options specific to a notebook.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.NotebookDocumentSyncRegistrationOptions : dapui.async.lsp.types.NotebookDocumentSyncOptions,dapui.async.lsp.types.StaticRegistrationOptions
 ---@alias dapui.async.lsp.types.WatchKind 1|2|4
@@ -2282,7 +2269,7 @@ function LSPNotifyClient.__progress(args) end
 --- A set of predefined token modifiers. This set is not fixed
 --- an clients can specify additional token types via the
 --- corresponding client capabilities.
---- 
+---
 --- @since 3.16.0
 ---@alias dapui.async.lsp.types.SemanticTokenModifiers "declaration"|"definition"|"readonly"|"static"|"deprecated"|"abstract"|"async"|"modification"|"documentation"|"defaultLibrary"
 
@@ -2294,10 +2281,9 @@ function LSPNotifyClient.__progress(args) end
 --- Represents reasons why a text document is saved.
 ---@alias dapui.async.lsp.types.TextDocumentSaveReason 1|2|3
 
-
 --- A notebook cell text document filter denotes a cell text
 --- document by different properties.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.NotebookCellTextDocumentFilter
 ---@field notebook string|dapui.async.lsp.types.NotebookDocumentFilter A filter that matches against the notebook containing the notebook cell. If a string value is provided it matches against the notebook type. '*' matches every notebook.
@@ -2307,7 +2293,7 @@ function LSPNotifyClient.__progress(args) end
 ---@alias dapui.async.lsp.types.MessageType 1|2|3|4
 
 --- The moniker kind.
---- 
+---
 --- @since 3.16.0
 ---@alias dapui.async.lsp.types.MonikerKind "import"|"export"|"local"
 
@@ -2322,7 +2308,6 @@ function LSPNotifyClient.__progress(args) end
 --- A document highlight kind.
 ---@alias dapui.async.lsp.types.DocumentHighlightKind 1|2|3
 
-
 --- Represents a location inside a resource, such as a line
 --- inside a text file.
 ---@class dapui.async.lsp.types.Location
@@ -2331,7 +2316,6 @@ function LSPNotifyClient.__progress(args) end
 ---@alias dapui.async.lsp.types.MarkedString string|dapui.async.lsp.types.Structure29
 --- The file event type
 ---@alias dapui.async.lsp.types.FileChangeType 1|2|3
-
 
 --- Code Lens provider options of a [CodeLensRequest](#CodeLensRequest).
 ---@class dapui.async.lsp.types.CodeLensOptions : dapui.async.lsp.types.WorkDoneProgressOptions
@@ -2342,7 +2326,6 @@ function LSPNotifyClient.__progress(args) end
 ---@alias dapui.async.lsp.types.WorkspaceDocumentDiagnosticReport dapui.async.lsp.types.WorkspaceFullDocumentDiagnosticReport|dapui.async.lsp.types.WorkspaceUnchangedDocumentDiagnosticReport
 --- The diagnostic's severity.
 ---@alias dapui.async.lsp.types.DiagnosticSeverity 1|2|3|4
-
 
 ---@class dapui.async.lsp.types.ImplementationRegistrationOptions : dapui.async.lsp.types.TextDocumentRegistrationOptions,dapui.async.lsp.types.ImplementationOptions,dapui.async.lsp.types.StaticRegistrationOptions
 ---@alias dapui.async.lsp.types.DocumentDiagnosticReport dapui.async.lsp.types.RelatedFullDocumentDiagnosticReport|dapui.async.lsp.types.RelatedUnchangedDocumentDiagnosticReport
@@ -2403,7 +2386,7 @@ function LSPNotifyClient.__progress(args) end
 ---@alias dapui.async.lsp.types.Definition dapui.async.lsp.types.Location|dapui.async.lsp.types.Location[]
 
 --- Options for notifications/requests for user operations on files.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.FileOperationOptions
 ---@field didCreate? dapui.async.lsp.types.FileOperationRegistrationOptions The server is interested in receiving didCreateFiles notifications.
@@ -2422,7 +2405,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field moreTriggerCharacter? string[] More trigger characters.
 
 --- Client capabilities specific to regular expressions.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.RegularExpressionsClientCapabilities
 ---@field engine string The engine's name.
@@ -2448,7 +2431,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field activeParameter? integer The index of the active parameter.  If provided, this is used in place of `SignatureHelp.activeParameter`.  @since 3.16.0
 
 --- A special text edit to provide an insert and a replace operation.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.InsertReplaceEdit
 ---@field newText string The string to be inserted.
@@ -2480,7 +2463,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field relativePatternSupport? boolean Whether the client has support for {@link  RelativePattern relative pattern} or not.  @since 3.17.0
 
 --- Type hierarchy options used during static registration.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.TypeHierarchyOptions : dapui.async.lsp.types.WorkDoneProgressOptions
 
@@ -2497,7 +2480,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field didClose? dapui.async.lsp.types.TextDocumentIdentifier[] Additional closed cell text documents.
 
 --- Represents information on a file/folder rename.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.FileRename
 ---@field oldUri string A file:// URI for the original location of the file/folder being renamed.
@@ -2508,7 +2491,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field dynamicRegistration? boolean Execute command supports dynamic registration.
 
 --- Structure to capture a description for an error code.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.CodeDescription
 ---@field href dapui.async.lsp.types.URI An URI to open with more information about the diagnostic error.
@@ -2517,7 +2500,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field groupsOnLabel? boolean Whether the client groups edits with equal labels into tree nodes, for instance all edits labelled with "Changes in Strings" would be a tree node.
 
 --- A parameter literal used in inlay hint requests.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlayHintParams : dapui.async.lsp.types.WorkDoneProgressParams
 ---@field textDocument dapui.async.lsp.types.TextDocumentIdentifier The text document.
@@ -2550,10 +2533,10 @@ function LSPNotifyClient.__progress(args) end
 ---@field dynamicRegistration? boolean Whether document highlight supports dynamic registration.
 
 --- Capabilities relating to events from file operations by the user in the client.
---- 
+---
 --- These events do not come from the file system, they come from user operations
 --- like renaming a file in the UI.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.FileOperationClientCapabilities
 ---@field dynamicRegistration? boolean Whether the client supports dynamic registration for file requests/notifications.
@@ -2572,7 +2555,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field changes dapui.async.lsp.types.TextDocumentContentChangeEvent[]
 
 --- Client workspace capabilities specific to inline values.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlineValueWorkspaceClientCapabilities
 ---@field refreshSupport? boolean Whether the client implementation supports a refresh request sent from the server to the client.  Note that this event is global and will force the client to refresh all inline values currently shown. It should be used with absolute care and is useful for situation where a server for example detects a project wide change that requires such a calculation.
@@ -2590,7 +2573,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field context? dapui.async.lsp.types.SignatureHelpContext The signature help context. This is only available if the client specifies to send this using the client capability `textDocument.signatureHelp.contextSupport === true`  @since 3.15.0
 
 --- Client workspace capabilities specific to inlay hints.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlayHintWorkspaceClientCapabilities
 ---@field refreshSupport? boolean Whether the client implementation supports a refresh request sent from the server to the client.  Note that this event is global and will force the client to refresh all inlay hints currently shown. It should be used with absolute care and is useful for situation where a server for example detects a project wide change that requires such a calculation.
@@ -2598,9 +2581,8 @@ function LSPNotifyClient.__progress(args) end
 --- document changes to the language server.
 ---@alias dapui.async.lsp.types.TextDocumentSyncKind 0|1|2
 
-
 --- Workspace client capabilities specific to diagnostic pull requests.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.DiagnosticWorkspaceClientCapabilities
 ---@field refreshSupport? boolean Whether the client implementation supports a refresh request sent from the server to the client.  Note that this event is global and will force the client to refresh all pulled diagnostics currently shown. It should be used with absolute care and is useful for situation where a server for example detects a project wide change that requires such a calculation.
@@ -2617,7 +2599,7 @@ function LSPNotifyClient.__progress(args) end
 
 --- A change describing how to move a `NotebookCell`
 --- array from state S to S'.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.NotebookCellArrayChange
 ---@field start integer The start oftest of the cell that changed.
@@ -2664,7 +2646,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field contextSupport? boolean The client supports to send additional context information for a `textDocument/signatureHelp` request. A client that opts into contextSupport will also support the `retriggerCharacters` on `SignatureHelpOptions`.  @since 3.15.0
 
 --- A workspace diagnostic report.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.WorkspaceDiagnosticReport
 ---@field items dapui.async.lsp.types.WorkspaceDocumentDiagnosticReport[]
@@ -2674,10 +2656,9 @@ function LSPNotifyClient.__progress(args) end
 ---@field dynamicRegistration? boolean Whether declaration supports dynamic registration. If this is set to `true` the client supports the new `DeclarationRegistrationOptions` return value for the corresponding server capability as well.
 ---@field linkSupport? boolean The client supports additional metadata in the form of declaration links.
 --- How a signature help was triggered.
---- 
+---
 --- @since 3.15.0
 ---@alias dapui.async.lsp.types.SignatureHelpTriggerKind 1|2|3
-
 
 --- A completion item represents a text snippet that is
 --- proposed to complete text that is being typed.
@@ -2736,7 +2717,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field dynamicRegistration? boolean Whether references supports dynamic registration.
 
 --- Parameters of the workspace diagnostic request.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.WorkspaceDiagnosticParams : dapui.async.lsp.types.WorkDoneProgressParams,dapui.async.lsp.types.PartialResultParams
 ---@field identifier? string The additional identifier provided during registration.
@@ -2763,7 +2744,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field labelSupport? boolean The client supports an additional label presented in the UI when registering a document symbol provider.  @since 3.16.0
 
 --- Diagnostic registration options.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.DiagnosticRegistrationOptions : dapui.async.lsp.types.TextDocumentRegistrationOptions,dapui.async.lsp.types.DiagnosticOptions,dapui.async.lsp.types.StaticRegistrationOptions
 
@@ -2778,7 +2759,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field honorsChangeAnnotations? boolean Whether the client honors the change annotations in text edits and resource operations returned via the `CodeAction#edit` property by for example presenting the workspace edit in the user interface and asking for confirmation.  @since 3.16.0
 
 --- Inlay hint information.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlayHint
 ---@field position dapui.async.lsp.types.Position The position of this hint.
@@ -2798,7 +2779,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field valueSet dapui.async.lsp.types.InsertTextMode[]
 
 --- The parameter of a `typeHierarchy/supertypes` request.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.TypeHierarchySupertypesParams : dapui.async.lsp.types.WorkDoneProgressParams,dapui.async.lsp.types.PartialResultParams
 ---@field item dapui.async.lsp.types.TypeHierarchyItem
@@ -2809,7 +2790,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field tooltipSupport? boolean Whether the client supports the `tooltip` property on `DocumentLink`.  @since 3.15.0
 
 --- Provide inline value as text.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.InlineValueText
 ---@field range dapui.async.lsp.types.Range The document range for which the inline value applies.
@@ -2828,13 +2809,13 @@ function LSPNotifyClient.__progress(args) end
 
 --- The parameters sent in notifications/requests for user-initiated creation of
 --- files.
---- 
+---
 --- @since 3.16.0
 ---@class dapui.async.lsp.types.CreateFilesParams
 ---@field files dapui.async.lsp.types.FileCreate[] An array of all files/folders created in this operation.
 
 --- An unchanged diagnostic report with a set of related documents.
---- 
+---
 --- @since 3.17.0
 ---@class dapui.async.lsp.types.RelatedUnchangedDocumentDiagnosticReport : dapui.async.lsp.types.UnchangedDocumentDiagnosticReport
 ---@field relatedDocuments? table<dapui.async.lsp.types.DocumentUri, dapui.async.lsp.types.FullDocumentDiagnosticReport|dapui.async.lsp.types.UnchangedDocumentDiagnosticReport> Diagnostics of related documents. This information is useful in programming languages where code in a file A can generate diagnostics in a file B which A depends on. An example of such a language is C/C++ where marco definitions in a file a.cpp and result in errors in a header file b.hpp.  @since 3.17.0
@@ -2866,10 +2847,9 @@ function LSPNotifyClient.__progress(args) end
 ---@field prepareSupportDefaultBehavior? dapui.async.lsp.types.PrepareSupportDefaultBehavior Client supports the default behavior result.  The value indicates the default behavior used by the client.  @since 3.16.0
 ---@field honorsChangeAnnotations? boolean Whether the client honors the change annotations in text edits and resource operations returned via the rename request's workspace edit by for example presenting the workspace edit in the user interface and asking for confirmation.  @since 3.16.0
 --- The reason why code actions were requested.
---- 
+---
 --- @since 3.17.0
 ---@alias dapui.async.lsp.types.CodeActionTriggerKind 1|2
-
 
 ---@class dapui.async.lsp.types.FoldingRangeClientCapabilities
 ---@field dynamicRegistration? boolean Whether implementation supports dynamic registration for folding range providers. If this is set to `true` the client supports the new `FoldingRangeRegistrationOptions` return value for the corresponding server capability as well.
@@ -2883,7 +2863,7 @@ function LSPNotifyClient.__progress(args) end
 ---@field changes dapui.async.lsp.types.FileEvent[] The actual file events.
 
 --- Additional information about the context in which a signature help request was triggered.
---- 
+---
 --- @since 3.15.0
 ---@class dapui.async.lsp.types.SignatureHelpContext
 ---@field triggerKind dapui.async.lsp.types.SignatureHelpTriggerKind Action that caused signature help to be triggered.
