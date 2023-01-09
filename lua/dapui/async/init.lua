@@ -122,7 +122,7 @@ function dapui.async.first(functions)
     task.cancel()
   end
   if failed then
-    error(("%s\n%s"):format(unpack(result)))
+    error(unpack(result))
   end
   return unpack(result)
 end

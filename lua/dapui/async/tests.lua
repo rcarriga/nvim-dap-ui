@@ -8,13 +8,12 @@ local dapui = { async = {} }
 dapui.async.tests = {}
 
 local with_timeout = function(func, timeout)
-  local success, err, trace
+  local success, err
   return function()
-    local task = tasks.run(func, function(success_, err_, trace_)
+    local task = tasks.run(func, function(success_, err_)
       success = success_
       if not success_ then
         err = err_
-        trace = trace_
       end
     end)
 
@@ -25,7 +24,7 @@ local with_timeout = function(func, timeout)
     if success == nil then
       error(string.format("Task timed out\n%s", task.trace()))
     elseif not success then
-      error(string.format("Task failed with message:\n%s\n%s", err, trace))
+      error(string.format("Task failed with message:\n%s", err))
     end
   end
 end

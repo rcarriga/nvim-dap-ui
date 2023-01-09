@@ -42,22 +42,15 @@ end
 ---@field message string
 ---@field traceback? string
 
-local TaskError = function(message, traceback)
-  return setmetatable({
-    message = message,
-    traceback = traceback,
-  }, {
-    __tostring = function()
-      if type(message) ~= "string" then
-        message = tostring(message)
-      end
-      return string.format(
-        "The coroutine failed with this message: %s\n%s",
-        vim.startswith(traceback, message) and "" or ("\n" .. message),
-        traceback
-      )
-    end,
-  })
+local format_error = function(message, traceback)
+  if not traceback then
+    return string.format("The coroutine failed with this message: %s", message)
+  end
+  return string.format(
+    "The coroutine failed with this message: %s\n%s",
+    vim.startswith(traceback, message) and "" or ("\n" .. message),
+    traceback
+  )
 end
 
 ---@return dapui.async.tasks.Task
@@ -91,7 +84,7 @@ function dapui.async.tasks.run(func, cb)
       return
     end
     if err then
-      cb(false, err.message, err.traceback)
+      cb(false, err)
     else
       cb(true, unpack(result))
     end
@@ -101,35 +94,31 @@ function dapui.async.tasks.run(func, cb)
 
   local function step(...)
     if cancelled then
-      close_task(nil, TaskError("Task was cancelled"))
+      close_task(nil, format_error("Task was cancelled"))
       return
     end
 
-    local ret = { coroutine.resume(co, ...) }
-    local success = ret[1]
+    local yielded = { coroutine.resume(co, ...) }
+    local success = yielded[1]
 
     if not success then
-      close_task(nil, TaskError(ret[2], debug.traceback(co)))
+      close_task(nil, format_error(yielded[2], debug.traceback(co)))
       return
     end
 
     if coroutine.status(co) == "dead" then
-      local result = {}
-      for i, v in pairs(ret) do
-        result[i - 1] = v
-      end
-      close_task(result)
+      close_task({ unpack(yielded, 2, table.maxn(yielded)) })
       return
     end
 
-    local _, nargs, err_or_fn = unpack(ret)
+    local _, nargs, err_or_fn = unpack(yielded)
 
     assert(
       type(err_or_fn) == "function",
-      ("type error :: expected func, got %s"):format(type(err_or_fn))
+      ("Async internal error: expected function, got %s"):format(type(err_or_fn))
     )
 
-    local args = { select(4, unpack(ret)) }
+    local args = { select(4, unpack(yielded)) }
 
     args[nargs] = step
 
@@ -142,7 +131,7 @@ end
 
 ---@nodoc
 function dapui.async.tasks.wrap(func, argc)
-  assert(argc, "Must provide argc")
+  vim.validate({ func = { func, "function" }, argc = { argc, "number" } })
   local protected = function(...)
     local args = { ... }
     local cb = args[argc]

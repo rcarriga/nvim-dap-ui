@@ -93,6 +93,8 @@ describe("lsp client", function()
     local client = async.lsp.client(1)
 
     local success, err = pcall(client.request.textDocument_diagnostic, 0, {}, { timeout = 10 })
+    A({ err = err })
+    A({ res = string.find(err, "Client 1 has shut down") })
     assert.Not.Nil(string.find(err, "Client 1 has shut down"))
   end)
 end)

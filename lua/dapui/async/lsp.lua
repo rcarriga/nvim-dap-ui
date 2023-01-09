@@ -11,7 +11,7 @@ local Error = function(err, args)
   err_tbl.traceback = debug.traceback("", 2)
   return setmetatable(err_tbl, {
     __tostring = function()
-      local message = ("LSP Error: %s"):format(err.message)
+      local message = ("LSP Error: %s"):format(err)
       for name, value in pairs(args or {}) do
         message = message
           .. ("\n%s: %s"):format(name, type(value) ~= "table" and value or vim.inspect(value))
