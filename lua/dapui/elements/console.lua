@@ -26,7 +26,7 @@ local function create_buf()
     })
     api.nvim_buf_attach(console_buf, false, {
       on_lines = function(_, _, _, _, _, _)
-        if autoscroll then
+        if autoscroll and vim.fn.mode() == "n" then
           vim.cmd("normal! G")
         end
       end,
