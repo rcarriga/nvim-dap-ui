@@ -1,8 +1,14 @@
 local M = {}
 
 local control_hl_groups = {
-  "DapUIPlayPause", "DapUIRestart", "DapUIStop", "DapUIUnavailable",
-  "DapUIStepOver", "DapUIStepInto", "DapUIStepBack", "DapUIStepOut",
+  "DapUIPlayPause",
+  "DapUIRestart",
+  "DapUIStop",
+  "DapUIUnavailable",
+  "DapUIStepOver",
+  "DapUIStepInto",
+  "DapUIStepBack",
+  "DapUIStepOut",
 }
 
 function M.setup()
@@ -43,9 +49,13 @@ function M.setup()
   if vim.fn.has("nvim-0.8") == 1 then
     local bg, bgNC
     local exists, hl = pcall(vim.api.nvim_get_hl_by_name, "WinBar", true)
-    if exists then bg = hl.background end
+    if exists then
+      bg = hl.background
+    end
     exists, hl = pcall(vim.api.nvim_get_hl_by_name, "WinBarNC", true)
-    if exists then bgNC = hl.background end
+    if exists then
+      bgNC = hl.background
+    end
 
     for _, hl_group in pairs(control_hl_groups) do
       local gui = vim.api.nvim_get_hl_by_name(hl_group, true)

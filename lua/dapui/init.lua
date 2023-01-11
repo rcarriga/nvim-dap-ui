@@ -217,7 +217,7 @@ function dapui.setup(user_config)
       callback = function()
         local winbar = dapui.controls(true)
         vim.api.nvim_win_set_option(vim.api.nvim_get_current_win(), "winbar", winbar)
-      end
+      end,
     })
     vim.api.nvim_create_autocmd("WinLeave", {
       pattern = buf_name,
@@ -225,7 +225,7 @@ function dapui.setup(user_config)
       callback = function()
         local winbar = dapui.controls(false)
         vim.api.nvim_win_set_option(vim.api.nvim_get_current_win(), "winbar", winbar)
-      end
+      end,
     })
   end
 
