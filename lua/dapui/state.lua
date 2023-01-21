@@ -288,6 +288,15 @@ function UIState:breakpoints()
   return merged_breakpoints
 end
 
+function UIState:remove_breakpoint(bp)
+  require("dap.breakpoints").remove(vim.fn.bufnr(bp.file), bp.line)
+  util.with_session(function(session)
+    self:_emit_refreshed(session)
+  end, function()
+    self:_emit_refreshed()
+  end)
+end
+
 function UIState:toggle_breakpoint(bp)
   require("dap.breakpoints").toggle({
     condition = bp.condition,
