@@ -28,12 +28,16 @@ function BufBreakpoints:render(canvas, buffer, breakpoints, current_line, curren
   local function is_current_line(bp)
     return bp.line == current_line and bp.file == current_file
   end
+
   for _, bp in ipairs(breakpoints) do
     local text = vim.api.nvim_buf_get_lines(buffer, bp.line - 1, bp.line, false)
     if vim.tbl_count(text) ~= 0 then
       canvas:add_mapping(config.actions.OPEN, open_frame_callback(bp))
       canvas:add_mapping(config.actions.TOGGLE, function()
         self.state:toggle_breakpoint(bp)
+      end)
+      canvas:add_mapping(config.actions.REMOVE, function()
+        self.state:remove_breakpoint(bp)
       end)
       canvas:write(string.rep(" ", indent))
       local group
@@ -56,6 +60,7 @@ function BufBreakpoints:render(canvas, buffer, breakpoints, current_line, curren
         canvas:write(message, { group = "DapUIBreakpointsInfo" })
         canvas:write(" " .. data .. "\n")
       end
+
       if bp.logMessage then
         add_info("Log Message:", bp.logMessage)
       end
