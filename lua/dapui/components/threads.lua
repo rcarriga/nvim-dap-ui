@@ -5,17 +5,17 @@ local frame_renderer = require("dapui.components.frames")
 ---@param send_ready function
 return function(client, send_ready)
   ---@type dapui.types.Thread[] | nil
-  local threads = nil
+  local _threads = nil
 
   client.listen.threads(function(args)
-    threads = args.response.threads
+    _threads = args.response.threads
   end)
   client.listen.scopes(function()
     send_ready()
   end)
 
   local on_exit = function()
-    threads = nil
+    _threads = nil
     send_ready()
   end
   client.listen.terminated(on_exit)
@@ -27,6 +27,8 @@ return function(client, send_ready)
   return {
     ---@param canvas dapui.Canvas
     render = function(canvas, indent)
+      -- In case threads are wiped during render
+      local threads = _threads
       if not threads then
         return
       end

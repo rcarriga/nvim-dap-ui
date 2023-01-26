@@ -57,6 +57,7 @@ end
 ---@field get fun(): table<integer, dapui.types.DAPBreakpoint[]>
 ---@field get_buf fun(bufnr: integer): dapui.types.DAPBreakpoint[]
 ---@field toggle fun(bufnr: integer, line: integer, args: dapui.client.BreakpointArgs)
+---@field remove fun(bufnr: integer, line: integer)
 
 ---@return dapui.BreakpointsProxy
 local function create_breakpoints_proxy(breakpoints)
@@ -69,6 +70,9 @@ local function create_breakpoints_proxy(breakpoints)
   end
   proxy.toggle = function(bufnr, line, args)
     breakpoints.toggle(args, bufnr, line)
+  end
+  proxy.remove = function(bufnr, line)
+    breakpoints.remove(bufnr, line)
   end
   return proxy
 end

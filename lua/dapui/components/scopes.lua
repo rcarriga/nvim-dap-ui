@@ -4,13 +4,13 @@ return function(client, send_ready)
   local render_vars = require("dapui.components.variables")(client, send_ready)
 
   ---@type dapui.types.Scope[] | nil
-  local scopes
+  local _scopes
   client.listen.scopes(function(args)
-    scopes = args.response.scopes
+    _scopes = args.response.scopes
     send_ready()
   end)
   local on_exit = function()
-    scopes = nil
+    _scopes = nil
     send_ready()
   end
   client.listen.terminated(on_exit)
@@ -20,6 +20,8 @@ return function(client, send_ready)
   return {
     ---@param canvas dapui.Canvas
     render = function(canvas)
+      -- In case scopes are wiped during render
+      local scopes = _scopes
       if not scopes then
         return
       end
