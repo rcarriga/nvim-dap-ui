@@ -36,106 +36,27 @@ use { "rcarriga/nvim-dap-ui", requires = {"mfussenegger/nvim-dap"} }
 nvim-dap-ui is built on the idea of "elements". These elements are windows
 which provide different features.
 
-The UI is split between a sidebar which sits on the side of the screen, and a
-tray which sits on the bottom of the screen by default. Both of these can
-contain any of the available elements and the position of each can be changed
-to any side of the screen.
+Elements are grouped into layouts which can be placed on any side of the screen.
+There can be any number of layouts, containing whichever elements desired.
 
 Elements can also be displayed temporarily in a floating window.
 
-You can supply an object to the `require("dapui").setup()` function to
-configure the elements.
+See `:h dapui.setup()` for configuration options and defaults
 
-The default icons use [codicons](https://github.com/microsoft/vscode-codicons)
-It's recommended to use this [fork](https://github.com/ChristianChiarulli/neovim-codicons) which fixes alignment issues
-for the terminal. If your terminal doesn't support font fallback and you need to have icons included in font you use
-you can patch it via [Font Patcher](https://github.com/ryanoasis/nerd-fonts#option-8-patch-your-own-font). 
-Simple step by step guide [here](https://github.com/mortepau/codicons.nvim#how-to-patch-fonts).
-
-Default settings:
+It is highly recommended to use [neodev.nvim](https://github.com/folke/neodev.nvim) to enable type checking for nvim-dap-ui to get
+type checking, documentation and autocompletion for all API functions.
 
 ```lua
-require("dapui").setup({
-  icons = { expanded = "", collapsed = "", current_frame = "" },
-  mappings = {
-    -- Use a table to apply multiple mappings
-    expand = { "<CR>", "<2-LeftMouse>" },
-    open = "o",
-    remove = "d",
-    edit = "e",
-    repl = "r",
-    toggle = "t",
-  },
-  -- Use this to override mappings for specific elements
-  element_mappings = {
-    -- Example:
-    -- stacks = {
-    --   open = "<CR>",
-    --   expand = "o",
-    -- }
-  },
-  -- Expand lines larger than the window
-  -- Requires >= 0.7
-  expand_lines = vim.fn.has("nvim-0.7") == 1,
-  -- Layouts define sections of the screen to place windows.
-  -- The position can be "left", "right", "top" or "bottom".
-  -- The size specifies the height/width depending on position. It can be an Int
-  -- or a Float. Integer specifies height/width directly (i.e. 20 lines/columns) while
-  -- Float value specifies percentage (i.e. 0.3 - 30% of available lines/columns)
-  -- Elements are the elements shown in the layout (in order).
-  -- Layouts are opened in order so that earlier layouts take priority in window sizing.
-  layouts = {
-    {
-      elements = {
-      -- Elements can be strings or table with id and size keys.
-        { id = "scopes", size = 0.25 },
-        "breakpoints",
-        "stacks",
-        "watches",
-      },
-      size = 40, -- 40 columns
-      position = "left",
-    },
-    {
-      elements = {
-        "repl",
-        "console",
-      },
-      size = 0.25, -- 25% of total lines
-      position = "bottom",
-    },
-  },
-  controls = {
-    -- Requires Neovim nightly (or 0.8 when released)
-    enabled = true,
-    -- Display controls in this element
-    element = "repl",
-    icons = {
-      pause = "",
-      play = "",
-      step_into = "",
-      step_over = "",
-      step_out = "",
-      step_back = "",
-      run_last = "",
-      terminate = "",
-    },
-  },
-  floating = {
-    max_height = nil, -- These can be integers or a float between 0 and 1.
-    max_width = nil, -- Floats will be treated as percentage of your screen.
-    border = "single", -- Border style. Can be "single", "double" or "rounded"
-    mappings = {
-      close = { "q", "<Esc>" },
-    },
-  },
-  windows = { indent = 1 },
-  render = {
-    max_type_length = nil, -- Can be integer or nil.
-    max_value_lines = 100, -- Can be integer or nil.
-  }
+require("neodev").setup({
+  library = { plugins = { "nvim-dap-ui" }, types = true },
+  ...
 })
 ```
+
+The default icons use [codicons](https://github.com/microsoft/vscode-codicons).
+It's recommended to use this [fork](https://github.com/ChristianChiarulli/neovim-codicons) which fixes alignment issues
+for the terminal. If your terminal doesn't support font fallback and you need to have icons included in your font, you can patch it via [Font Patcher](https://github.com/ryanoasis/nerd-fonts#option-8-patch-your-own-font). 
+There is a simple step by step guide [here](https://github.com/mortepau/codicons.nvim#how-to-patch-fonts).
 
 ### Variable Scopes
 

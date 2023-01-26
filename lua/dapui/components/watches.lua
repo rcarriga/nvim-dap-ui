@@ -1,161 +1,152 @@
 local config = require("dapui.config")
-local Variables = require("dapui.components.variables")
 local util = require("dapui.util")
-local loop = require("dapui.render.loop")
 
 local partial = util.partial
 
----@class Watches
----@field expressions table
----@field expanded table
----@field var_components table
----@field state UIState
----@field mode "new"|"edit"
----@field edit_index integer
----@field rendered_step integer | nil
----@field rendered_exprs table[]
-local Watches = {}
+---@class dapui.watches.Watch
+---@field expression string
+---@field expanded boolean
 
-function Watches:new(state)
-  local watches = {
-    expressions = {},
-    var_components = {},
-    expanded = {},
-    state = state,
-    mode = "new",
-    edit_index = nil,
-    rendered_exprs = {},
-  }
-  setmetatable(watches, self)
-  self.__index = self
-  return watches
-end
-
-function Watches:add_watch(value)
-  if value == "" then
-    loop.run()
-    return
+---@param client dapui.DAPClient
+return function(client, send_ready)
+  local running = false
+  client.listen.scopes(function()
+    running = true
+    send_ready()
+  end)
+  local on_exit = function()
+    running = false
+    send_ready()
   end
-  self.expressions[#self.expressions + 1] = value
-  self.var_components[#self.var_components + 1] = Variables(self.state)
-  self.state:add_watch(value)
-end
 
-function Watches:edit_expr(new_value)
-  self.mode = "new"
-  local index = self.edit_index
-  self.edit_index = nil
-  local old = self.expressions[index]
-  if new_value == "" then
-    loop.run()
-    return
-  end
-  self.expressions[index] = new_value
-  self.state:remove_watch(old)
-  self.state:add_watch(new_value)
-end
+  client.listen.terminated(on_exit)
+  client.listen.exited(on_exit)
+  client.listen.disconnect(on_exit)
 
-function Watches:remove_expr(expr_i)
-  local expression = util.pop(self.expressions, expr_i)
-  self.var_components[expr_i] = nil
-  self.state:remove_watch(expression)
-  loop.run()
-end
+  ---@type dapui.watches.Watch[]
+  local watches = {}
+  local edit_index = nil
+  local rendered_exprs = {}
+  local rendered_step = client.lib.step_number()
+  local render_vars = require("dapui.components.variables")(client, send_ready)
 
-function Watches:toggle_expression(expr_i)
-  local expanded = self.expanded[expr_i]
-  if expanded then
-    self.expanded[expr_i] = nil
-  else
-    self.expanded[expr_i] = true
-  end
-  loop.run()
-end
-
----@param canvas dapui.Canvas
-function Watches:render(canvas)
-  if self.mode == "new" then
-    canvas:set_prompt("> ", partial(self.add_watch, self))
-  else
-    local old_val = self.expressions[self.edit_index]
-    canvas:set_prompt("> ", partial(self.edit_expr, self), { fill = old_val })
-  end
-  if vim.tbl_count(self.expressions) == 0 then
-    canvas:write("No Expressions\n", { group = "DapUIWatchesEmpty" })
-    return
-  end
-  local watches = self.state:watches()
-  for i, expr in pairs(self.expressions) do
-    local watch = watches[expr]
-    if not vim.tbl_isempty(watch or {}) then
-      local var_ref = watch.evaluated and watch.evaluated.variablesReference
-      local prefix = config.icons()[self.expanded[i] and "expanded" or "collapsed"]
-
-      canvas:write(prefix, { group = watch.error and "DapUIWatchesError" or "DapUIWatchesValue" })
-      canvas:write(" " .. expr)
-
-      local value = ""
-      if watch.error then
-        self.expanded[i] = false
-        canvas:write(": ")
-        value = watch.error
-      elseif watch.evaluated then
-        local evaluated = watch.evaluated
-        local eval_type = util.render_type(evaluated.type)
-        if #eval_type > 0 then
-          canvas:write(" ")
-          canvas:write(eval_type, { group = "DapUIType" })
-        end
-        canvas:write(" = ")
-        value = evaluated.result
-      end
-      local val_start = canvas:line_width()
-      local var_group
-
-      if
-        not self.rendered_exprs[i]
-        or not watch.evaluated
-        or self.rendered_exprs[i].result == watch.evaluated.result
-      then
-        var_group = "DapUIValue"
-      else
-        var_group = "DapUIModifiedValue"
-      end
-
-      for _, line in ipairs(util.format_value(val_start, value)) do
-        canvas:write(line, { group = var_group })
-        canvas:add_mapping(config.actions.REMOVE, partial(self.remove_expr, self, i))
-        canvas:add_mapping(config.actions.EDIT, function()
-          self.edit_index = i
-          self.mode = "edit"
-          loop.run()
-        end)
-        if not watch.error then
-          canvas:add_mapping(config.actions.EXPAND, partial(self.toggle_expression, self, i))
-          canvas:add_mapping(config.actions.REPL, partial(util.send_to_repl, expr))
-        end
-        canvas:write("\n")
-      end
-
-      if self.var_components[i] and self.expanded[i] then
-        local child_vars = self.state:variables(var_ref) or {}
-        if not self.state:is_monitored(var_ref) then
-          self.state:monitor(var_ref)
-        end
-        self.var_components[i]:render(canvas, var_ref, child_vars, config.windows().indent)
-      end
-      if self.rendered_step ~= self.state:step_number() then
-        self.rendered_exprs[i] = watch.evaluated
-      end
+  local function add_watch(value)
+    if #value > 0 then
+      watches[#watches + 1] = {
+        expression = value,
+        expanded = false,
+      }
+      send_ready()
     end
   end
-  if self.rendered_step ~= self.state:step_number() then
-    self.rendered_step = self.state:step_number()
-  end
-end
 
----@param state UIState
----@return Watches
-return function(state)
-  return Watches:new(state)
+  local function edit_expr(new_value, index)
+    index = index or edit_index
+    edit_index = nil
+    if #new_value > 0 then
+      watches[index].expression = new_value
+    end
+    send_ready()
+  end
+
+  local function remove_expr(expr_i)
+    table.remove(watches, expr_i)
+    send_ready()
+  end
+
+  local function toggle_expression(expr_i)
+    watches[expr_i].expanded = not watches[expr_i].expanded
+    send_ready()
+  end
+
+  return {
+    add = add_watch,
+    edit = edit_expr,
+    remove = remove_expr,
+    get = function()
+      return vim.deepcopy(watches)
+    end,
+    expand = toggle_expression,
+    ---@param canvas dapui.Canvas
+    render = function(canvas)
+      if not edit_index then
+        canvas:set_prompt("> ", add_watch)
+      else
+        canvas:set_prompt("> ", edit_expr, { fill = watches[edit_index].expression })
+      end
+
+      if vim.tbl_count(watches) == 0 then
+        canvas:write("No Expressions\n", { group = "DapUIWatchesEmpty" })
+        return
+      end
+      local frame_id = client.session
+        and client.session.current_frame
+        and client.session.current_frame.id
+      local step = client.lib.step_number()
+      for i, watch in pairs(watches) do
+        local success, evaluated
+        if running then
+          success, evaluated = pcall(
+            client.request.evaluate,
+            { context = "watch", expression = watch.expression, frameId = frame_id }
+          )
+        else
+          success, evaluated = false, { message = "No active session" }
+        end
+        local prefix = config.icons[watch.expanded and "expanded" or "collapsed"]
+
+        canvas:write({
+          { prefix, group = success and "DapUIWatchesValue" or "DapUIWatchesError" },
+          " " .. watch.expression,
+        })
+
+        local value = ""
+        if not success then
+          watch.expanded = false
+          canvas:write(": ")
+          value = util.format_error(evaluated)
+        else
+          local eval_type = util.render_type(evaluated.type)
+          if #eval_type > 0 then
+            canvas:write({ " ", { eval_type, group = "DapUIType" } })
+          end
+          canvas:write(" = ")
+          value = evaluated.result
+        end
+        local val_start = canvas:line_width()
+        local var_group
+
+        if not success or rendered_exprs[i] == evaluated.result then
+          var_group = "DapUIValue"
+        else
+          var_group = "DapUIModifiedValue"
+        end
+
+        for _, line in ipairs(util.format_value(val_start, value)) do
+          canvas:write(line, { group = var_group })
+          canvas:add_mapping("remove", partial(remove_expr, i))
+          canvas:add_mapping("edit", function()
+            edit_index = i
+            send_ready()
+          end)
+          if success then
+            canvas:add_mapping("expand", partial(toggle_expression, i))
+            canvas:add_mapping("repl", partial(util.send_to_repl, watch.expression))
+          end
+          canvas:write("\n")
+        end
+
+        local var_ref = success and evaluated.variablesReference or 0
+        if watch.expanded and var_ref > 0 then
+          render_vars.render(canvas, watch.expression, var_ref, config.render.indent)
+        end
+        if rendered_step ~= step then
+          rendered_exprs[i] = evaluated.result
+        end
+      end
+      if rendered_step ~= step then
+        rendered_step = step
+      end
+    end,
+  }
 end

@@ -1,52 +1,39 @@
 local config = require("dapui.config")
-local Variables = require("dapui.components.variables")
+---@param client dapui.DAPClient
+return function(client, send_ready)
+  local render_vars = require("dapui.components.variables")(client, send_ready)
 
----@class Scopes
----@field frame_id string
----@field var_components table<number, Variables>
----@field state UIState
-local Scopes = {}
-
-function Scopes:new(state)
-  local scopes = { frame_id = nil, var_components = {}, state = state }
-  setmetatable(scopes, self)
-  self.__index = self
-  return scopes
-end
-
----@param canvas dapui.Canvas
-function Scopes:render(canvas)
-  local frame = self.state:current_frame()
-  if not frame then
-    return
+  ---@type dapui.types.Scope[] | nil
+  local _scopes
+  client.listen.scopes(function(args)
+    _scopes = args.response.scopes
+    send_ready()
+  end)
+  local on_exit = function()
+    _scopes = nil
+    send_ready()
   end
-  if frame.id ~= self.frame_id then
-    self.frame_id = frame.id
-    self.var_components = {}
-  end
-  for i, scope in pairs(self.state:scopes()) do
-    canvas:write(scope.name, { group = "DapUIScope" })
-    canvas:write(":\n")
-    local variables = self.state:variables(scope.variablesReference) or {}
-    self
-      :_get_var_component(i)
-      :render(canvas, scope.variablesReference, variables, config.windows().indent)
-    if i < #self.state:scopes() then
-      canvas:write("\n")
-    end
-  end
-  canvas:remove_line()
-end
+  client.listen.terminated(on_exit)
+  client.listen.exited(on_exit)
+  client.listen.disconnect(on_exit)
 
-function Scopes:_get_var_component(index)
-  if not self.var_components[index] then
-    self.var_components[index] = Variables(self.state)
-  end
-  return self.var_components[index]
-end
+  return {
+    ---@param canvas dapui.Canvas
+    render = function(canvas)
+      -- In case scopes are wiped during render
+      local scopes = _scopes
+      if not scopes then
+        return
+      end
+      for i, scope in pairs(scopes) do
+        canvas:write({ { scope.name, group = "DapUIScope" }, ":\n" })
+        render_vars.render(canvas, scope.name, scope.variablesReference, config.render.indent)
+        if i < #scopes then
+          canvas:write("\n")
+        end
+      end
 
----@param state UIState
----@return Scopes
-return function(state)
-  return Scopes:new(state)
+      canvas:remove_line()
+    end,
+  }
 end

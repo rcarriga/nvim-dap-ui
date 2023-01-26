@@ -1,30 +1,5 @@
 local util = require("dapui.util")
 
-describe("checking with_session", function()
-  it("doesn't run without session", function()
-    local data = { x = 0 }
-    util.with_session(function()
-      data.x = 1
-    end)
-    assert.equals(data.x, 0)
-  end)
-
-  it("runs with session", function()
-    package.loaded["dap"] = {
-      session = function()
-        return true
-      end,
-    }
-    local data = { x = 0 }
-    util.with_session(function(session)
-      assert.equals(session, true)
-      data.x = 1
-    end)
-    assert.equals(data.x, 1)
-    package.loaded["dap"] = nil
-  end)
-end)
-
 describe("checking is_uri", function()
   it("returns true on uri", function()
     assert(util.is_uri("file://myfile"))
@@ -46,24 +21,6 @@ describe("checking pretty name", function()
     local uri = "file:///home/file.py"
     local result = util.pretty_name(uri)
     assert.equals(result, "file.py")
-  end)
-end)
-
-describe("checking pop", function()
-  it("returns existing value", function()
-    local data = { x = 1 }
-    local result = util.pop(data, "x", 2)
-    assert.equals(result, 1)
-  end)
-  it("returns default", function()
-    local data = {}
-    local result = util.pop(data, "x", 2)
-    assert.equals(result, 2)
-  end)
-  it("removes existing key", function()
-    local data = { x = 1 }
-    util.pop(data, "x", 2)
-    assert.equals(data.x, nil)
   end)
 end)
 

@@ -1,56 +1,61 @@
 local config = require("dapui.config")
 local util = require("dapui.util")
 
----@class StackFrames
----@field mark_frame_map table
-local StackFrames = {}
+---@param client dapui.DAPClient
+return function(client, send_ready)
+  client.listen.scopes(send_ready)
+  client.listen.terminated(send_ready)
+  client.listen.exited(send_ready)
+  client.listen.disconnect(send_ready)
 
-function StackFrames:new()
-  local elem = { mark_frame_map = {} }
-  setmetatable(elem, self)
-  self.__index = self
-  return elem
-end
+  return {
+    ---@async
+    ---@param canvas dapui.Canvas
+    render = function(canvas, thread_id, show_subtle, indent)
+      local success, response = pcall(client.request.stackTrace, { threadId = thread_id })
 
-local function open_frame(frame)
-  util.with_session(function(session)
-    util.jump_to_frame(frame, session, true)
-  end)
-end
+      if not success then
+        return
+      end
+      local frames = response.stackFrames
 
----@param canvas dapui.Canvas
-function StackFrames:render(canvas, frames, indent, current_frame_id)
-  indent = indent or 0
-  for i, frame in ipairs(frames) do
-    local is_current = frame.id == current_frame_id
-    canvas:write(string.rep(" ", is_current and (indent - 1) or indent))
-    if is_current then
-      canvas:write(config.icons().current_frame .. " ")
-    end
-    canvas:write(
-      frame.name,
-      { group = frame.id == current_frame_id and "DapUICurrentFrameName" or "DapUIFrameName" }
-    )
-    canvas:write(" ")
+      if not show_subtle then
+        frames = vim.tbl_filter(function(frame)
+          return frame.presentationHint ~= "subtle"
+        end, frames)
+      end
 
-    if frame.source ~= nil then
-      local file_name = frame.source.name or frame.source.path or "<unknown>"
-      local source_name = util.pretty_name(file_name)
-      canvas:write(source_name, { group = "DapUISource" })
-    end
+      local current_frame_id = client.session.current_frame and client.session.current_frame.id
 
-    if frame.line ~= nil then
-      canvas:write(":")
-      canvas:write(frame.line, { group = "DapUILineNumber" })
-    end
-    canvas:add_mapping(config.actions.OPEN, util.partial(open_frame, frame))
-    if i < #frames then
-      canvas:write("\n")
-    end
-  end
-end
+      for _, frame in ipairs(frames) do
+        local is_current = frame.id == current_frame_id
+        canvas:write(string.rep(" ", is_current and (indent - 1) or indent))
 
----@return StackFrames
-return function()
-  return StackFrames:new()
+        if is_current then
+          canvas:write(config.icons.current_frame .. " ")
+        end
+
+        canvas:write(
+          frame.name,
+          { group = frame.id == current_frame_id and "DapUICurrentFrameName" or "DapUIFrameName" }
+        )
+        canvas:write(" ")
+
+        if frame.source ~= nil then
+          local file_name = frame.source.name or frame.source.path or "<unknown>"
+          local source_name = util.pretty_name(file_name)
+          canvas:write(source_name, { group = "DapUISource" })
+        end
+
+        if frame.line ~= nil then
+          canvas:write(":")
+          canvas:write(frame.line, { group = "DapUILineNumber" })
+        end
+        canvas:add_mapping("open", util.partial(client.lib.jump_to_frame, frame, true))
+        canvas:write("\n")
+      end
+
+      canvas:remove_line()
+    end,
+  }
 end

@@ -1,38 +1,85 @@
-local M = {}
+local dapui = {}
 
-M.elements = {
-  BREAKPOINTS = "breakpoints",
-  REPL = "repl",
-  SCOPES = "scopes",
-  STACKS = "stacks",
-  WATCHES = "watches",
-  HOVER = "hover",
-  CONSOLE = "console",
-}
+---@tag dapui.config
+---@toc_entry Configuration Options
 
-M.actions = {
-  EXPAND = "expand",
-  OPEN = "open",
-  REMOVE = "remove",
-  EDIT = "edit",
-  REPL = "repl",
-  TOGGLE = "toggle",
-}
+---@class dapui.Config
+---@field icons dapui.Config.icons
+---@field mappings table<dapui.Action, string|string[]> Keys to trigger actions in elements
+---@field element_mappings table<string, table<dapui.Action, string|string[]>> Per-element overrides of global mappings
+---@field expand_lines boolean Expand current line to hover window if larger
+--- than window size
+---@field layouts dapui.Config.layout[] Layouts to display elements within.
+--- Layouts are opened in the order defined
+---@field floating dapui.Config.floating Floating window specific options
+---@field controls dapui.Config.controls Controls configuration
+---@field render dapui.Config.render Rendering options which can be updated
+--- after initial setup
 
-M.FLOAT_MAPPINGS = {
-  CLOSE = "close",
-}
+---@class dapui.Config.icons
+---@field expanded string
+---@field collapsed string
+---@field current_frame string
 
+---@class dapui.Config.layout
+---@field elements string[]|dapui.Config.layout.element[] Elements to display
+--- in this layout
+---@field size number Size of the layout in lines/columns
+---@field position "left"|"right"|"top"|"bottom" Which side of editor to open
+--- layout on
+---
+---@class dapui.Config.layout.element
+---@field id string Element ID
+---@field size number Size of the element in lines/columns or as proportion of
+--- total editor size (0-1)
+
+---@class dapui.Config.floating
+---@field max_height? number Maximum height of floating window (integer or float
+--- between 0 and 1)
+---@field max_width? number Maximum width of floating window (integer or float
+--- between 0 and 1)
+---@field border string|string[] Border argument supplied to `nvim_open_win`
+---@field mappings table<dapui.FloatingAction, string|string[]> Keys to trigger
+--- actions in elements
+
+---@class dapui.Config.controls
+---@field enabled boolean Show controls on an element (requires winbar feature)
+---@field element string Element to show controls on
+---@field icons dapui.Config.controls.icons
+
+---@class dapui.Config.controls.icons
+---@field pause string
+---@field play string
+---@field step_into string
+---@field step_over string
+---@field step_out string
+---@field step_back string
+---@field run_last string
+---@field terminate string
+
+---@class dapui.Config.render
+---@field indent integer Default indentation size
+---@field max_type_length? integer Maximum number of characters to allow a type
+--- name to fill before trimming
+---@field max_value_lines? integer Maximum number of lines to allow a value to
+--- fill before trimming
+
+---@alias dapui.Action "expand"|"open"|"remove"|"edit"|"repl"|"toggle"
+
+---@alias dapui.FloatingAction "close"
+
+---@type dapui.Config
+---@nodoc
 local default_config = {
   icons = { expanded = "", collapsed = "", current_frame = "" },
   mappings = {
     -- Use a table to apply multiple mappings
-    [M.actions.EXPAND] = { "<CR>", "<2-LeftMouse>" },
-    [M.actions.OPEN] = "o",
-    [M.actions.REMOVE] = "d",
-    [M.actions.EDIT] = "e",
-    [M.actions.REPL] = "r",
-    [M.actions.TOGGLE] = "t",
+    expand = { "<CR>", "<2-LeftMouse>" },
+    open = "o",
+    remove = "d",
+    edit = "e",
+    repl = "r",
+    toggle = "t",
   },
   element_mappings = {},
   expand_lines = vim.fn.has("nvim-0.7") == 1,
@@ -42,36 +89,36 @@ local default_config = {
       elements = {
         -- Provide IDs as strings or tables with "id" and "size" keys
         {
-          id = M.elements.SCOPES,
+          id = "scopes",
           size = 0.25, -- Can be float or integer > 1
         },
-        { id = M.elements.BREAKPOINTS, size = 0.25 },
-        { id = M.elements.STACKS, size = 0.25 },
-        { id = M.elements.WATCHES, size = 0.25 },
+        { id = "breakpoints", size = 0.25 },
+        { id = "stacks", size = 0.25 },
+        { id = "watches", size = 0.25 },
       },
       size = 40,
       position = "left", -- Can be "left" or "right"
     },
     {
       elements = {
-        M.elements.REPL,
-        M.elements.CONSOLE,
+        "repl",
+        "console",
       },
       size = 10,
       position = "bottom", -- Can be "bottom" or "top"
     },
   },
   floating = {
-    max_height = nil, -- These can be integers or a float between 0 and 1.
-    max_width = nil, -- Floats will be treated as percentage of your screen.
-    border = "single", -- Border style. Can be "single", "double" or "rounded"
+    max_height = nil,
+    max_width = nil,
+    border = "single",
     mappings = {
-      [M.FLOAT_MAPPINGS.CLOSE] = { "q", "<Esc>" },
+      ["close"] = { "q", "<Esc>" },
     },
   },
   controls = {
     enabled = vim.fn.exists("+winbar") == 1,
-    element = M.elements.REPL,
+    element = "repl",
     icons = {
       pause = "",
       play = "",
@@ -83,14 +130,14 @@ local default_config = {
       terminate = "",
     },
   },
-  windows = { indent = 1 },
   render = {
     max_type_length = nil, -- Can be integer or nil.
     max_value_lines = 100, -- Can be integer or nil.
+    indent = 1,
   },
 }
 
-local user_config = {}
+local user_config = default_config
 
 local function fill_elements(area)
   area = vim.deepcopy(area)
@@ -111,17 +158,6 @@ local function fill_elements(area)
   return area
 end
 
-local dep_warnings = {}
-
-local function dep_warning(message)
-  vim.schedule(function()
-    if not dep_warnings[message] then
-      dep_warnings[message] = true
-      require("dapui.util").notify(message, vim.log.levels.WARN)
-    end
-  end)
-end
-
 local function fill_mappings(mappings)
   local filled = {}
   for action, keys in pairs(mappings) do
@@ -130,38 +166,13 @@ local function fill_mappings(mappings)
   return filled
 end
 
-function M.setup(config)
+---@class dapui.config : dapui.Config
+---@nodoc
+dapui.config = {}
+
+function dapui.config.setup(config)
   config = config or {}
   local filled = vim.tbl_deep_extend("keep", config, default_config)
-
-  if config.sidebar or config.tray then
-    dep_warning([[The 'sidebar' and 'tray' options are deprecated. Please use 'layouts' instead.
-To replicate previous default behaviour, provide the following
-```lua
-require('dapui').setup(
-  layouts = {
-    {
-      elements = {
-        'scopes',
-        'breakpoints',
-        'stacks',
-        'watches',
-      },
-      size = 40,
-      position = 'left',
-    },
-    {
-      elements = {
-        'repl',
-        'console',
-      },
-      size = 10,
-      position = 'bottom',
-    },
-  },
-)
-```]])
-  end
 
   if config.layouts then
     filled.layouts = config.layouts
@@ -183,55 +194,31 @@ require('dapui').setup(
   require("dapui.config.highlights").setup()
 end
 
-function M.mappings()
-  return user_config.mappings
+function dapui.config._format_default()
+  local lines = { "Default values:", ">lua" }
+  for line in vim.gsplit(vim.inspect(default_config), "\n", true) do
+    table.insert(lines, "  " .. line)
+  end
+  table.insert(lines, "<")
+  return lines
 end
 
-function M.icons()
-  return user_config.icons
-end
-
-function M.sidebar()
-  return user_config.sidebar
-end
-
-function M.tray()
-  return user_config.tray
-end
-
-function M.layouts()
-  return user_config.layouts
-end
-
-function M.floating()
-  return user_config.floating
-end
-
-function M.windows()
-  return user_config.windows
-end
-
-function M.render()
-  return user_config.render
-end
-
-function M.update_render(update)
+---@param update dapui.Config.render
+---@nodoc
+function dapui.config.update_render(update)
   user_config.render = vim.tbl_deep_extend("keep", update, user_config.render)
 end
 
-function M.expand_lines()
-  return user_config.expand_lines
+function dapui.config.element_mapping(element)
+  return user_config.element_mappings[element] or user_config.mappings
 end
 
-function M.element_mapping(element, action)
-  return (user_config.element_mappings[element] and user_config.element_mappings[element][action])
-    or user_config.mappings[action]
-end
-
-setmetatable(M, {
+setmetatable(dapui.config, {
   __index = function(_, key)
     return user_config[key]
   end,
 })
 
-return M
+dapui.config.setup()
+
+return dapui.config

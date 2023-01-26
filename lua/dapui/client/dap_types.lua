@@ -1,0 +1,11 @@
+---nvim-dap internal representation of a breakpoint
+---@class dapui.types.DAPBreakpoint
+---@field line integer
+---@field condition? string
+---@field logMessage? string
+---@field hitCondition? string
+---@field state dapui.types.DAPBreakpointState
+
+---@class dapui.types.DAPBreakpointState
+---@field verified boolean If true, the breakpoint could be set (but not necessarily at the desired location).
+---@field message? string A message about the state of the breakpoint. This is shown to the user and can be used to explain why a breakpoint could not be verified.

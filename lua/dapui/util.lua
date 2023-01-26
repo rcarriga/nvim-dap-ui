@@ -1,8 +1,42 @@
 local config = require("dapui.config")
+local async = require("dapui.async")
 
 local M = {}
 
 local api = vim.api
+
+---@return function
+function M.create_render_loop(render)
+  local render_event = async.control.event()
+
+  async.run(function()
+    while true do
+      render_event.wait()
+      render_event.clear()
+      xpcall(render, function(msg)
+        local traceback = debug.traceback(msg, 1)
+        M.notify(("Rendering failed: %s"):format(traceback), vim.log.levels.WARN)
+      end)
+      async.sleep(10)
+    end
+  end)
+
+  return function()
+    render_event.set()
+  end
+end
+
+function M.create_buffer(name, options)
+  local buf = async.api.nvim_create_buf(true, true)
+  options = vim.tbl_extend("keep", options or {}, {
+    modifiable = false,
+  })
+  async.api.nvim_buf_set_name(buf, name)
+  for opt, value in pairs(options) do
+    async.api.nvim_buf_set_option(buf, opt, value)
+  end
+  return buf
+end
 
 function M.round(num)
   if num < math.floor(num) + 0.5 then
@@ -13,7 +47,7 @@ function M.round(num)
 end
 
 function M.notify(msg, level, opts)
-  return vim.notify(
+  return vim.schedule_wrap(vim.notify)(
     msg,
     level or vim.log.levels.INFO,
     vim.tbl_extend("keep", opts or {}, {
@@ -32,16 +66,6 @@ function M.is_uri(path)
     return true
   else
     return false
-  end
-end
-
----@param cb fun(session: table)
-function M.with_session(cb, fail_cb)
-  local session = require("dap").session()
-  if session then
-    cb(session)
-  elseif fail_cb then
-    fail_cb()
   end
 end
 
@@ -71,52 +95,6 @@ function M.open_buf(bufnr, line, column)
   end
 end
 
-function M.jump_to_frame(frame, session, set_frame)
-  if set_frame then
-    session:_frame_set(frame)
-    return
-  end
-  local line = frame.line
-  local column = frame.column
-  local source = frame.source
-  if not source then
-    return
-  end
-
-  if (source.sourceReference or 0) > 0 then
-    local buf = vim.api.nvim_create_buf(false, true)
-    session:request("source", { sourceReference = source.sourceReference }, function(response, err)
-      if err then
-        return
-      end
-      if not response.body.content then
-        M.notify("No source available for frame", vim.log.levels.WARN)
-        return
-      end
-      vim.api.nvim_buf_set_lines(buf, 0, 0, true, vim.split(response.body.content, "\n"))
-      M.open_buf(buf, line, column)
-      vim.api.nvim_buf_set_option(buf, "bufhidden", "delete")
-      vim.api.nvim_buf_set_option(buf, "modifiable", false)
-    end)
-    return
-  end
-
-  if not source.path then
-    M.notify("No source available for frame", vim.log.levels.WARN)
-  end
-
-  local path = source.path
-
-  if not column or column == 0 then
-    column = 1
-  end
-
-  local bufnr =
-    vim.uri_to_bufnr(M.is_uri(path) and path or vim.uri_from_fname(vim.fn.fnamemodify(path, ":p")))
-  vim.fn.bufload(bufnr)
-  M.open_buf(bufnr, line, column)
-end
-
 function M.get_selection(start, finish)
   local start_line, start_col = start[2], start[3]
   local finish_line, finish_col = finish[2], finish[3]
@@ -136,7 +114,11 @@ end
 
 function M.apply_mapping(mappings, func, buffer)
   for _, key in pairs(mappings) do
-    vim.api.nvim_buf_set_keymap(buffer, "n", key, func, { noremap = true })
+    if type(func) ~= "string" then
+      vim.api.nvim_buf_set_keymap(buffer, "n", key, "", { noremap = true, callback = func })
+    else
+      vim.api.nvim_buf_set_keymap(buffer, "n", key, func, { noremap = true })
+    end
   end
 end
 
@@ -145,15 +127,6 @@ function M.pretty_name(path)
     path = vim.uri_to_fname(path)
   end
   return vim.fn.fnamemodify(path, ":t")
-end
-
-function M.pop(tbl, key, default)
-  local val = default
-  if tbl[key] then
-    val = tbl[key]
-    tbl[key] = nil
-  end
-  return val
 end
 
 function M.format_error(error)
@@ -200,7 +173,7 @@ function M.render_type(maybe_type)
   if not maybe_type then
     return ""
   end
-  local max_length = config.render().max_type_length
+  local max_length = config.render.max_type_length
   if not max_length or max_length == -1 then
     return maybe_type
   end
@@ -220,7 +193,7 @@ end
 ---@return string[]
 function M.format_value(value_start, value)
   local formatted = {}
-  local max_lines = config.render().max_value_lines
+  local max_lines = config.render.max_value_lines
   local i = 0
   --- Use gsplit instead of split because adapters can returns very long values
   --- and we want to avoid creating thousands of substrings that we won't use.
