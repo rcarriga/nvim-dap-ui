@@ -30,6 +30,7 @@ function M.create_buffer(name, options)
   local buf = async.api.nvim_create_buf(true, true)
   options = vim.tbl_extend("keep", options or {}, {
     modifiable = false,
+    buflisted = false,
   })
   async.api.nvim_buf_set_name(buf, name)
   for opt, value in pairs(options) do
