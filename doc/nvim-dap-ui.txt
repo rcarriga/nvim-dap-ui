@@ -75,6 +75,7 @@ Default values:
         close = { "q", "<Esc>" }
       }
     },
+    force_buffers = true,
     icons = {
       collapsed = "",
       current_frame = "",
@@ -256,6 +257,8 @@ Fields~
 {element_mappings} `(table<string, table<dapui.Action, string|string[]>>)` Per-element overrides of global mappings
 {expand_lines} `(boolean)` Expand current line to hover window if larger
 than window size
+{force_buffers} `(boolean)` Prevents other buffers being loaded into
+nvim-dap-ui windows
 {layouts} `(dapui.Config.layout[])` Layouts to display elements within.
 Layouts are opened in the order defined
 {floating} `(dapui.Config.floating)` Floating window specific options

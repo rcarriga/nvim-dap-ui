@@ -9,6 +9,8 @@ local dapui = {}
 ---@field element_mappings table<string, table<dapui.Action, string|string[]>> Per-element overrides of global mappings
 ---@field expand_lines boolean Expand current line to hover window if larger
 --- than window size
+---@field force_buffers boolean Prevents other buffers being loaded into
+--- nvim-dap-ui windows
 ---@field layouts dapui.Config.layout[] Layouts to display elements within.
 --- Layouts are opened in the order defined
 ---@field floating dapui.Config.floating Floating window specific options
@@ -83,6 +85,7 @@ local default_config = {
   },
   element_mappings = {},
   expand_lines = vim.fn.has("nvim-0.7") == 1,
+  force_buffers = true,
   layouts = {
     {
       -- You can change the order of elements in the sidebar

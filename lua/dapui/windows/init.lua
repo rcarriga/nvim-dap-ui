@@ -75,12 +75,14 @@ function M.setup(element_buffers)
     end
     M.layouts[i] = M.area_layout(layout.size, layout.position, layout.elements, buffers)
   end
-  vim.cmd([[
+  if config.force_buffers then
+    vim.cmd([[
     augroup DapuiWindowsSetup
       au!
       au BufWinEnter,BufWinLeave * lua require('dapui.windows')._force_buffers()
     augroup END
   ]])
+  end
 end
 
 function M._force_buffers()
