@@ -26,6 +26,16 @@ function M.create_render_loop(render)
   end
 end
 
+function M.get_current_expr()
+  if async.fn.mode() == "v" then
+    local start = async.fn.getpos("v")
+    local finish = async.fn.getpos(".")
+    local lines = M.get_selection(start, finish)
+    return table.concat(lines, "\n")
+  end
+  return async.fn.expand("<cexpr>")
+end
+
 function M.create_buffer(name, options)
   local buf = async.api.nvim_create_buf(true, true)
   options = vim.tbl_extend("keep", options or {}, {

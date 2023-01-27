@@ -32,8 +32,11 @@ return function(client)
   })
 
   --- Add a new watch expression
-  ---@param expr string
+  ---@param expr? string
   function dapui.elements.watches.add(expr)
+    if not expr then
+      expr = util.get_current_expr()
+    end
     watches.add(expr)
   end
 

@@ -226,7 +226,7 @@ local prev_expr = nil
 ---
 --- If no fixed dimensions are given, the window will expand to fit the contents
 --- of the buffer.
----@param expr string Expression to evaluate. If nil, then in normal more the
+---@param expr? string Expression to evaluate. If nil, then in normal more the
 --- current word is used, and in visual mode the currently highlighted text.
 ---@param args dapui.EvalArgs
 function dapui.eval(expr, args)
@@ -237,14 +237,7 @@ function dapui.eval(expr, args)
     end
     args = args or {}
     if not expr then
-      if vim.fn.mode() == "v" then
-        local start = async.fn.getpos("v")
-        local finish = async.fn.getpos(".")
-        local lines = util.get_selection(start, finish)
-        expr = table.concat(lines, "\n")
-      else
-        expr = expr or async.fn.expand("<cexpr>")
-      end
+      expr = util.get_current_expr()
     end
     if open_float then
       if prev_expr == expr then
