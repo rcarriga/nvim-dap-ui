@@ -81,7 +81,7 @@ function M.setup(element_buffers)
       au!
       au BufWinEnter,BufWinLeave * lua require('dapui.windows')._force_buffers()
     augroup END
-  ]])
+  ]] )
   end
 end
 
@@ -96,6 +96,12 @@ function M.open_float(name, element, position, settings)
   if float_windows[name] then
     float_windows[name]:jump_to()
     return float_windows[name]
+  end
+  if settings.position == "center" then
+    local screen_w = vim.opt.columns:get()
+    local screen_h = vim.opt.lines:get() - vim.opt.cmdheight:get()
+    position.line = (screen_h - settings.height) / 2;
+    position.col = (screen_w - settings.width) / 2;
   end
   local buf = element.buffer()
   local float_win = require("dapui.windows.float").open_float({
