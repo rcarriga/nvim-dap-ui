@@ -213,7 +213,7 @@ function dapui.config.update_render(update)
 end
 
 function dapui.config.element_mapping(element)
-  return user_config.element_mappings[element] or user_config.mappings
+  return vim.tbl_extend("keep", user_config.element_mappings[element] or {}, user_config.mappings)
 end
 
 setmetatable(dapui.config, {
