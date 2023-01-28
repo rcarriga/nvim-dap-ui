@@ -29,7 +29,8 @@ return function(client, send_ready)
     render = function(canvas, indent)
       -- In case threads are wiped during render
       local threads = _threads
-      if not threads then
+      local session = client.session
+      if not threads or not session then
         return
       end
 
@@ -60,7 +61,7 @@ return function(client, send_ready)
         canvas:write("\n\n")
       end
 
-      local stopped_thread_id = client.session.stopped_thread_id
+      local stopped_thread_id = session.stopped_thread_id
 
       for _, thread in pairs(threads) do
         if thread.id == stopped_thread_id then

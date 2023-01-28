@@ -9,7 +9,7 @@ local types = require("dapui.client.types")
 ---@class dapui.DAPClient
 ---@field request dapui.DAPRequestsClient
 ---@field listen dapui.DAPEventListenerClient
----@field session dapui.SessionProxy
+---@field session? dapui.SessionProxy
 ---@field lib dapui.DAPClientLib
 ---@field breakpoints dapui.BreakpointsProxy
 local DAPUIClient = {}
