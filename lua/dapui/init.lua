@@ -75,6 +75,14 @@ end
 ---@eval return require('dapui.config')._format_default()
 ---@param user_config? dapui.Config
 function dapui.setup(user_config)
+  for _, elem in pairs(elements) do
+    local buffer = elem.buffer()
+    if vim.api.nvim_buf_is_valid(buffer) then
+      vim.api.nvim_buf_delete(buffer, { force = true })
+    end
+  end
+  elements = {}
+
   config.setup(user_config)
 
   local client = require("dapui.client")(dap.session)
