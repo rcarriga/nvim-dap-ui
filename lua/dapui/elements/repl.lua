@@ -10,30 +10,36 @@ return function()
   --- The REPL provided by nvim-dap.
   dapui.elements.repl = {}
 
-  -- TODO: All of this is a hack because of an error with indentline when buffer
-  -- is opened in a window so have to manually find the window that was opened.
-  local all_wins = async.api.nvim_list_wins()
-  local open_wins = {}
-  for _, win in pairs(all_wins) do
-    open_wins[win] = true
-  end
-
-  pcall(dap.repl.open, {})
-
-  local buf = async.fn.bufnr("dap-repl")
-
-  for _, win in ipairs(async.api.nvim_list_wins()) do
-    if not open_wins[win] then
-      pcall(async.api.nvim_win_close, win, true)
-      break
+  local function get_buffer()
+    -- TODO: All of this is a hack because of an error with indentline when buffer
+    -- is opened in a window so have to manually find the window that was opened.
+    local all_wins = async.api.nvim_list_wins()
+    local open_wins = {}
+    for _, win in pairs(all_wins) do
+      open_wins[win] = true
     end
+    pcall(dap.repl.open, {})
+
+    local buf = async.fn.bufnr("dap-repl")
+
+    for _, win in ipairs(async.api.nvim_list_wins()) do
+      if not open_wins[win] then
+        pcall(async.api.nvim_win_close, win, true)
+        break
+      end
+    end
+    return buf
   end
 
+  local buf
   ---@nodoc
   function dapui.elements.repl.render() end
 
   ---@nodoc
   function dapui.elements.repl.buffer()
+    if not async.api.nvim_buf_is_valid(buf or -1) then
+      buf = get_buffer()
+    end
     return buf
   end
 
