@@ -1,6 +1,7 @@
 local M = {}
 
 local control_hl_groups = {
+  "DapUINormal",
   "DapUIPlayPause",
   "DapUIRestart",
   "DapUIStop",
@@ -13,6 +14,7 @@ local control_hl_groups = {
 
 function M.setup()
   vim.cmd([[
+  hi default link DapUINormal Normal
   hi default link DapUIVariable Normal
   hi default DapUIScope guifg=#00F1F5
   hi default DapUIType guifg=#D484FF
