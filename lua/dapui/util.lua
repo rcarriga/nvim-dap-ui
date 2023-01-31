@@ -3,7 +3,7 @@ local async = require("dapui.async")
 
 local M = {}
 
-local api = vim.api
+local api = async.api
 
 ---@return function
 function M.create_render_loop(render)
@@ -163,10 +163,10 @@ function M.partial(func, ...)
 end
 
 function M.send_to_repl(expression)
-  local repl_win = vim.fn.bufwinid("[dap-repl]")
+  local repl_win = vim.fn.bufwinid("\\[dap-repl\\]")
   if repl_win == -1 then
     M.float_element("repl")
-    repl_win = vim.fn.bufwinid("[dap-repl]")
+    repl_win = vim.fn.bufwinid("\\[dap-repl\\]")
   end
   api.nvim_set_current_win(repl_win)
   vim.cmd("normal i" .. expression)
