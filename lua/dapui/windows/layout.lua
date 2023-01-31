@@ -34,7 +34,6 @@ function WindowLayout:open()
   for i, _ in pairs(self.win_states) do
     local get_buffer = self.open_index(i)
     local win_id = api.nvim_get_current_win()
-    vim.fn.setwinvar(win_id, "&winhl", "Normal:DapUINormal,EndOfBuffer:DapUINormal")
     api.nvim_set_current_buf(get_buffer())
     self.opened_wins[i] = win_id
     self:_init_win_settings(win_id)
@@ -185,6 +184,7 @@ function WindowLayout:_init_win_settings(win)
   for key, val in pairs(win_settings) do
     api.nvim_win_set_option(win, key, val)
   end
+  vim.fn.setwinvar(win, "&winhl", "Normal:DapUINormal,EndOfBuffer:DapUINormal")
 end
 
 function WindowLayout:new(layout)
