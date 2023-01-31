@@ -97,6 +97,7 @@ function M.client(args)
     seq = 0,
     stopped_thread_id = args.stopped_thread_id,
     current_frame = args.current_frame,
+    set_breakpoints = function() end,
 
     request = function(_, command, request_args, callback)
       session.seq = session.seq + 1

@@ -60,8 +60,16 @@ end
 ---@field remove fun(bufnr: integer, line: integer)
 
 ---@return dapui.BreakpointsProxy
-local function create_breakpoints_proxy(breakpoints)
+local function create_breakpoints_proxy(breakpoints, session_factory)
   local proxy = {}
+  local function refresh(bufnr)
+    local bps = breakpoints.get(bufnr)
+    local session = session_factory()
+    if session then
+      session:set_breakpoints(bps)
+    end
+  end
+
   proxy.get = function()
     return breakpoints.get()
   end
@@ -70,9 +78,11 @@ local function create_breakpoints_proxy(breakpoints)
   end
   proxy.toggle = function(bufnr, line, args)
     breakpoints.toggle(args, bufnr, line)
+    refresh(bufnr)
   end
   proxy.remove = function(bufnr, line)
     breakpoints.remove(bufnr, line)
+    refresh(bufnr)
   end
   return proxy
 end
@@ -168,7 +178,7 @@ local function create_client(session_factory, breakpoints)
   })
 
   local client = setmetatable({
-    breakpoints = create_breakpoints_proxy(breakpoints),
+    breakpoints = create_breakpoints_proxy(breakpoints, session_factory),
     request = request,
     listen = listen,
     shutdown = function()
