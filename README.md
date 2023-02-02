@@ -25,7 +25,7 @@ Plug 'mfussenegger/nvim-dap'
 Plug 'rcarriga/nvim-dap-ui'
 ```
 
-[packer.nvim](https://github.com/wbthomason/packer.nvim)
+[**packer.nvim**](https://github.com/wbthomason/packer.nvim)
 
 ```lua
 use { "rcarriga/nvim-dap-ui", requires = {"mfussenegger/nvim-dap"} }
