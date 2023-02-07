@@ -10,6 +10,7 @@ return function()
   --- The REPL provided by nvim-dap.
   dapui.elements.repl = {}
 
+  ---@nodoc
   local function get_buffer()
     -- TODO: All of this is a hack because of an error with indentline when buffer
     -- is opened in a window so have to manually find the window that was opened.

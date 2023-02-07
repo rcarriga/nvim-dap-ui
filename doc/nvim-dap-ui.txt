@@ -57,6 +57,7 @@ Default values:
       element = "repl",
       enabled = true,
       icons = {
+        disconnect = "",
         pause = "",
         play = "",
         run_last = "",
@@ -166,7 +167,7 @@ Open a floating window containing the result of evaluting an expression
 If no fixed dimensions are given, the window will expand to fit the contents
 of the buffer.
 Parameters~
-{expr} `(string)` Expression to evaluate. If nil, then in normal more the
+{expr?} `(string)` Expression to evaluate. If nil, then in normal more the
 current word is used, and in visual mode the currently highlighted text.
 {args} `(dapui.EvalArgs)`
 
@@ -375,7 +376,7 @@ Mappings:
 
 Add a new watch expression
 Parameters~
-{expr} `(string)`
+{expr?} `(string)`
 
                                                  *dapui.elements.watches.edit()*
 `edit`({index}, {new_expr})

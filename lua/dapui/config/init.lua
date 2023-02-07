@@ -131,6 +131,7 @@ local default_config = {
       step_back = "",
       run_last = "",
       terminate = "",
+      disconnect = "",
     },
   },
   render = {

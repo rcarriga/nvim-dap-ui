@@ -504,6 +504,7 @@ function dapui.controls(is_active)
     { func = "step_back", hl = avail_hl(is_active and "DapUIStepBack" or "DapUIStepBackNC") },
     { func = "run_last", hl = is_active and "DapUIRestart" or "DapUIRestartNC" },
     { func = "terminate", hl = avail_hl(is_active and "DapUIStop" or "DapUIStopNC", true) },
+    { func = "disconnect", hl = avail_hl(is_active and "DapUIStop" or "DapUIStopNC", true) },
   }
   local bar = ""
   for _, elem in ipairs(elems) do
