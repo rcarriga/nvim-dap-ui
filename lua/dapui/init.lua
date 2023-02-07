@@ -75,14 +75,6 @@ end
 ---@eval return require('dapui.config')._format_default()
 ---@param user_config? dapui.Config
 function dapui.setup(user_config)
-  for _, elem in pairs(elements) do
-    local buffer = elem.buffer()
-    if vim.api.nvim_buf_is_valid(buffer) then
-      vim.api.nvim_buf_delete(buffer, { force = true })
-    end
-  end
-  elements = {}
-
   config.setup(user_config)
 
   local client = require("dapui.client")(dap.session)
@@ -97,6 +89,13 @@ function dapui.setup(user_config)
     "hover",
     "console",
   }) do
+    local existing_elem = elements[module]
+    if existing_elem then
+      local buffer = existing_elem.buffer()
+      if vim.api.nvim_buf_is_valid(buffer) then
+        vim.api.nvim_buf_delete(buffer, { force = true })
+      end
+    end
     ---@type dapui.Element
     local elem = require("dapui.elements." .. module)(client)
 
@@ -208,7 +207,7 @@ function dapui.float_element(elem_name, args)
     end
     local elem = elements[elem_name]
     args =
-      vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
+    vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
     async.scheduler()
     open_float = require("dapui.windows").open_float(elem_name, elem, position, args)
     if open_float then
