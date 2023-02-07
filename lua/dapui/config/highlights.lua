@@ -46,6 +46,7 @@ function M.setup()
   hi default DapUIRestart guifg=#A9FF68
   hi default DapUIUnavailable guifg=#424242
   hi default DapUIWinSelect ctermfg=Cyan guifg=#00f1f5 gui=bold
+  hi default link DapUIEndofBuffer EndofBuffer
   ]])
 
   -- Generate *NC variants of the control highlight groups
