@@ -181,6 +181,7 @@ The optional settings can included the following keys:
 - `width: number` Width of the window
 - `height: number` Height of the window
 - `enter: boolean` Enter the floating window
+- `position: string` Position of floating window. `center` or `nil`
 
 Call the same function again while the window is open and the cursor will jump
 to the floating window. The REPL will automatically jump to the floating
