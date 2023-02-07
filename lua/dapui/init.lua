@@ -207,7 +207,7 @@ function dapui.float_element(elem_name, args)
     end
     local elem = elements[elem_name]
     args =
-    vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
+      vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
     async.scheduler()
     open_float = require("dapui.windows").open_float(elem_name, elem, position, args)
     if open_float then
