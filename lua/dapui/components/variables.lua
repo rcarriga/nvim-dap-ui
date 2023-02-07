@@ -1,6 +1,7 @@
 local config = require("dapui.config")
 local util = require("dapui.util")
 local partial = util.partial
+local async = require("dapui.async")
 
 ---@class Variables
 ---@field frame_expanded_children table
@@ -87,10 +88,12 @@ return function(client, send_ready)
         end
         canvas:add_mapping("edit", function()
           prompt_func = function(new_value)
-            client.lib.set_variable(parent_ref, variable, new_value)
-            prompt_func = nil
-            prompt_fill = nil
-            send_ready()
+            async.run(function()
+              client.lib.set_variable(parent_ref, variable, new_value)
+              prompt_func = nil
+              prompt_fill = nil
+              send_ready()
+            end)
           end
           prompt_fill = variable.value
           send_ready()
