@@ -122,6 +122,10 @@ function M.select_win()
     while char ~= ESC and char ~= CTRL_C and not windows[index] do
       char = vim.fn.getchar()
       if type(char) == "number" then
+        if char >= 65 and char <= 90 then
+          -- Upper to lower case
+          char = char + 32
+        end
         index = char - 96
       end
     end
