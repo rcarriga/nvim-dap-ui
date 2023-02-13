@@ -152,16 +152,17 @@ function M.open_buf(bufnr, line, column)
   for _, win in pairs(api.nvim_tabpage_list_wins(0)) do
     if api.nvim_win_get_buf(win) == bufnr then
       set_win_pos(win)
-      return
+      return true
     end
   end
 
   local success, win = pcall(M.select_win)
   if not success or not win then
-    return
+    return false
   end
   api.nvim_win_set_buf(win, bufnr)
   set_win_pos(win)
+  return true
 end
 
 function M.get_selection(start, finish)

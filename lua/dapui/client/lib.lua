@@ -9,7 +9,7 @@ return function(client)
   ---@param frame dapui.types.StackFrame
   ---@param set_frame boolean Set the current frame of session to given frame
   function client_lib.jump_to_frame(frame, set_frame)
-    (function()
+    local opened = (function()
       local line = frame.line
       local column = frame.column
       local source = frame.source
@@ -25,10 +25,9 @@ return function(client)
           return
         end
         async.api.nvim_buf_set_lines(buf, 0, 0, true, vim.split(response.content, "\n"))
-        util.open_buf(buf, line, column)
         async.api.nvim_buf_set_option(buf, "bufhidden", "delete")
         async.api.nvim_buf_set_option(buf, "modifiable", false)
-        return
+        return util.open_buf(buf, line, column)
       end
 
       if not source.path then
@@ -45,9 +44,9 @@ return function(client)
         util.is_uri(path) and path or vim.uri_from_fname(vim.fn.fnamemodify(path, ":p"))
       )
       async.fn.bufload(bufnr)
-      util.open_buf(bufnr, line, column)
+      return util.open_buf(bufnr, line, column)
     end)()
-    if set_frame then
+    if opened and set_frame then
       client.session._frame_set(frame)
     end
   end
