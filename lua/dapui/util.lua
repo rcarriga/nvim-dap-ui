@@ -37,16 +37,22 @@ function M.get_current_expr()
 end
 
 function M.create_buffer(name, options)
-  local buf = async.api.nvim_create_buf(true, true)
-  options = vim.tbl_extend("keep", options or {}, {
-    modifiable = false,
-    buflisted = false,
-  })
-  async.api.nvim_buf_set_name(buf, name)
-  for opt, value in pairs(options) do
-    async.api.nvim_buf_set_option(buf, opt, value)
+  local buf
+  return function()
+    if buf and async.api.nvim_buf_is_valid(buf) then
+      return buf
+    end
+    buf = async.api.nvim_create_buf(true, true)
+    options = vim.tbl_extend("keep", options or {}, {
+      modifiable = false,
+      buflisted = false,
+    })
+    async.api.nvim_buf_set_name(buf, name)
+    for opt, value in pairs(options) do
+      async.api.nvim_buf_set_option(buf, opt, value)
+    end
+    return buf
   end
-  return buf
 end
 
 function M.round(num)

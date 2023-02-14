@@ -67,6 +67,86 @@ local function query_elem_name()
   })
 end
 
+local function enable_controls(elem_name)
+  local buffer = elements[elem_name].buffer()
+
+  local group = vim.api.nvim_create_augroup("DAPUIControls", {})
+  local win
+
+  refresh_control_panel = function()
+    if win then
+      local is_current = win == vim.fn.win_getid()
+      if not pcall(vim.api.nvim_win_set_option, win, "winbar", dapui.controls(is_current)) then
+        win = nil
+      end
+    end
+  end
+
+  local list_id = "dapui_controls"
+  local events = {
+    "event_terminated",
+    "disconnect",
+    "event_exited",
+    "event_stopped",
+    "threads",
+    "event_continued",
+  }
+  for _, event in ipairs(events) do
+    dap.listeners.after[event][list_id] = refresh_control_panel
+  end
+
+  vim.api.nvim_create_autocmd("BufWinEnter", {
+    buffer = buffer,
+    group = group,
+    callback = function(opts)
+      if win then
+        return
+      end
+
+      win = vim.fn.bufwinid(opts.buf)
+      if win == -1 then
+        win = nil
+        return
+      end
+      refresh_control_panel()
+      vim.api.nvim_create_autocmd({ "WinClosed", "BufWinLeave" }, {
+        group = group,
+        buffer = buffer,
+        callback = function()
+          if win and not vim.api.nvim_win_is_valid(win) then
+            win = nil
+          end
+        end,
+      })
+    end,
+  })
+  -- If original buffer is deleted, this will get newest element buffer
+  vim.api.nvim_create_autocmd("BufWipeout", {
+    buffer = buffer,
+    group = group,
+    callback = vim.schedule_wrap(function()
+      enable_controls(elem_name)
+    end),
+  })
+
+  vim.api.nvim_create_autocmd("WinEnter", {
+    buffer = buffer,
+    group = group,
+    callback = function()
+      local winbar = dapui.controls(true)
+      vim.api.nvim_win_set_option(vim.api.nvim_get_current_win(), "winbar", winbar)
+    end,
+  })
+  vim.api.nvim_create_autocmd("WinLeave", {
+    buffer = buffer,
+    group = group,
+    callback = function()
+      local winbar = dapui.controls(false)
+      vim.api.nvim_win_set_option(vim.api.nvim_get_current_win(), "winbar", winbar)
+    end,
+  })
+end
+
 ---@toc_entry Setup
 ---@text
 --- Configure nvim-dap-ui
@@ -104,77 +184,8 @@ function dapui.setup(user_config)
   end
 
   if config.controls.enabled and config.controls.element ~= "" then
-    local buffer = elements[config.controls.element].buffer()
-
-    local group = vim.api.nvim_create_augroup("DAPUIControls", {})
-    local win
-
-    refresh_control_panel = function()
-      if win then
-        local is_current = win == vim.fn.win_getid()
-        if not pcall(vim.api.nvim_win_set_option, win, "winbar", dapui.controls(is_current)) then
-          win = nil
-        end
-      end
-    end
-
-    local list_id = "dapui_controls"
-    local events = {
-      "event_terminated",
-      "disconnect",
-      "event_exited",
-      "event_stopped",
-      "threads",
-      "event_continued",
-    }
-    for _, event in ipairs(events) do
-      dap.listeners.after[event][list_id] = refresh_control_panel
-    end
-
-    local cb = function(opts)
-      if win then
-        return
-      end
-
-      win = vim.fn.bufwinid(opts.buf)
-      if win == -1 then
-        win = nil
-        return
-      end
-      refresh_control_panel()
-      vim.api.nvim_create_autocmd({ "WinClosed", "BufWinLeave" }, {
-        group = group,
-        buffer = buffer,
-        callback = function()
-          if win and not vim.api.nvim_win_is_valid(win) then
-            win = nil
-          end
-        end,
-      })
-    end
-    vim.api.nvim_create_autocmd("BufWinEnter", {
-      buffer = buffer,
-      group = group,
-      callback = cb,
-    })
-    vim.api.nvim_create_autocmd("WinEnter", {
-      buffer = buffer,
-      group = group,
-      callback = function()
-        local winbar = dapui.controls(true)
-        vim.api.nvim_win_set_option(vim.api.nvim_get_current_win(), "winbar", winbar)
-      end,
-    })
-    vim.api.nvim_create_autocmd("WinLeave", {
-      buffer = buffer,
-      group = group,
-      callback = function()
-        local winbar = dapui.controls(false)
-        vim.api.nvim_win_set_option(vim.api.nvim_get_current_win(), "winbar", winbar)
-      end,
-    })
+    enable_controls(config.controls.element)
   end
-
   local element_buffers = {}
   for name, elem in pairs(elements) do
     element_buffers[name] = elem.buffer

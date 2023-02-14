@@ -22,21 +22,17 @@ return function(client)
 
   local scopes = require("dapui.components.scopes")(client, send_ready)
 
-  local buf = util.create_buffer("DAP Scopes", {
-    filetype = "dapui_scopes",
-  })
-
   ---@nodoc
   function dapui.elements.scopes.render()
     local canvas = Canvas.new()
     scopes.render(canvas)
-    canvas:render_buffer(buf, config.element_mapping("scopes"))
+    canvas:render_buffer(dapui.elements.scopes.buffer(), config.element_mapping("scopes"))
   end
 
   ---@nodoc
-  function dapui.elements.scopes.buffer()
-    return buf
-  end
+  dapui.elements.scopes.buffer = util.create_buffer("DAP Scopes", {
+    filetype = "dapui_scopes",
+  })
 
   return dapui.elements.scopes
 end

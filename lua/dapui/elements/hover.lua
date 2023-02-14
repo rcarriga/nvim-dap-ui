@@ -8,10 +8,6 @@ return function(client)
   ---@class dapui.elements.hover
   dapui.elements.hover = {}
 
-  local buf = util.create_buffer("DAP Hover", {
-    filetype = "dapui_hover",
-  })
-
   local send_ready = util.create_render_loop(function()
     dapui.elements.hover.render()
   end)
@@ -22,13 +18,13 @@ return function(client)
   function dapui.elements.hover.render()
     local canvas = Canvas.new()
     hover.render(canvas)
-    canvas:render_buffer(buf, config.element_mapping("hover"))
+    canvas:render_buffer(dapui.elements.hover.buffer(), config.element_mapping("hover"))
   end
 
   ---@nodoc
-  function dapui.elements.hover.buffer()
-    return buf
-  end
+  dapui.elements.hover.buffer = util.create_buffer("DAP Hover", {
+    filetype = "dapui_hover",
+  })
 
   ---Set the expression for the hover window
   ---@param expression string

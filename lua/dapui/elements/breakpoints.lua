@@ -23,21 +23,17 @@ return function(client)
 
   local breakpoints = require("dapui.components.breakpoints")(client, send_ready)
 
-  local buf = util.create_buffer("DAP Breakpoints", {
-    filetype = "dapui_breakpoints",
-  })
-
   ---@nodoc
   function dapui.elements.breakpoints.render()
     local canvas = Canvas.new()
     breakpoints.render(canvas)
-    canvas:render_buffer(buf, config.element_mapping("breakpoints"))
+    canvas:render_buffer(dapui.elements.breakpoints.buffer(), config.element_mapping("breakpoints"))
   end
 
   ---@nodoc
-  function dapui.elements.breakpoints.buffer()
-    return buf
-  end
+  dapui.elements.breakpoints.buffer = util.create_buffer("DAP Breakpoints", {
+    filetype = "dapui_breakpoints",
+  })
 
   return dapui.elements.breakpoints
 end

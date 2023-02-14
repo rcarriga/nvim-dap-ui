@@ -26,11 +26,6 @@ return function(client)
 
   local watches = require("dapui.components.watches")(client, send_ready)
 
-  local buf = util.create_buffer("DAP Watches", {
-    filetype = "dapui_watches",
-    omnifunc = "v:lua.require'dap'.omnifunc",
-  })
-
   --- Add a new watch expression
   ---@param expr? string
   function dapui.elements.watches.add(expr)
@@ -72,13 +67,14 @@ return function(client)
   function dapui.elements.watches.render()
     local canvas = Canvas.new()
     watches.render(canvas)
-    canvas:render_buffer(buf, config.element_mapping("watches"))
+    canvas:render_buffer(dapui.elements.watches.buffer(), config.element_mapping("watches"))
   end
 
   ---@nodoc
-  function dapui.elements.watches.buffer()
-    return buf
-  end
+  dapui.elements.watches.buffer = util.create_buffer("DAP Watches", {
+    filetype = "dapui_watches",
+    omnifunc = "v:lua.require'dap'.omnifunc",
+  })
 
   return dapui.elements.watches
 end

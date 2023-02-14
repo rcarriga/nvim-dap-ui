@@ -21,21 +21,17 @@ return function(client)
 
   local threads = require("dapui.components.threads")(client, send_ready)
 
-  local buf = util.create_buffer("DAP Stacks", {
-    filetype = "dapui_stacks",
-  })
-
   ---@nodoc
   function dapui.elements.stacks.render()
     local canvas = Canvas.new()
     threads.render(canvas)
-    canvas:render_buffer(buf, config.element_mapping("stacks"))
+    canvas:render_buffer(dapui.elements.stacks.buffer(), config.element_mapping("stacks"))
   end
 
   ---@nodoc
-  function dapui.elements.stacks.buffer()
-    return buf
-  end
+  dapui.elements.stacks.buffer = util.create_buffer("DAP Stacks", {
+    filetype = "dapui_stacks",
+  })
 
   return dapui.elements.stacks
 end
