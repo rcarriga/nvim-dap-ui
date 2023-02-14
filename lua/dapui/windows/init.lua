@@ -18,11 +18,15 @@ local function horizontal_layout(height, position, win_configs, buffers)
     vim.cmd(index == 1 and open_cmd .. " " .. " split" or "vsplit")
     return buffers[index]
   end
+  local win_states = {}
+  for _, conf in ipairs(win_configs) do
+    win_states[#win_states + 1] = vim.tbl_extend("force", conf, { init_size = conf.size })
+  end
 
   return WindowLayout({
     layout_type = "horizontal",
     area_state = { size = height, init_size = height },
-    win_states = win_configs,
+    win_states = win_states,
     get_win_size = api.nvim_win_get_width,
     get_area_size = api.nvim_win_get_height,
     set_win_size = api.nvim_win_set_width,
@@ -38,10 +42,15 @@ local function vertical_layout(width, position, win_configs, buffers)
     return buffers[index]
   end
 
+  local win_states = {}
+  for _, conf in ipairs(win_configs) do
+    win_states[#win_states + 1] = vim.tbl_extend("force", conf, { init_size = conf.size })
+  end
+
   return WindowLayout({
     layout_type = "vertical",
     area_state = { size = width, init_size = width },
-    win_states = win_configs,
+    win_states = win_states,
     get_win_size = api.nvim_win_get_height,
     get_area_size = api.nvim_win_get_width,
     set_area_size = api.nvim_win_set_width,

@@ -20,7 +20,7 @@ local util = require("dapui.util")
 ---@field open_index fun(index: number): fun(): integer
 ---@field get_win_size fun(win_id: integer): integer
 ---@field get_area_size fun(win_id: integer): integer
----@field set_win_size fun(win_id: integer, size: integer, total_size: integer)
+---@field set_win_size fun(win_id: integer, size: integer)
 ---@field set_area_size fun(win_id: integer, size: integer)
 --
 ---@field has_initial_open boolean
