@@ -63,12 +63,12 @@ function M.setup()
 
     for _, hl_group in pairs(control_hl_groups) do
       local gui = vim.api.nvim_get_hl_by_name(hl_group, true)
-      if gui.background ~= bg then
-        gui.bg = bg
-        vim.api.nvim_set_hl(0, hl_group, gui)
-      end
-      gui.bg = bgNC
       if not gui[true] then -- https://github.com/rcarriga/nvim-dap-ui/issues/233
+        if gui.background ~= bg then
+          gui.bg = bg
+          vim.api.nvim_set_hl(0, hl_group, gui)
+        end
+        gui.bg = bgNC
         vim.api.nvim_set_hl(0, hl_group .. "NC", gui)
       end
     end
