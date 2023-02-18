@@ -81,8 +81,7 @@ end
 
 ---@param element_buffers table<string, integer>
 function M.setup(element_buffers)
-  local dummy_buf = async.api.nvim_create_buf(false, true)
-  async.api.nvim_buf_set_option(dummy_buf, "modifiable", false)
+  local dummy_buf = util.create_buffer("", {})
   for _, layout in ipairs(M.layouts) do
     layout:close()
   end
@@ -95,7 +94,7 @@ function M.setup(element_buffers)
         or function()
           local elem = registered_elements[win_config.id]
           if not elem then
-            return dummy_buf
+            return dummy_buf()
           end
           return elem.buffer()
         end

@@ -41,6 +41,7 @@ local windows = require("dapui.windows")
 local config = require("dapui.config")
 local util = require("dapui.util")
 local async = require("dapui.async")
+local controls = require("dapui.controls")
 
 dapui.async = async
 
@@ -49,8 +50,6 @@ dapui.async = async
 local elements = {}
 
 local open_float = nil
-
-local refresh_control_panel = function() end
 
 local function query_elem_name()
   local entries = {}
@@ -63,86 +62,6 @@ local function query_elem_name()
     prompt = "Select an element:",
     format_item = function(entry)
       return entry:sub(1, 1):upper() .. entry:sub(2)
-    end,
-  })
-end
-
-local function enable_controls(elem_name)
-  local buffer = elements[elem_name].buffer()
-
-  local group = vim.api.nvim_create_augroup("DAPUIControls", {})
-  local win
-
-  refresh_control_panel = function()
-    if win then
-      local is_current = win == vim.fn.win_getid()
-      if not pcall(vim.api.nvim_win_set_option, win, "winbar", dapui.controls(is_current)) then
-        win = nil
-      end
-    end
-  end
-
-  local list_id = "dapui_controls"
-  local events = {
-    "event_terminated",
-    "disconnect",
-    "event_exited",
-    "event_stopped",
-    "threads",
-    "event_continued",
-  }
-  for _, event in ipairs(events) do
-    dap.listeners.after[event][list_id] = refresh_control_panel
-  end
-
-  vim.api.nvim_create_autocmd("BufWinEnter", {
-    buffer = buffer,
-    group = group,
-    callback = function(opts)
-      if win then
-        return
-      end
-
-      win = vim.fn.bufwinid(opts.buf)
-      if win == -1 then
-        win = nil
-        return
-      end
-      refresh_control_panel()
-      vim.api.nvim_create_autocmd({ "WinClosed", "BufWinLeave" }, {
-        group = group,
-        buffer = buffer,
-        callback = function()
-          if win and not vim.api.nvim_win_is_valid(win) then
-            win = nil
-          end
-        end,
-      })
-    end,
-  })
-  -- If original buffer is deleted, this will get newest element buffer
-  vim.api.nvim_create_autocmd("BufWipeout", {
-    buffer = buffer,
-    group = group,
-    callback = vim.schedule_wrap(function()
-      enable_controls(elem_name)
-    end),
-  })
-
-  vim.api.nvim_create_autocmd("WinEnter", {
-    buffer = buffer,
-    group = group,
-    callback = function()
-      local winbar = dapui.controls(true)
-      vim.api.nvim_win_set_option(vim.api.nvim_get_current_win(), "winbar", winbar)
-    end,
-  })
-  vim.api.nvim_create_autocmd("WinLeave", {
-    buffer = buffer,
-    group = group,
-    callback = function()
-      local winbar = dapui.controls(false)
-      vim.api.nvim_win_set_option(vim.api.nvim_get_current_win(), "winbar", winbar)
     end,
   })
 end
@@ -179,13 +98,9 @@ function dapui.setup(user_config)
     ---@type dapui.Element
     local elem = require("dapui.elements." .. module)(client)
 
-    async.run(elem.render)
     elements[module] = elem
   end
 
-  if config.controls.enabled and config.controls.element ~= "" then
-    enable_controls(config.controls.element)
-  end
   local element_buffers = {}
   for name, elem in pairs(elements) do
     element_buffers[name] = elem.buffer
@@ -217,8 +132,9 @@ function dapui.float_element(elem_name, args)
       return
     end
     local elem = elements[elem_name]
+    elem.render()
     args =
-      vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
+    vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
     async.scheduler()
     open_float = require("dapui.windows").open_float(elem_name, elem, position, args)
     if open_float then
@@ -383,7 +299,11 @@ function dapui.open(args)
       win_layout:resize(args)
     end
   end)
-  refresh_control_panel()
+  dapui.update_render({})
+  if config.controls.enabled and config.controls.element ~= "" then
+    controls.enable_controls(elements[config.controls.element])
+  end
+  controls.refresh_control_panel()
 end
 
 ---@class dapui.ToggleArgs
@@ -428,26 +348,12 @@ function dapui.toggle(args)
       win_layout:resize(args)
     end
   end)
-  refresh_control_panel()
+  dapui.update_render({})
+  if config.controls.enabled and config.controls.element ~= "" then
+    controls.enable_controls(elements[config.controls.element])
+  end
+  controls.refresh_control_panel()
 end
-
-_G._dapui = {
-  play = function()
-    local session = dap.session()
-    if not session or session.stopped_thread_id then
-      dap.continue()
-    else
-      dap.pause()
-    end
-  end,
-}
-setmetatable(_dapui, {
-  __index = function(_, key)
-    return function()
-      return dap[key]()
-    end
-  end,
-})
 
 ---@text
 --- Access the elements currently registered. See elements corresponding help
@@ -491,45 +397,6 @@ function dapui.register_element(name, element)
   async.run(function()
     element.render()
   end)
-end
-
-function dapui.controls(is_active)
-  local session = dap.session()
-
-  local running = (session and not session.stopped_thread_id)
-
-  local avail_hl = function(group, allow_running)
-    if not session or (not allow_running and running) then
-      return is_active and "DapUIUnavailable" or "DapUIUnavailableNC"
-    end
-    return group
-  end
-
-  local icons = config.controls.icons
-  local elems = {
-    {
-      func = "play",
-      icon = running and icons.pause or icons.play,
-      hl = is_active and "DapUIPlayPause" or "DapUIPlayPauseNC",
-    },
-    { func = "step_into", hl = avail_hl(is_active and "DapUIStepInto" or "DapUIStepIntoNC") },
-    { func = "step_over", hl = avail_hl(is_active and "DapUIStepOver" or "DapUIStepOverNC") },
-    { func = "step_out", hl = avail_hl(is_active and "DapUIStepOut" or "DapUIStepOutNC") },
-    { func = "step_back", hl = avail_hl(is_active and "DapUIStepBack" or "DapUIStepBackNC") },
-    { func = "run_last", hl = is_active and "DapUIRestart" or "DapUIRestartNC" },
-    { func = "terminate", hl = avail_hl(is_active and "DapUIStop" or "DapUIStopNC", true) },
-    { func = "disconnect", hl = avail_hl(is_active and "DapUIStop" or "DapUIStopNC", true) },
-  }
-  local bar = ""
-  for _, elem in ipairs(elems) do
-    bar = bar
-      .. ("  %%#%s#%%0@v:lua._dapui.%s@%s%%#0#"):format(
-        elem.hl,
-        elem.func,
-        elem.icon or icons[elem.func]
-      )
-  end
-  return bar
 end
 
 return dapui

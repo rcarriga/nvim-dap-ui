@@ -39,7 +39,10 @@ end
 function M.create_buffer(name, options)
   local buf
   return function()
-    if buf and async.api.nvim_buf_is_valid(buf) then
+    if not buf then
+      buf = name ~= "" and async.fn.bufnr(name) or -1
+    end
+    if async.api.nvim_buf_is_valid(buf) then
       return buf
     end
     buf = async.api.nvim_create_buf(true, true)
