@@ -11,6 +11,8 @@ local float_windows = {}
 ---@type dapui.WindowLayout[]
 M.layouts = {}
 
+local registered_elements = {}
+
 local function horizontal_layout(height, position, win_configs, buffers)
   local open_cmd = position == "top" and "topleft" or "botright"
 
@@ -18,6 +20,7 @@ local function horizontal_layout(height, position, win_configs, buffers)
     vim.cmd(index == 1 and open_cmd .. " " .. " split" or "vsplit")
     return buffers[index]
   end
+
   local win_states = {}
   for _, conf in ipairs(win_configs) do
     win_states[#win_states + 1] = vim.tbl_extend("force", conf, { init_size = conf.size })
@@ -70,8 +73,16 @@ function M.area_layout(size, position, win_configs, buffers)
   return layout_func(size, position, win_states, buffers)
 end
 
+local function force_buffers(keep_current)
+  for _, layout in ipairs(M.layouts) do
+    layout:force_buffers(keep_current)
+  end
+end
+
 ---@param element_buffers table<string, integer>
 function M.setup(element_buffers)
+  local dummy_buf = async.api.nvim_create_buf(false, true)
+  async.api.nvim_buf_set_option(dummy_buf, "modifiable", false)
   for _, layout in ipairs(M.layouts) do
     layout:close()
   end
@@ -81,23 +92,30 @@ function M.setup(element_buffers)
     local buffers = {}
     for index, win_config in ipairs(layout.elements) do
       buffers[index] = element_buffers[win_config.id]
+        or function()
+          local elem = registered_elements[win_config.id]
+          if not elem then
+            return dummy_buf
+          end
+          return elem.buffer()
+        end
     end
     M.layouts[i] = M.area_layout(layout.size, layout.position, layout.elements, buffers)
   end
   if config.force_buffers then
-    vim.cmd([[
-    augroup DapuiWindowsSetup
-      au!
-      au BufWinEnter,BufWinLeave * lua require('dapui.windows')._force_buffers()
-    augroup END
-  ]])
+    local group = api.nvim_create_augroup("DapuiWindowsSetup", {})
+    api.nvim_create_autocmd({ "BufWinEnter", "BufWinLeave" }, {
+      callback = function()
+        force_buffers(false)
+      end,
+      group = group,
+    })
   end
 end
 
-function M._force_buffers()
-  for _, layout in ipairs(M.layouts) do
-    layout:force_buffers()
-  end
+function M.register_element(name, elem)
+  registered_elements[name] = elem
+  force_buffers(false)
 end
 
 ---@param element dapui.Element

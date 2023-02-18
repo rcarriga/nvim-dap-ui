@@ -487,6 +487,10 @@ function dapui.register_element(name, element)
     error("Element " .. name .. " already exists")
   end
   elements[name] = element
+  windows.register_element(name, element)
+  async.run(function()
+    element.render()
+  end)
 end
 
 function dapui.controls(is_active)

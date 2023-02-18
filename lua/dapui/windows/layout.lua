@@ -22,8 +22,6 @@ local util = require("dapui.util")
 ---@field get_area_size fun(win_id: integer): integer
 ---@field set_win_size fun(win_id: integer, size: integer)
 ---@field set_area_size fun(win_id: integer, size: integer)
---
----@field has_initial_open boolean
 local WindowLayout = {}
 
 function WindowLayout:open()
@@ -42,21 +40,22 @@ function WindowLayout:open()
   self:resize()
   -- Fails if cur win was floating that closed
   pcall(api.nvim_set_current_win, cur_win)
-  self.has_initial_open = true
 end
 
-function WindowLayout:force_buffers()
+function WindowLayout:force_buffers(keep_current)
   local curwin = api.nvim_get_current_win()
-  local curbuf = api.nvim_win_get_buf(curwin)
   for win, get_buffer in pairs(self.win_bufs) do
     local bufnr = get_buffer()
-    if curwin == win and curbuf ~= bufnr then
+    local valid, curbuf = pcall(api.nvim_win_get_buf, win)
+    if valid and curbuf ~= bufnr then
       if api.nvim_buf_is_loaded(bufnr) and api.nvim_buf_is_valid(bufnr) then
         -- pcall necessary to avoid erroring with `mark not set` although no mark are set
         -- this avoid other issues
         pcall(api.nvim_win_set_buf, win, bufnr)
       end
-      util.open_buf(curbuf)
+      if keep_current and curwin == win then
+        util.open_buf(curbuf)
+      end
     end
   end
 end
