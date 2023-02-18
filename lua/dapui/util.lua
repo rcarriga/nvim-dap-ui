@@ -155,7 +155,7 @@ function M.open_buf(bufnr, line, column)
     if line then
       api.nvim_win_set_cursor(win, { line, column })
     end
-    api.nvim_set_current_win(win)
+    pcall(api.nvim_set_current_win, win)
   end
 
   for _, win in pairs(api.nvim_tabpage_list_wins(0)) do
