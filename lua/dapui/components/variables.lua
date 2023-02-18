@@ -24,16 +24,16 @@ return function(client, send_ready)
   ---@type table<string, string>
   local rendered_vars = {}
 
-  local function reference_prefix(frame_id, path, variable)
+  local function reference_prefix(path, variable)
     if variable.variablesReference == 0 then
       return " "
     end
-    return config.icons[expanded_children[frame_id][path] and "expanded" or "collapsed"]
+    return config.icons[expanded_children[path] and "expanded" or "collapsed"]
   end
 
   ---@param path string
-  local function path_changed(frame_id, path, value)
-    return rendered_vars[frame_id][path] and rendered_vars[frame_id][path] ~= value
+  local function path_changed(path, value)
+    return rendered_vars[path] and rendered_vars[path] ~= value
   end
 
   ---@param canvas dapui.Canvas
@@ -41,13 +41,6 @@ return function(client, send_ready)
   ---@param parent_ref integer
   ---@param indent integer
   local function render(canvas, parent_path, parent_ref, indent)
-    local frame_id = client.session.current_frame and client.session.current_frame.id
-    if not frame_id then
-      return
-    end
-    expanded_children[frame_id] = expanded_children[frame_id] or {}
-    rendered_vars[frame_id] = rendered_vars[frame_id] or {}
-
     if not canvas.prompt and prompt_func then
       canvas:set_prompt("> ", prompt_func, { fill = prompt_fill })
     end
@@ -59,7 +52,7 @@ return function(client, send_ready)
 
       canvas:write({
         string.rep(" ", indent),
-        { reference_prefix(frame_id, var_path, variable), group = "DapUIDecoration" },
+        { reference_prefix(var_path, variable), group = "DapUIDecoration" },
         " ",
         { variable.name, group = "DapUIVariable" },
       })
@@ -70,16 +63,16 @@ return function(client, send_ready)
       end
 
       local var_group
-      if path_changed(frame_id, var_path, variable.value) then
+      if path_changed(var_path, variable.value) then
         var_group = "DapUIModifiedValue"
       else
         var_group = "DapUIValue"
       end
-      rendered_vars[frame_id][var_path] = variable.value
+      rendered_vars[var_path] = variable.value
       local function add_var_line(line)
         if variable.variablesReference > 0 then
           canvas:add_mapping("expand", function()
-            expanded_children[frame_id][var_path] = not expanded_children[frame_id][var_path]
+            expanded_children[var_path] = not expanded_children[var_path]
             send_ready()
           end)
           if variable.evaluateName then
@@ -113,7 +106,7 @@ return function(client, send_ready)
         add_var_line(variable.value)
       end
 
-      if expanded_children[frame_id][var_path] and variable.variablesReference ~= 0 then
+      if expanded_children[var_path] and variable.variablesReference ~= 0 then
         render(canvas, var_path, variable.variablesReference, indent + config.render.indent)
       end
     end
