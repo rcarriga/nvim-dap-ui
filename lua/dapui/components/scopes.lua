@@ -6,7 +6,9 @@ return function(client, send_ready)
   ---@type dapui.types.Scope[] | nil
   local _scopes
   client.listen.scopes(function(args)
-    _scopes = args.response.scopes
+    if args.response then
+      _scopes = args.response.scopes
+    end
     send_ready()
   end)
   local on_exit = function()
