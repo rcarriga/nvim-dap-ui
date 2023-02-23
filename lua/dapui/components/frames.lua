@@ -13,6 +13,7 @@ return function(client, send_ready)
     ---@param canvas dapui.Canvas
     render = function(canvas, thread_id, show_subtle, indent)
       local success, response = pcall(client.request.stackTrace, { threadId = thread_id })
+      local current_frame_id = nil
 
       if not success then
         return
@@ -25,7 +26,9 @@ return function(client, send_ready)
         end, frames)
       end
 
-      local current_frame_id = client.session.current_frame and client.session.current_frame.id
+      if client.session then
+        current_frame_id = client.session.current_frame and client.session.current_frame.id
+      end
 
       for _, frame in ipairs(frames) do
         local is_current = frame.id == current_frame_id
