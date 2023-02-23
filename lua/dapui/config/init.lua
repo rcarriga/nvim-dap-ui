@@ -17,6 +17,8 @@ local dapui = {}
 ---@field controls dapui.Config.controls Controls configuration
 ---@field render dapui.Config.render Rendering options which can be updated
 --- after initial setup
+---@field select_window? fun(): integer A function which returns a window to be
+--- used for opening buffers such as a stack frame location.
 
 ---@class dapui.Config.icons
 ---@field expanded string

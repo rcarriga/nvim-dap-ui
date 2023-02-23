@@ -266,6 +266,8 @@ Layouts are opened in the order defined
 {controls} `(dapui.Config.controls)` Controls configuration
 {render} `(dapui.Config.render)` Rendering options which can be updated
 after initial setup
+{select_window?} `(fun(): integer)` A function which returns a window to be
+used for opening buffers such as a stack frame location.
 
                                                             *dapui.Config.icons*
 Fields~

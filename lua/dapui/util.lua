@@ -96,6 +96,9 @@ local function set_opts(win, opts)
 end
 
 function M.select_win()
+  if config.select_window then
+    return config.select_window()
+  end
   local windows = vim.tbl_filter(function(win)
     if api.nvim_win_get_config(win).relative ~= "" then
       return false
