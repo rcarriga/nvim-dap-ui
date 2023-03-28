@@ -1,4 +1,4 @@
-*neotest.txt*	A UI for nvim-dap.
+*nvim-dap-ui.txt*	A UI for nvim-dap.
 
 ==============================================================================
 nvim-dap-ui                                                        *nvim-dap-ui*
