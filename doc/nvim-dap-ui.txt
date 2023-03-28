@@ -1,4 +1,4 @@
-*neotest.txt*	A UI for nvim-dap.
+nvim-dap-ui.txt*	A UI for nvim-dap.
 
 ==============================================================================
 nvim-dap-ui                                                        *nvim-dap-ui*
@@ -130,7 +130,7 @@ Type~
 `(table<string, dapui.Element>)`
 
 Type~
-`(dapui.Element)`
+dapui.Element
 
                                                         *dapui.FloatElementArgs*
 Fields~
