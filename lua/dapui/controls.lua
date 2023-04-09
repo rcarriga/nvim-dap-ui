@@ -4,7 +4,8 @@ local config = require("dapui.config")
 local M = {}
 
 local controls_active = false
-M.refresh_control_panel = function() end
+M.refresh_control_panel = function()
+end
 
 function M.enable_controls(element)
   if controls_active then
@@ -19,9 +20,10 @@ function M.enable_controls(element)
   M.refresh_control_panel = function()
     if win then
       local is_current = win == vim.fn.win_getid()
-      if pcall(vim.api.nvim_win_set_option, win, "winbar", M.controls(is_current)) then
+      if not pcall(vim.api.nvim_win_set_option, win, "winbar", M.controls(is_current)) then
         win = nil
       end
+      vim.cmd("redrawstatus!")
     end
   end
 
@@ -128,22 +130,22 @@ function M.controls(is_active)
       icon = running and icons.pause or icons.play,
       hl = is_active and "DapUIPlayPause" or "DapUIPlayPauseNC",
     },
-    { func = "step_into", hl = avail_hl(is_active and "DapUIStepInto" or "DapUIStepIntoNC") },
-    { func = "step_over", hl = avail_hl(is_active and "DapUIStepOver" or "DapUIStepOverNC") },
-    { func = "step_out", hl = avail_hl(is_active and "DapUIStepOut" or "DapUIStepOutNC") },
-    { func = "step_back", hl = avail_hl(is_active and "DapUIStepBack" or "DapUIStepBackNC") },
-    { func = "run_last", hl = is_active and "DapUIRestart" or "DapUIRestartNC" },
-    { func = "terminate", hl = avail_hl(is_active and "DapUIStop" or "DapUIStopNC", true) },
+    { func = "step_into",  hl = avail_hl(is_active and "DapUIStepInto" or "DapUIStepIntoNC") },
+    { func = "step_over",  hl = avail_hl(is_active and "DapUIStepOver" or "DapUIStepOverNC") },
+    { func = "step_out",   hl = avail_hl(is_active and "DapUIStepOut" or "DapUIStepOutNC") },
+    { func = "step_back",  hl = avail_hl(is_active and "DapUIStepBack" or "DapUIStepBackNC") },
+    { func = "run_last",   hl = is_active and "DapUIRestart" or "DapUIRestartNC" },
+    { func = "terminate",  hl = avail_hl(is_active and "DapUIStop" or "DapUIStopNC", true) },
     { func = "disconnect", hl = avail_hl(is_active and "DapUIStop" or "DapUIStopNC", true) },
   }
   local bar = ""
   for _, elem in ipairs(elems) do
     bar = bar
-      .. ("  %%#%s#%%0@v:lua._dapui.%s@%s%%#0#"):format(
-        elem.hl,
-        elem.func,
-        elem.icon or icons[elem.func]
-      )
+        .. ("  %%#%s#%%0@v:lua._dapui.%s@%s%%#0#"):format(
+          elem.hl,
+          elem.func,
+          elem.icon or icons[elem.func]
+        )
   end
   return bar
 end
