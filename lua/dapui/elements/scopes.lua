@@ -30,7 +30,7 @@ return function(client)
   end
 
   ---@nodoc
-  dapui.elements.scopes.buffer = util.create_buffer("DAP Scopes", {
+  dapui.elements.scopes.buffer = util.create_buffer("DAP Scopes <leader>ds", {
     filetype = "dapui_scopes",
   })
 
