@@ -162,7 +162,7 @@ local prev_expr = nil
 --- of the buffer.
 ---@param expr? string Expression to evaluate. If nil, then in normal more the
 --- current word is used, and in visual mode the currently highlighted text.
----@param args dapui.EvalArgs
+---@param args? dapui.EvalArgs
 function dapui.eval(expr, args)
   async.run(function()
     if not dap.session() then
