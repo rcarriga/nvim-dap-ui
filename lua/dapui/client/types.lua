@@ -1,4 +1,4 @@
---- Generated on 2023-01-08 16:55:21.125879
+--- Generated on 2023-05-13 08:57:30.479445
 
 ---@class dapui.DAPRequestsClient
 local DAPUIRequestsClient = {}
@@ -10,6 +10,7 @@ local DAPUIEventListenerClient = {}
 ---@field before boolean Run before event/request is processed by nvim-dap
 --- Arguments for `attach` request. Additional attributes are implementation specific.
 ---@class dapui.types.AttachRequestArguments
+---@field field__restart? any[] | boolean | integer | number | table<string,any> | string Arbitrary data from the previous, restarted session. The data is sent as the `restart` attribute of the `terminated` event. The client should leave the data intact.
 
 --- The `attach` request is sent from the client to the debug adapter to attach to a debuggee that is already running.
 --- Since attaching is debugger/runtime specific, the arguments for this request are not part of this specification.
@@ -507,6 +508,7 @@ function DAPUIEventListenerClient.initialize(listener, opts) end
 --- Arguments for `launch` request. Additional attributes are implementation specific.
 ---@class dapui.types.LaunchRequestArguments
 ---@field noDebug? boolean If true, the launch request should launch the program without enabling debugging.
+---@field field__restart? any[] | boolean | integer | number | table<string,any> | string Arbitrary data from the previous, restarted session. The data is sent as the `restart` attribute of the `terminated` event. The client should leave the data intact.
 
 --- This launch request is sent from the client to the debug adapter to start the debuggee with or without debugging (if `noDebug` is true).
 --- Since launching is debugger/runtime specific, the arguments for this request are not part of this specification.
@@ -783,8 +785,8 @@ function DAPUIEventListenerClient.scopes(listener, opts) end
 ---@field line integer The source line of the breakpoint or logpoint.
 ---@field column? integer Start position within source line of the breakpoint or logpoint. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.
 ---@field condition? string The expression for conditional breakpoints. It is only honored by a debug adapter if the corresponding capability `supportsConditionalBreakpoints` is true.
----@field hitCondition? string The expression that controls how many hits of the breakpoint are ignored. The debug adapter is expected to interpret the expression as needed. The attribute is only honored by a debug adapter if the corresponding capability `supportsHitConditionalBreakpoints` is true.
----@field logMessage? string If this attribute exists and is non-empty, the debug adapter must not 'break' (stop) but log the message instead. Expressions within `{}` are interpolated. The attribute is only honored by a debug adapter if the corresponding capability `supportsLogPoints` is true.
+---@field hitCondition? string The expression that controls how many hits of the breakpoint are ignored. The debug adapter is expected to interpret the expression as needed. The attribute is only honored by a debug adapter if the corresponding capability `supportsHitConditionalBreakpoints` is true. If both this property and `condition` are specified, `hitCondition` should be evaluated only if the `condition` is met, and the debug adapter should stop only if both conditions are met.
+---@field logMessage? string If this attribute exists and is non-empty, the debug adapter must not 'break' (stop) but log the message instead. Expressions within `{}` are interpolated. The attribute is only honored by a debug adapter if the corresponding capability `supportsLogPoints` is true. If either `hitCondition` or `condition` is specified, then the message should only be logged if those conditions are met.
 
 --- Arguments for `setBreakpoints` request.
 ---@class dapui.types.SetBreakpointsArguments
@@ -1077,7 +1079,7 @@ function DAPUIEventListenerClient.source(listener, opts) end
 ---@field column integer Start position of the range covered by the stack frame. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based. If attribute `source` is missing or doesn't exist, `column` is 0 and should be ignored by the client.
 ---@field endLine? integer The end line of the range covered by the stack frame.
 ---@field endColumn? integer End position of the range covered by the stack frame. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.
----@field canRestart? boolean Indicates whether this frame can be restarted with the `restart` request. Clients should only use this if the debug adapter supports the `restart` request and the corresponding capability `supportsRestartRequest` is true.
+---@field canRestart? boolean Indicates whether this frame can be restarted with the `restart` request. Clients should only use this if the debug adapter supports the `restart` request and the corresponding capability `supportsRestartRequest` is true. If a debug adapter has this capability, then `canRestart` defaults to `true` if the property is absent.
 ---@field instructionPointerReference? string A memory reference for the current instruction pointer in this frame.
 ---@field moduleId? integer | string The module associated with this frame, if any.
 ---@field presentationHint? "normal"|"label"|"subtle" A hint for how to present this frame in the UI. A value of `label` can be used to indicate that the frame is an artificial frame that is used as a visual label or separator. A value of `subtle` can be used to change the appearance of a frame in a 'subtle' way.
