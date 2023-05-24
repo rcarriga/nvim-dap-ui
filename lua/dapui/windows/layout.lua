@@ -180,6 +180,7 @@ function WindowLayout:_init_win_settings(win)
     winfixheight = true,
     wrap = false,
     signcolumn = "auto",
+    spell = false,
   }
   for key, val in pairs(win_settings) do
     api.nvim_win_set_option(win, key, val)
