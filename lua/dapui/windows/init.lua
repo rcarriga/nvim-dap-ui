@@ -169,7 +169,6 @@ function M.open_float(name, element, position, settings)
       resize()
     end,
   })
-  element.render()
   -- In case render doesn't trigger on_lines
   resize()
 
