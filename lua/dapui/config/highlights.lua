@@ -49,22 +49,39 @@ function M.setup()
   hi default link DapUIEndofBuffer EndofBuffer
   ]])
 
+  ---gets the argument highlight group information, using the newer `nvim_get_hl` if available
+  ---@param highlight string highlight group
+  ---@return table hl highlight information
+  local function get_highlight(highlight)
+    local ok, hl
+    if vim.fn.has("nvim-0.9") == 1 then
+      ok, hl = pcall(vim.api.nvim_get_hl, 0, { name = highlight })
+      if not ok then -- highlight group is invalid
+        return vim.empty_dict()
+      end
+    else
+      ok, hl = pcall(vim.api.nvim_get_hl_by_name, highlight, true)
+      if not ok or hl[true] then -- highlight group is invalid or cleared
+        return vim.empty_dict()
+      end
+      -- change `nvim_get_hl_by_name` output into `nvim_get_hl` output format
+      hl.bg = hl.background
+      hl.fg = hl.foreground
+    end
+    return hl
+  end
+
   -- Generate *NC variants of the control highlight groups
   if vim.fn.has("nvim-0.8") == 1 then
-    local bg, bgNC
-    local exists, hl = pcall(vim.api.nvim_get_hl_by_name, "WinBar", true)
-    if exists then
-      bg = hl.background
-    end
-    exists, hl = pcall(vim.api.nvim_get_hl_by_name, "WinBarNC", true)
-    if exists then
-      bgNC = hl.background
-    end
+    local bg = get_highlight("WinBar").bg
+    local bgNC = get_highlight("WinBarNC").bg
 
     for _, hl_group in pairs(control_hl_groups) do
-      local gui = vim.api.nvim_get_hl_by_name(hl_group, true)
-      if not gui[true] then -- https://github.com/rcarriga/nvim-dap-ui/issues/233
-        if gui.background ~= bg then
+      local gui = get_highlight(hl_group)
+      -- if highlight group is cleared or invalid, skip
+      if not vim.tbl_isempty(gui) then
+        gui.default = true
+        if gui.bg ~= bg then
           gui.bg = bg
           vim.api.nvim_set_hl(0, hl_group, gui)
         end
