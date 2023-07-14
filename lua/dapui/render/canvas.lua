@@ -188,8 +188,10 @@ function Canvas:render_buffer(buffer, action_keys)
       self.prompt.callback(value)
     end)
     if self.prompt.fill then
-      vim.cmd("normal i" .. self.prompt.fill)
-      api.nvim_input("A")
+      api.nvim_buf_set_lines(buffer, -1, -1, true, { "> " .. self.prompt.fill })
+      if api.nvim_get_current_buf() == buffer then
+        api.nvim_input("A")
+      end
     end
     api.nvim_buf_set_option(buffer, "modified", false)
     local group = api.nvim_create_augroup("DAPUIPromptSetUnmodified" .. buffer, {})
