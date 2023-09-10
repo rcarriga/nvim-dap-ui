@@ -74,6 +74,8 @@ end
 ---@eval return require('dapui.config')._format_default()
 ---@param user_config? dapui.Config
 function dapui.setup(user_config)
+  util.stop_render_tasks()
+
   config.setup(user_config)
 
   local client = require("dapui.client")(dap.session)
