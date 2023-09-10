@@ -102,7 +102,9 @@ function M.show()
     window_id = api.nvim_open_win(hover_buf, false, win_opts)
     buf_wins[buffer] = window_id
 
-    api.nvim_win_set_option(window_id, "winhighlight", "NormalFloat:Normal")
+    api.nvim_win_call(window_id, function()
+      vim.opt.winhighlight:append({ NormalFloat = "Normal" })
+    end)
   end
 
   orig_col = orig_col - 1 -- Working with 0-based index now
