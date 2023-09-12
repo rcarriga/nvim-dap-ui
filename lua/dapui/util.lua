@@ -5,11 +5,20 @@ local M = {}
 
 local api = async.api
 
+local render_tasks = {}
+
+function M.stop_render_tasks()
+  for _, task in ipairs(render_tasks) do
+    task.cancel()
+  end
+  render_tasks = {}
+end
+
 ---@return function
 function M.create_render_loop(render)
   local render_event = async.control.event()
 
-  async.run(function()
+  render_tasks[#render_tasks + 1] = async.run(function()
     while true do
       render_event.wait()
       render_event.clear()
