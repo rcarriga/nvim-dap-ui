@@ -144,7 +144,7 @@ function dapui.float_element(elem_name, args)
         open_float = nil
       end)
     end
-  end)
+  end, util.err_handler)
 end
 
 local prev_expr = nil
@@ -195,7 +195,7 @@ function dapui.eval(expr, args)
         open_float = nil
       end)
     end
-  end)
+  end, util.err_handler)
 end
 
 --- Update the config.render settings and re-render windows
@@ -207,7 +207,7 @@ function dapui.update_render(update)
     for _, elem in pairs(elements) do
       elem.render()
     end
-  end)
+  end, util.err_handler)
 end
 
 local function keep_cmdheight(cb)
@@ -398,7 +398,7 @@ function dapui.register_element(name, element)
   windows.register_element(name, element)
   async.run(function()
     element.render()
-  end)
+  end, util.err_handler)
 end
 
 return dapui

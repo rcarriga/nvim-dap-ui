@@ -234,6 +234,14 @@ function M.format_error(error)
   return formatted
 end
 
+function M.err_handler(ok, err)
+  if ok then
+    return
+  end
+
+  M.notify(err, vim.log.levels.ERROR)
+end
+
 function M.partial(func, ...)
   local args = { ... }
   return function(...)
