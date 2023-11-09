@@ -83,6 +83,7 @@ function dapui.setup(user_config)
     "breakpoints",
     "repl",
     "scopes",
+    "disassembly",
     "stacks",
     "watches",
     "hover",
@@ -365,6 +366,7 @@ end
 ---@field repl dapui.elements.repl
 ---@field scopes dapui.elements.scopes
 ---@field stack dapui.elements.stacks
+---@field disassembly dapui.elements.disassembly
 ---@field watches dapui.elements.watches
 ---@field console dapui.elements.console
 dapui.elements = setmetatable({}, {

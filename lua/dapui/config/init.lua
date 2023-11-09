@@ -4,6 +4,7 @@ local dapui = {}
 ---@toc_entry Configuration Options
 
 ---@class dapui.Config
+---@field disassembly dapui.element_config.Disassembly
 ---@field icons dapui.Config.icons
 ---@field mappings table<dapui.Action, string|string[]> Keys to trigger actions in elements
 ---@field element_mappings table<string, table<dapui.Action, string|string[]>> Per-element overrides of global mappings
@@ -19,6 +20,10 @@ local dapui = {}
 --- after initial setup
 ---@field select_window? fun(): integer A function which returns a window to be
 --- used for opening buffers such as a stack frame location.
+
+---@class dapui.element_config.Disassembly
+---@field column_aligned boolean If `true`, Disassembly instructions align vertically
+---@field instruction_spacing integer The spacing to place memory addresses, bytes, and instructions
 
 ---@class dapui.Config.icons
 ---@field expanded string
@@ -75,6 +80,10 @@ local dapui = {}
 ---@type dapui.Config
 ---@nodoc
 local default_config = {
+  disassembly = {
+    column_aligned = true,
+    instruction_spacing = 1,
+  },
   icons = { expanded = "", collapsed = "", current_frame = "" },
   mappings = {
     -- Use a table to apply multiple mappings
@@ -95,11 +104,12 @@ local default_config = {
         -- Provide IDs as strings or tables with "id" and "size" keys
         {
           id = "scopes",
-          size = 0.25, -- Can be float or integer > 1
+          size = 0.20, -- Can be float or integer > 1
         },
-        { id = "breakpoints", size = 0.25 },
-        { id = "stacks", size = 0.25 },
-        { id = "watches", size = 0.25 },
+        { id = "breakpoints", size = 0.20 },
+        { id = "disassembly", size = 0.20 },
+        { id = "stacks", size = 0.20 },
+        { id = "watches", size = 0.20 },
       },
       size = 40,
       position = "left", -- Can be "left" or "right"
