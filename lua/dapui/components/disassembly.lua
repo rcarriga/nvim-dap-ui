@@ -9,47 +9,6 @@ local _GROUP = vim.api.nvim_create_augroup("NvimDapUiDisassembly", { clear = fal
 ---     A function that, when called, starts in `start` milliseconds,
 ---     stops at `timeout`, and all the while calls `function`.
 
---- Debounce a function and prefer the first call.
----
---- If the debounced function is called repeatedly in the span of `timeout`,
---- ignore all but the first call. This is helpful to prevent spammy autocommands
---- from triggering too often.
----
---- @source https://gist.github.com/runiq/31aa5c4bf00f8e0843cd267880117201#debouncing-on-the-leading-edge
----
---- @param function_ fun(...)
----     A function to call or defer.
---- @param timeout number
----     Timeout in millisecond.
---- @return function, vim.loop.timer
----     # The debounced function and timer. Remember to call `timer:close()` at the end
----     or you will leak memory!
----
-local function _debounce_leading(function_, timeout)
-  --- @type vim.loop.timer
-  local timer = vim.loop.new_timer()
-
-  local running = false
-
-  local function wrapped(...)
-    timer:start(
-      timeout,
-      0,
-      function()
-        running = false
-      end
-    )
-
-    if not running then
-      running = true
-      pcall(vim.schedule_wrap(function_), select(1, ...))
-    end
-  end
-
-  return wrapped, timer
-end
-
-
 --- Figure out the spacing needed for every column in `instructions`.
 ---
 --- Each instruction address has potentially varying lengths of memory addresses,
@@ -68,7 +27,14 @@ end
 ---
 local function _get_alignment_template(instructions)
   local address_max = 1
-  local byte_max = 1
+
+  -- Note: To prevent any user disruption, we assume 8, 2-letter byte addresses
+  -- (8bytes * 2letters) + (7spaces) == 23
+  --
+  -- In short, it's a reasonable default to minimize disruption
+  --
+  local byte_max = 23
+
   local instruction_max = 1
 
   for _, instruction in ipairs(instructions)
@@ -189,20 +155,111 @@ local function _get_lines(instructions)
 end
 
 
---- Copy `data` to a new table.
+--- Parse `text` for a memory address.
 ---
---- @param data table<any> The data to copy.
---- @return table<any> # The copied data.
+--- @param text string Some disassembly. e.g. "0x000000000040056f	48 83 ec 20	sub    $0x20,%rsp".
+--- @return string? # The found address, if any. e.g. "0x000000000040056f".
 ---
-local function _shallow_copy(data)
-  local output = {}
+local function _get_memory_address(text)
+  return string.match(text, "^0x%x+")
+end
 
-  for key, value in pairs(data)
-  do
-    output[key] = value
+
+--- Find the Disassembly memory address that's located at the current `window` cursor.
+---
+--- Note:
+---     It's expected that `window` and `buffer` correspond to the same data.
+---
+--- @param window integer A 0-or-more identifier to the window cursor to grab from.
+--- @param buffer integer A 0-or-more identifier for the lines of text to query with.
+--- @return string? # The found address, if any. e.g. "0x000000000040056f".
+---
+local function _get_memory_address_at_current_cursor(window, buffer)
+  local buffer = buffer or vim.api.nvim_win_get_buf(window)
+  local cursor = vim.api.nvim_win_get_cursor(window)
+  local row = cursor[1]
+  local line = vim.api.nvim_buf_get_lines(buffer, row - 1, row, false)[1]
+
+  return _get_memory_address(line)
+end
+
+
+--- Debounce a function and prefer the first call.
+---
+--- If the debounced function is called repeatedly in the span of `timeout`,
+--- ignore all but the first call. This is helpful to prevent spammy autocommands
+--- from triggering too often.
+---
+--- @source https://gist.github.com/runiq/31aa5c4bf00f8e0843cd267880117201#debouncing-on-the-leading-edge
+---
+--- @param function_ fun(...)
+---     A function to call or defer.
+--- @param timeout number
+---     Timeout in millisecond.
+--- @return function, vim.loop.timer
+---     # The debounced function and timer. Remember to call `timer:close()` at the end
+---     or you will leak memory!
+---
+local function _debounce_leading(function_, timeout)
+  --- @type vim.loop.timer
+  local timer = vim.loop.new_timer()
+
+  local running = false
+
+  local function wrapped(...)
+    timer:start(
+      timeout,
+      0,
+      function()
+        running = false
+      end
+    )
+
+    if not running then
+      running = true
+      pcall(vim.schedule_wrap(function_), select(1, ...))
+    end
   end
 
-  return output
+  return wrapped, timer
+end
+
+
+--- Force `window`'s cursor to point to the line that contains `address`.
+---
+--- @param window integer A 0-or-more window identifier whose cursor may be moved.
+--- @param address string Some memory address to look for. e.g. `"0x000000000040056f"`.
+---
+local function _save_and_restore_cursor(window, address)
+  local buffer = vim.api.nvim_win_get_buf(window)
+  local disassembly_lines = vim.api.nvim_buf_get_lines(
+    buffer,
+    0,
+    vim.api.nvim_buf_line_count(buffer),
+    false
+  )
+
+  local found_row = nil
+  for row, line in ipairs(disassembly_lines)
+  do
+    if _get_memory_address(line) == address
+    then
+      found_row = row
+
+      break
+    end
+  end
+
+  if found_row == nil
+  then
+    return
+  end
+
+  local old_cursor = vim.api.nvim_win_get_cursor(window)
+  local old_column = old_cursor[2]
+  local new_cursor = {found_row, old_column}
+
+  vim.api.nvim_win_set_cursor(window, new_cursor)
 end
 
 
@@ -222,8 +279,6 @@ return function(client, buffer, send_ready)
     count = nil,
   }
 
-  --- @type table<integer, integer>?
-  local previous_cursor = nil
   local cursor_adjustment_needed = false
   local mute_autocommands = false
   local should_reset_the_cursor = false
@@ -249,15 +304,14 @@ return function(client, buffer, send_ready)
           instruction_counter.offset = instruction_counter.offset - height
           instruction_counter.count = instruction_counter.count + height  -- Get increasingly more
 
-          previous_cursor = vim.api.nvim_win_get_cursor(window)
           cursor_adjustment_needed = true
+          send_ready()
         elseif top_line >= (vim.api.nvim_buf_line_count(buffer) - height)
         then
           -- We're at the botton page, request a new page below the cursor
           instruction_counter.offset = math.min(0, instruction_counter.offset + height)
           instruction_counter.count = instruction_counter.count + height  -- Get increasingly more
 
-          previous_cursor = vim.api.nvim_win_get_cursor(window)
           cursor_adjustment_needed = true
           send_ready()
         end
@@ -282,15 +336,11 @@ return function(client, buffer, send_ready)
   client.listen.exited(on_exit)
   client.listen.terminated(on_exit)
 
-  local _offset_current_cursor = _debounce_leading(
-    function(height)
-      local window = vim.fn.bufwinid(buffer)
-
-      --- @diagnostic disable-next-line: param-type-mismatch
-      local cursor = _shallow_copy(previous_cursor)
-      cursor[1] = cursor[1] - height
+  local _reset_cursor = _debounce_leading(
+    function(window, cursor_row)
+      should_reset_the_cursor = false
       mute_autocommands = true
-      vim.api.nvim_win_set_cursor(window, cursor)
+      vim.api.nvim_win_set_cursor(window, {cursor_row, 0})
       mute_autocommands = false
     end,
     200  -- TODO: Tune this value, later
@@ -372,6 +422,14 @@ return function(client, buffer, send_ready)
         return
       end
 
+      -- @type string?
+      local address = nil
+
+      if _cursor_adjustment_needed
+      then
+        address = _get_memory_address_at_current_cursor(window)
+      end
+
       -- TODO: Consider writing a single blob of text
       for _, line in ipairs(_get_lines(response.instructions))
       do
@@ -380,20 +438,21 @@ return function(client, buffer, send_ready)
 
       if _cursor_adjustment_needed
       then
-          _offset_current_cursor(height)
-      -- TODO: Finish this
-      -- elseif should_reset_the_cursor
-      -- then
-      --   local cursor_row = height + 1
-      --   -- Move the cursor after the canvas has finished drawing to the buffer
-      --   vim.schedule(
-      --     function()
-      --       should_reset_the_cursor = false
-      --       mute_autocommands = true
-      --       vim.api.nvim_win_set_cursor(window, {cursor_row, 0})
-      --       mute_autocommands = false
-      --     end
-      --   )
+        if address ~= nil
+        then
+          -- Save and restore the cursor row position
+          vim.schedule(function() _save_and_restore_cursor(window, address) end)
+        else
+          vim.api.nvim_err_writeln(
+            "nvim-dap-ui: Could not find an address at the current cursor. "
+            .. "Disassembly refresh may not work as expected."
+          )
+        end
+      elseif should_reset_the_cursor
+      then
+        -- Set the cursor to the disassembly line that matches the source code line
+        local cursor_row = height + 1
+        _reset_cursor(window, cursor_row)
       end
     end
   }
