@@ -395,9 +395,12 @@ return function(client, buffer, send_ready)
     return math.max(0, -1 * instruction_counter.offset) + 1
   end
 
-  local cursor_adjustment_needed = false
-  local mute_line_adjustments = false
-  local should_reset_the_cursor = false
+  --- @type _DisassemblyWindowState
+  local state = {
+    adjust_direction_down = nil,
+    mute_line_adjustments = false,
+    should_reset_the_cursor = false
+  }
 
   -- Force a redraw of the window whenever its size has changed or the cursor is moving
   vim.api.nvim_create_autocmd(
@@ -405,7 +408,7 @@ return function(client, buffer, send_ready)
     {
       buffer = buffer,
       callback = function()
-        if mute_line_adjustments
+        if state.mute_line_adjustments
         then
           return
         end
@@ -420,7 +423,7 @@ return function(client, buffer, send_ready)
           instruction_counter.offset = instruction_counter.offset - height
           instruction_counter.count = instruction_counter.count + height  -- Get increasingly more
 
-          cursor_adjustment_needed = true
+          state.adjust_direction_down = true
           send_ready()
         elseif top_line >= (vim.api.nvim_buf_line_count(buffer) - height)
         then
@@ -428,7 +431,7 @@ return function(client, buffer, send_ready)
           instruction_counter.offset = math.min(0, instruction_counter.offset + height)
           instruction_counter.count = instruction_counter.count + height  -- Get increasingly more
 
-          cursor_adjustment_needed = true
+          state.adjust_direction_down = false
           send_ready()
         end
       end,
@@ -445,7 +448,7 @@ return function(client, buffer, send_ready)
   end
 
   local on_reset = function()
-    should_reset_the_cursor = true
+    state.should_reset_the_cursor = true
     send_ready()
   end
 
@@ -516,7 +519,7 @@ return function(client, buffer, send_ready)
             _highlight_buffer_line(window, buffer, current_instruction_line)
           end
         )
-      elseif should_reset_the_cursor
+      elseif state.should_reset_the_cursor
       then
         instruction_counter.count = height * 2
         instruction_counter.offset = -1 * height
