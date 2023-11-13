@@ -207,23 +207,23 @@ local function _get_memory_address(text)
 end
 
 
---- Find the Disassembly memory address that's located at the current `window` cursor.
----
---- Note:
----     It's expected that `window` and `buffer` correspond to the same data.
----
---- @param window integer A 0-or-more identifier to the window cursor to grab from.
---- @param buffer integer A 0-or-more identifier for the lines of text to query with.
---- @return string? # The found address, if any. e.g. "0x000000000040056f".
----
-local function _get_memory_address_at_current_cursor(window, buffer)
-  local buffer = buffer or vim.api.nvim_win_get_buf(window)
-  local cursor = vim.api.nvim_win_get_cursor(window)
-  local row = cursor[1]
-  local line = vim.api.nvim_buf_get_lines(buffer, row - 1, row, false)[1]
-
-  return _get_memory_address(line)
-end
+-- --- Find the Disassembly memory address that's located at the current `window` cursor.
+-- ---
+-- --- Note:
+-- ---     It's expected that `window` and `buffer` correspond to the same data.
+-- ---
+-- --- @param window integer A 0-or-more identifier to the window cursor to grab from.
+-- --- @param buffer integer A 0-or-more identifier for the lines of text to query with.
+-- --- @return string? # The found address, if any. e.g. "0x000000000040056f".
+-- ---
+-- local function _get_memory_address_at_current_cursor(window, buffer)
+--   local buffer = buffer or vim.api.nvim_win_get_buf(window)
+--   local cursor = vim.api.nvim_win_get_cursor(window)
+--   local row = cursor[1]
+--   local line = vim.api.nvim_buf_get_lines(buffer, row - 1, row, false)[1]
+--
+--   return _get_memory_address(line)
+-- end
 
 
 local function _get_memory_address_at_current_instruction(window, buffer)
@@ -330,44 +330,44 @@ local function _initialize_counters(instruction_counter, height)
 end
 
 
---- Force `window`'s cursor to point to the line that contains `address`.
----
---- @param window integer A 0-or-more window identifier whose cursor may be moved.
---- @param cursor_address string Some memory address to look for. e.g. `"0x000000000040056f"`.
----
-local function _save_and_restore_cursor(window, cursor_address)
-  local buffer = vim.api.nvim_win_get_buf(window)
-  local disassembly_lines = vim.api.nvim_buf_get_lines(
-    buffer,
-    0,
-    vim.api.nvim_buf_line_count(buffer),
-    false
-  )
-
-  local found_row = nil
-  for row, line in ipairs(disassembly_lines)
-  do
-    local address = _get_memory_address(line)
-
-    if address == cursor_address
-    then
-      found_row = row
-
-      break
-    end
-  end
-
-  if found_row == nil
-  then
-    return
-  end
-
-  local old_cursor = vim.api.nvim_win_get_cursor(window)
-  local old_column = old_cursor[2]
-  local new_cursor = {found_row, old_column}
-
-  vim.api.nvim_win_set_cursor(window, new_cursor)
-end
+-- --- Force `window`'s cursor to point to the line that contains `address`.
+-- ---
+-- --- @param window integer A 0-or-more window identifier whose cursor may be moved.
+-- --- @param cursor_address string Some memory address to look for. e.g. `"0x000000000040056f"`.
+-- ---
+-- local function _save_and_restore_cursor(window, cursor_address)
+--   local buffer = vim.api.nvim_win_get_buf(window)
+--   local disassembly_lines = vim.api.nvim_buf_get_lines(
+--     buffer,
+--     0,
+--     vim.api.nvim_buf_line_count(buffer),
+--     false
+--   )
+--
+--   local found_row = nil
+--   for row, line in ipairs(disassembly_lines)
+--   do
+--     local address = _get_memory_address(line)
+--
+--     if address == cursor_address
+--     then
+--       found_row = row
+--
+--       break
+--     end
+--   end
+--
+--   if found_row == nil
+--   then
+--     return
+--   end
+--
+--   local old_cursor = vim.api.nvim_win_get_cursor(window)
+--   local old_column = old_cursor[2]
+--   local new_cursor = {found_row, old_column}
+--
+--   vim.api.nvim_win_set_cursor(window, new_cursor)
+-- end
 
 
 --- Configure `buffer` so it can display in `client` when buffer-rendering is requested.
@@ -455,6 +455,15 @@ return function(client, buffer, send_ready)
   client.listen.exited(on_exit)
   client.listen.terminated(on_exit)
 
+  local _move_cursor = _debounce_leading(
+    function(window, cursor_row)
+      mute_line_adjustments = true
+      vim.api.nvim_win_set_cursor(window, {cursor_row, 0})
+      mute_line_adjustments = false
+    end,
+    200  -- TODO: Tune this value, later
+  )
+
   local _reset_cursor = _debounce_leading(
     function(window, buffer, cursor_row)
       should_reset_the_cursor = false
@@ -488,14 +497,6 @@ return function(client, buffer, send_ready)
         return
       end
 
-      -- @type string?
-      local cursor_address = nil
-
-      if _cursor_adjustment_needed
-      then
-        cursor_address = _get_memory_address_at_current_cursor(window, buffer)
-      end
-
       vim.api.nvim_buf_clear_namespace(buffer, _VIRTUAL_SELECTION, 0, -1)
 
       -- TODO: Consider writing a single blob of text
@@ -506,25 +507,17 @@ return function(client, buffer, send_ready)
 
       if _cursor_adjustment_needed
       then
-        if cursor_address ~= nil
-        then
-          -- Save and restore the cursor row position
-          vim.schedule(
-            function()
-              _save_and_restore_cursor(window, cursor_address)
-              local current_instruction_line = _get_computed_instruction_line()
-              _highlight_buffer_line(window, buffer, current_instruction_line)
-            end
-          )
-        else
-          vim.api.nvim_err_writeln(
-            "nvim-dap-ui: Could not find an address at the current cursor. "
-            .. "Disassembly refresh may not work as expected."
-          )
-        end
+        local cursor_row = vim.api.nvim_win_get_cursor(window)[1] + height
+        local current_instruction_line = _get_computed_instruction_line()
+
+        vim.schedule(
+          function()
+            _move_cursor(window, cursor_row)
+            _highlight_buffer_line(window, buffer, current_instruction_line)
+          end
+        )
       elseif should_reset_the_cursor
       then
-        -- Set the cursor to the disassembly line that matches the source code line
         instruction_counter.count = height * 2
         instruction_counter.offset = -1 * height
         local current_instruction_line = _get_computed_instruction_line()
