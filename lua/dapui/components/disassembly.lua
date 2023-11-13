@@ -6,6 +6,20 @@ local _GROUP = vim.api.nvim_create_augroup("NvimDapUiDisassembly", { clear = fal
 local _SELECTION_HIGHLIGHT_GROUP = "NvimDapUiDisassemblyHighlightLine"
 local _VIRTUAL_SELECTION = vim.api.nvim_create_namespace("NvimDapUiDisassemblyVirtualSelection")
 
+--- @class _DisassemblyWindowState
+---     Control the refresh, draw, and other behaviors of a Disassembly Buffer
+--- @field adjust_direction_down boolean?
+---     A tri-state variable.
+---     - `nil` means "do nothing"
+---     - `true` means "offset the cursor downwards"
+---     - `false` means "offset the cursor upwards"
+--- @field mute_line_adjustments boolean  TODO Check if still needed
+---     If `true`, don't let auto-commands like WinScrolled trigger changes
+---     to the Disassembly buffer. If `false`, allow it.
+--- @field should_reset_the_cursor boolean
+---     If `false`, do nothing. If `true`, the next time the Disassembly buffern
+---     is re-rendered, the Disassembly cursor will sync to the current stack frame.
+
 --- @class vim.loop.timer
 --- @field start fun(self: vim.loop.timer, timeout: integer, start: integer, function: fun(...))
 ---     A function that, when called, starts in `start` milliseconds,
@@ -197,39 +211,6 @@ local function _get_lines(instructions)
 end
 
 
---- Parse `text` for a memory address.
----
---- @param text string Some disassembly. e.g. "0x000000000040056f	48 83 ec 20	sub    $0x20,%rsp".
---- @return string? # The found address, if any. e.g. "0x000000000040056f".
----
-local function _get_memory_address(text)
-  return string.match(text, "^0x%x+")
-end
-
-
--- --- Find the Disassembly memory address that's located at the current `window` cursor.
--- ---
--- --- Note:
--- ---     It's expected that `window` and `buffer` correspond to the same data.
--- ---
--- --- @param window integer A 0-or-more identifier to the window cursor to grab from.
--- --- @param buffer integer A 0-or-more identifier for the lines of text to query with.
--- --- @return string? # The found address, if any. e.g. "0x000000000040056f".
--- ---
--- local function _get_memory_address_at_current_cursor(window, buffer)
---   local buffer = buffer or vim.api.nvim_win_get_buf(window)
---   local cursor = vim.api.nvim_win_get_cursor(window)
---   local row = cursor[1]
---   local line = vim.api.nvim_buf_get_lines(buffer, row - 1, row, false)[1]
---
---   return _get_memory_address(line)
--- end
-
-
-local function _get_memory_address_at_current_instruction(window, buffer)
-end
-
-
 local function _get_session_frame(client)
   if client.session == nil
   then
@@ -330,46 +311,6 @@ local function _initialize_counters(instruction_counter, height)
 end
 
 
--- --- Force `window`'s cursor to point to the line that contains `address`.
--- ---
--- --- @param window integer A 0-or-more window identifier whose cursor may be moved.
--- --- @param cursor_address string Some memory address to look for. e.g. `"0x000000000040056f"`.
--- ---
--- local function _save_and_restore_cursor(window, cursor_address)
---   local buffer = vim.api.nvim_win_get_buf(window)
---   local disassembly_lines = vim.api.nvim_buf_get_lines(
---     buffer,
---     0,
---     vim.api.nvim_buf_line_count(buffer),
---     false
---   )
---
---   local found_row = nil
---   for row, line in ipairs(disassembly_lines)
---   do
---     local address = _get_memory_address(line)
---
---     if address == cursor_address
---     then
---       found_row = row
---
---       break
---     end
---   end
---
---   if found_row == nil
---   then
---     return
---   end
---
---   local old_cursor = vim.api.nvim_win_get_cursor(window)
---   local old_column = old_cursor[2]
---   local new_cursor = {found_row, old_column}
---
---   vim.api.nvim_win_set_cursor(window, new_cursor)
--- end
-
-
 --- Configure `buffer` so it can display in `client` when buffer-rendering is requested.
 ---
 --- @param client dapui.DAPClient
@@ -458,30 +399,21 @@ return function(client, buffer, send_ready)
   client.listen.exited(on_exit)
   client.listen.terminated(on_exit)
 
-  local _move_cursor = _debounce_leading(
-    function(window, cursor_row)
-      mute_line_adjustments = true
-      vim.api.nvim_win_set_cursor(window, {cursor_row, 0})
-      mute_line_adjustments = false
-    end,
-    200  -- TODO: Tune this value, later
-  )
-
   local _reset_cursor = _debounce_leading(
     function(window, buffer, cursor_row)
-      should_reset_the_cursor = false
-      mute_line_adjustments = true
+      state.should_reset_the_cursor = false
+      state.mute_line_adjustments = true
       vim.api.nvim_win_set_cursor(window, {cursor_row, 0})
       _highlight_buffer_line(window, buffer, cursor_row)
-      mute_line_adjustments = false
+      state.mute_line_adjustments = false
     end,
     200  -- TODO: Tune this value, later
   )
 
   return {
     render = function(canvas)
-      local _cursor_adjustment_needed = cursor_adjustment_needed
-      cursor_adjustment_needed = false  -- TODO: Double check if this stuff is useful
+      local _adjust_direction_down = state.adjust_direction_down
+      state.adjust_direction_down = nil
 
       local memory_reference = _get_session_frame(client)
 
@@ -508,14 +440,25 @@ return function(client, buffer, send_ready)
         canvas:write(line)
       end
 
-      if _cursor_adjustment_needed
+      if _adjust_direction_down ~= nil
       then
-        local cursor_row = vim.api.nvim_win_get_cursor(window)[1] + height
+        --- @type integer
+        local offset
+
+        if _adjust_direction_down then
+          offset = height
+        else
+          offset = -1 * height
+        end
+
+        local current_row = vim.api.nvim_win_get_cursor(window)[1]
+        local new_row = current_row + offset
         local current_instruction_line = _get_computed_instruction_line()
 
+        -- Important: You need to schedule this or the line will not highlight correctly
         vim.schedule(
           function()
-            _move_cursor(window, cursor_row)
+            vim.api.nvim_win_set_cursor(window, {new_row, 0})
             _highlight_buffer_line(window, buffer, current_instruction_line)
           end
         )
