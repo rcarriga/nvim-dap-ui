@@ -3,6 +3,8 @@ local util = require("dapui.util")
 
 
 local _GROUP = vim.api.nvim_create_augroup("NvimDapUiDisassembly", { clear = false})
+local _SELECTION_HIGHLIGHT_GROUP = "NvimDapUiDisassemblyHighlightLine"
+local _VIRTUAL_SELECTION = vim.api.nvim_create_namespace("NvimDapUiDisassemblyVirtualSelection")
 
 --- @class vim.loop.timer
 --- @field start fun(self: vim.loop.timer, timeout: integer, start: integer, function: fun(...))
@@ -114,6 +116,46 @@ local function _get_column_aligned(instructions)
 end
 
 
+local function _get_instructions(client, memory_reference, instruction_counter)
+  --- @source https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Disassemble
+  --- @type dapui.types.DisassembleResponse
+  local response
+  local success
+
+  success, response = pcall(
+    client.request.disassemble,
+    {
+      -- TODO: Finish this part. Add more spec details
+      memoryReference=memory_reference,
+      instructionOffset=instruction_counter.offset,
+      instructionCount=instruction_counter.count,
+      offset=0,
+      resolveSymbols=true,
+    }
+  )
+
+  if not success then
+    util.notify(
+      "Disassembly could not be found. Cannot continue.",
+      vim.log.levels.WARN
+    )
+
+    return nil
+  end
+
+  if response == nil then
+    util.notify(
+      "Invalid disassembly response. Cannot continue.",
+      vim.log.levels.WARN
+    )
+
+    return nil
+  end
+
+  return response.instructions
+end
+
+
 --- Get the disassembly text from `instructions`.
 ---
 --- @param instructions dapui.types.DisassembledInstruction[]
@@ -184,6 +226,41 @@ local function _get_memory_address_at_current_cursor(window, buffer)
 end
 
 
+local function _get_memory_address_at_current_instruction(window, buffer)
+end
+
+
+local function _get_session_frame(client)
+  if client.session == nil
+  then
+    -- client.session will be nil when exiting so we stop before that can error.
+    return nil
+  end
+
+  if not client.session.capabilities.supportsDisassembleRequest then
+    util.notify(
+      "Debug server doesn't support disassembly requests.",
+      vim.log.levels.WARN
+    )
+
+    return nil
+  end
+
+  local memory_reference = client.session.current_frame["instructionPointerReference"]
+
+  if memory_reference ~= nil then
+    return memory_reference
+  end
+
+  util.notify(
+    "Disassembly could not get the starting memory address.",
+    vim.log.levels.WARN
+  )
+
+  return nil
+end
+
+
 --- Debounce a function and prefer the first call.
 ---
 --- If the debounced function is called repeatedly in the span of `timeout`,
@@ -225,12 +302,40 @@ local function _debounce_leading(function_, timeout)
 end
 
 
+local function _highlight_buffer_line(window, buffer, row)
+  local row = row or vim.api.nvim_win_get_cursor(window)[1]
+
+  vim.api.nvim_buf_set_extmark(
+      buffer,
+      _VIRTUAL_SELECTION,
+      row - 1,
+      0,
+      {
+          end_line = row,
+          end_col = 0,
+          hl_group = _SELECTION_HIGHLIGHT_GROUP,
+          hl_mode = "blend",
+      }
+  )
+end
+
+
+local function _initialize_counters(instruction_counter, height)
+  if instruction_counter.count == nil or instruction_counter.offset == nil
+  then
+    -- Initialize the instructions for the first time
+    instruction_counter.count = height * 2
+    instruction_counter.offset = -1 * height
+  end
+end
+
+
 --- Force `window`'s cursor to point to the line that contains `address`.
 ---
 --- @param window integer A 0-or-more window identifier whose cursor may be moved.
---- @param address string Some memory address to look for. e.g. `"0x000000000040056f"`.
+--- @param cursor_address string Some memory address to look for. e.g. `"0x000000000040056f"`.
 ---
-local function _save_and_restore_cursor(window, address)
+local function _save_and_restore_cursor(window, cursor_address)
   local buffer = vim.api.nvim_win_get_buf(window)
   local disassembly_lines = vim.api.nvim_buf_get_lines(
     buffer,
@@ -242,7 +347,9 @@ local function _save_and_restore_cursor(window, address)
   local found_row = nil
   for row, line in ipairs(disassembly_lines)
   do
-    if _get_memory_address(line) == address
+    local address = _get_memory_address(line)
+
+    if address == cursor_address
     then
       found_row = row
 
@@ -279,8 +386,17 @@ return function(client, buffer, send_ready)
     count = nil,
   }
 
+  local function _get_computed_instruction_line()
+    -- The current frame is the actual instruction line. The offset
+    -- is relative to this line. So to get the current line, we must get
+    -- a 0-or-more offset value (if the offset is negative, make it positive).
+    -- Then `+ 1` because our offset is 0-or-more but cursor rows start at 1, not 0.
+    --
+    return math.max(0, -1 * instruction_counter.offset) + 1
+  end
+
   local cursor_adjustment_needed = false
-  local mute_autocommands = false
+  local mute_line_adjustments = false
   local should_reset_the_cursor = false
 
   -- Force a redraw of the window whenever its size has changed or the cursor is moving
@@ -289,7 +405,7 @@ return function(client, buffer, send_ready)
     {
       buffer = buffer,
       callback = function()
-        if mute_autocommands
+        if mute_line_adjustments
         then
           return
         end
@@ -320,6 +436,9 @@ return function(client, buffer, send_ready)
     }
   )
 
+  -- TODO: Add configuration option from "Visual" to something else
+  vim.api.nvim_set_hl(0, _SELECTION_HIGHLIGHT_GROUP, {link="Visual"})
+
   local on_exit = function()
     -- Remove auto-commands as needed
     vim.api.nvim_clear_autocmds({buffer=buffer, group=_GROUP})
@@ -337,11 +456,12 @@ return function(client, buffer, send_ready)
   client.listen.terminated(on_exit)
 
   local _reset_cursor = _debounce_leading(
-    function(window, cursor_row)
+    function(window, buffer, cursor_row)
       should_reset_the_cursor = false
-      mute_autocommands = true
+      mute_line_adjustments = true
       vim.api.nvim_win_set_cursor(window, {cursor_row, 0})
-      mute_autocommands = false
+      _highlight_buffer_line(window, buffer, cursor_row)
+      mute_line_adjustments = false
     end,
     200  -- TODO: Tune this value, later
   )
@@ -349,99 +469,53 @@ return function(client, buffer, send_ready)
   return {
     render = function(canvas)
       local _cursor_adjustment_needed = cursor_adjustment_needed
-      cursor_adjustment_needed = false
+      cursor_adjustment_needed = false  -- TODO: Double check if this stuff is useful
 
-      if client.session == nil
-      then
-        -- client.session will be nil when exiting so we stop before that can error.
-        return
-      end
-
-      if not client.session.capabilities.supportsDisassembleRequest then
-        util.notify(
-          "Debug server doesn't support disassembly requests.",
-          vim.log.levels.WARN
-        )
-
-        return
-      end
-
-      local memory_reference = client.session.current_frame["instructionPointerReference"]
+      local memory_reference = _get_session_frame(client)
 
       if memory_reference == nil then
-        util.notify(
-          "Disassembly could not get the starting memory address.",
-          vim.log.levels.WARN
-        )
-
         return
       end
-
-      --- @source https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Disassemble
-      --- @type dapui.types.DisassembleResponse
-      local response
-      local success
 
       local window = vim.fn.bufwinid(buffer)
       local height = vim.api.nvim_win_get_height(window)
 
-      if instruction_counter.count == nil or instruction_counter.offset == nil
-      then
-        -- Initialize the instructions for the first time
-        instruction_counter.count = height * 2
-        instruction_counter.offset = -1 * height
-      end
+      _initialize_counters(instruction_counter, height)
 
-      success, response = pcall(
-        client.request.disassemble,
-        {
-          -- TODO: Finish this part. Add more spec details
-          memoryReference=memory_reference,
-          instructionOffset=instruction_counter.offset,
-          instructionCount=instruction_counter.count,
-          offset=0,
-          resolveSymbols=true,
-        }
-      )
+      local instructions = _get_instructions(client, memory_reference, instruction_counter)
 
-      if not success then
-        util.notify(
-          "Disassembly could not be found. Cannot continue.",
-          vim.log.levels.WARN
-        )
-
-        return
-      end
-
-      if response == nil then
-        util.notify(
-          "Invalid disassembly response. Cannot continue.",
-          vim.log.levels.WARN
-        )
-
+      if instructions == nil then
         return
       end
 
       -- @type string?
-      local address = nil
+      local cursor_address = nil
 
       if _cursor_adjustment_needed
       then
-        address = _get_memory_address_at_current_cursor(window)
+        cursor_address = _get_memory_address_at_current_cursor(window, buffer)
       end
 
+      vim.api.nvim_buf_clear_namespace(buffer, _VIRTUAL_SELECTION, 0, -1)
+
       -- TODO: Consider writing a single blob of text
-      for _, line in ipairs(_get_lines(response.instructions))
+      for _, line in ipairs(_get_lines(instructions))
       do
         canvas:write(line)
       end
 
       if _cursor_adjustment_needed
       then
-        if address ~= nil
+        if cursor_address ~= nil
         then
           -- Save and restore the cursor row position
-          vim.schedule(function() _save_and_restore_cursor(window, address) end)
+          vim.schedule(
+            function()
+              _save_and_restore_cursor(window, cursor_address)
+              local current_instruction_line = _get_computed_instruction_line()
+              _highlight_buffer_line(window, buffer, current_instruction_line)
+            end
+          )
         else
           vim.api.nvim_err_writeln(
             "nvim-dap-ui: Could not find an address at the current cursor. "
@@ -451,8 +525,10 @@ return function(client, buffer, send_ready)
       elseif should_reset_the_cursor
       then
         -- Set the cursor to the disassembly line that matches the source code line
-        local cursor_row = height + 1
-        _reset_cursor(window, cursor_row)
+        instruction_counter.count = height * 2
+        instruction_counter.offset = -1 * height
+        local current_instruction_line = _get_computed_instruction_line()
+        _reset_cursor(window, buffer, current_instruction_line)
       end
     end
   }
