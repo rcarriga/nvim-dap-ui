@@ -145,15 +145,14 @@ end
 ---    The found instructions, if any.
 ---
 local function _get_instructions(client, memory_reference, instruction_counter)
-  ---@source https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Disassemble
   ---@type dapui.types.DisassembleResponse
   local response
   local success
 
+  ---@source https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Disassemble
   success, response = pcall(
     client.request.disassemble,
     {
-      -- TODO: Finish this part. Add more spec details
       memoryReference=memory_reference,
       instructionOffset=instruction_counter.offset,
       instructionCount=instruction_counter.count,
