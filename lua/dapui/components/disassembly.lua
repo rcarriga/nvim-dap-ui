@@ -20,9 +20,6 @@ local _VIRTUAL_SELECTION = vim.api.nvim_create_namespace("NvimDapUiDisassemblyVi
 ---     - `nil` means "do nothing"
 ---     - `true` means "offset the cursor downwards"
 ---     - `false` means "offset the cursor upwards"
---- @field mute_line_adjustments boolean  TODO Check if still needed
----     If `true`, don't let auto-commands like WinScrolled trigger changes
----     to the Disassembly Buffer. If `false`, allow it.
 --- @field should_reset_the_cursor boolean
 ---     If `false`, do nothing. If `true`, the next time the Disassembly Buffer
 ---     is re-rendered, the Disassembly cursor will sync to the current stack frame.
@@ -465,10 +462,8 @@ return function(client, buffer, send_ready)
   local _reset_cursor = _debounce_leading(
     function(window, buffer_, cursor_row)
       state.should_reset_the_cursor = false
-      state.mute_line_adjustments = true
       vim.api.nvim_win_set_cursor(window, {cursor_row, 0})
       _highlight_current_instruction(buffer_, cursor_row)
-      state.mute_line_adjustments = false
     end,
     200  -- TODO: Tune this value, later
   )
