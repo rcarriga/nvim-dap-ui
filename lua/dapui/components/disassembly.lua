@@ -100,8 +100,8 @@ end
 ---
 ---@param instructions dapui.types.DisassembledInstruction[]
 ---    Each of the instructions to query for individual element lengths.
----@return string[]
----    # The raw disassembly lines to display, later.
+---@return string
+---    The raw disassembly lines to display, later.
 ---
 local function _get_column_aligned(instructions)
   local spacing = ""
@@ -112,20 +112,17 @@ local function _get_column_aligned(instructions)
     spacing = _get_spacing(config.disassembly.instruction_spacing)
   end
 
-  local output = {}
+  local output = ""
   local column_justified_template = _get_alignment_template(instructions)
 
   for _, instruction in ipairs(instructions) do
-    table.insert(
-      output,
-      string.format(
-        column_justified_template,
-        instruction.address,
-        spacing,
-        instruction.instructionBytes,
-        spacing,
-        instruction.instruction
-      )
+    output = output .. string.format(
+      column_justified_template,
+      instruction.address,
+      spacing,
+      instruction.instructionBytes,
+      spacing,
+      instruction.instruction
     )
   end
 
@@ -191,7 +188,7 @@ end
 ---
 ---@param instructions dapui.types.DisassembledInstruction[]
 ---    Each of the instructions to query for individual element lengths.
----@return string[]
+---@return string
 ---    The raw disassembly lines to display, later.
 ---
 local function _get_lines(instructions)
@@ -208,19 +205,16 @@ local function _get_lines(instructions)
     spacing = _get_spacing(config.disassembly.instruction_spacing)
   end
 
-  local output = {}
+  local output = ""
 
   for _, instruction in ipairs(instructions) do
-    table.insert(
-      output,
-      string.format(
-        "%s%s%s%s%s\n",
-        instruction.address,
-        spacing,
-        instruction.instructionBytes,
-        spacing,
-        instruction.instruction
-      )
+    output = output .. string.format(
+      "%s%s%s%s%s\n",
+      instruction.address,
+      spacing,
+      instruction.instructionBytes,
+      spacing,
+      instruction.instruction
     )
   end
 
@@ -429,7 +423,6 @@ return function(client, buffer, send_ready)
 
   _setup_auto_commands(buffer, state, instruction_counter, send_ready)
 
-  -- TODO: Add configuration option from "Visual" to something else
   vim.api.nvim_set_hl(
     0,
     _SELECTION_HIGHLIGHT_GROUP,
@@ -485,10 +478,7 @@ return function(client, buffer, send_ready)
 
       vim.api.nvim_buf_clear_namespace(buffer, _VIRTUAL_SELECTION, 0, -1)
 
-      -- TODO: Consider writing a single blob of text
-      for _, line in ipairs(_get_lines(instructions)) do
-        canvas:write(line)
-      end
+      canvas:write(_get_lines(instructions))
 
       if _adjust_direction_down ~= nil then
         ---@type integer
