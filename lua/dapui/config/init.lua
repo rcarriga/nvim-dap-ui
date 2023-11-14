@@ -24,6 +24,7 @@ local dapui = {}
 ---@class dapui.element_config.Disassembly
 ---@field column_aligned boolean If `true`, Disassembly instructions align vertically
 ---@field instruction_spacing integer The spacing to place memory addresses, bytes, and instructions
+---@field styles table<string, any> Settings used to determine how the Disassembly Buffer should look.
 
 ---@class dapui.Config.icons
 ---@field expanded string
@@ -83,6 +84,7 @@ local default_config = {
   disassembly = {
     column_aligned = true,
     instruction_spacing = 1,
+    styles = { current_frame = { link="Visual" } },
   },
   icons = { expanded = "", collapsed = "", current_frame = "" },
   mappings = {

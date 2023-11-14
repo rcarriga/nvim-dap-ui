@@ -6,28 +6,28 @@ local _GROUP = vim.api.nvim_create_augroup("NvimDapUiDisassembly", { clear = fal
 local _SELECTION_HIGHLIGHT_GROUP = "NvimDapUiDisassemblyHighlightLine"
 local _VIRTUAL_SELECTION = vim.api.nvim_create_namespace("NvimDapUiDisassemblyVirtualSelection")
 
---- @class _DiassemblyInstructionCounter
----     Packed data that is needed in order to draw/redraw disassembly instructions.
---- @field count? integer
----     A 1-or-more value indicating how many lines of assembly to request.
---- @field offset? integer
----     A 0-or-more relative value indicating where to start looking for assembly lines.
+---@class _DiassemblyInstructionCounter
+---    Packed data that is needed in order to draw/redraw disassembly instructions.
+---@field count? integer
+---    A 1-or-more value indicating how many lines of assembly to request.
+---@field offset? integer
+---    A 0-or-more relative value indicating where to start looking for assembly lines.
 
---- @class _DisassemblyWindowState
----     Control the refresh, draw, and other behaviors of a Disassembly Buffer
---- @field adjust_direction_down boolean?
----     A tri-state variable.
----     - `nil` means "do nothing"
----     - `true` means "offset the cursor downwards"
----     - `false` means "offset the cursor upwards"
---- @field should_reset_the_cursor boolean
----     If `false`, do nothing. If `true`, the next time the Disassembly Buffer
----     is re-rendered, the Disassembly cursor will sync to the current stack frame.
+---@class _DisassemblyWindowState
+---    Control the refresh, draw, and other behaviors of a Disassembly Buffer
+---@field adjust_direction_down boolean?
+---    A tri-state variable.
+---    - `nil` means "do nothing"
+---    - `true` means "offset the cursor downwards"
+---    - `false` means "offset the cursor upwards"
+---@field should_reset_the_cursor boolean
+---    If `false`, do nothing. If `true`, the next time the Disassembly Buffer
+---    is re-rendered, the Disassembly cursor will sync to the current stack frame.
 
---- @class vim.loop.timer
---- @field start fun(self: vim.loop.timer, timeout: integer, start: integer, function: fun(...))
----     A function that, when called, starts in `start` milliseconds,
----     stops at `timeout`, and all the while calls `function`.
+---@class vim.loop.timer
+---@field start fun(self: vim.loop.timer, timeout: integer, start: integer, function: fun(...))
+---    A function that, when called, starts in `start` milliseconds,
+---    stops at `timeout`, and all the while calls `function`.
 
 --- Figure out the spacing needed for every column in `instructions`.
 ---
@@ -40,10 +40,10 @@ local _VIRTUAL_SELECTION = vim.api.nvim_create_namespace("NvimDapUiDisassemblyVi
 ---
 --- Use this function to produce a format string that will align that text.
 ---
---- @param instructions dapui.types.DisassembledInstruction[]
----     Each of the instructions to query for individual element lengths.
---- @return string
----     # The recommended template that will provided aligned columns.
+---@param instructions dapui.types.DisassembledInstruction[]
+---    Each of the instructions to query for individual element lengths.
+---@return string
+---    # The recommended template that will provided aligned columns.
 ---
 local function _get_alignment_template(instructions)
   local address_max = 1
@@ -57,8 +57,7 @@ local function _get_alignment_template(instructions)
 
   local instruction_max = 1
 
-  for _, instruction in ipairs(instructions)
-  do
+  for _, instruction in ipairs(instructions) do
     local address_count = #instruction.address
 
     if address_count > address_max then
@@ -89,8 +88,8 @@ end
 
 --- Repeat the "\t" character `count` number of times.
 ---
---- @param count integer The number of times to repeat. Should be 1-or-more.
---- @return string # The generated "\t\t\t" text.
+---@param count integer The number of times to repeat. Should be 1-or-more.
+---@return string # The generated "\t\t\t" text.
 ---
 local function _get_spacing(count)
   return string.rep("\t", count)
@@ -99,10 +98,10 @@ end
 
 --- Get the disassembly text from `instructions`, aligned by-column.
 ---
---- @param instructions dapui.types.DisassembledInstruction[]
----     Each of the instructions to query for individual element lengths.
---- @return string[]
----     # The raw disassembly lines to display, later.
+---@param instructions dapui.types.DisassembledInstruction[]
+---    Each of the instructions to query for individual element lengths.
+---@return string[]
+---    # The raw disassembly lines to display, later.
 ---
 local function _get_column_aligned(instructions)
   local spacing = ""
@@ -136,21 +135,21 @@ end
 
 --- Disassemble at `memory_reference` and get the instructions back.
 ---
---- @param client dapui.DAPClient
----     The current DAP session's controller class.
---- @param memory_reference string
----     The memory address used to anchor the disassembly.
----     Important: This is *not* always the starting line of the disassembly.
----     That depends on `instruction_counter`.
---- @param instruction_counter _DiassemblyInstructionCounter
----     A "number of disassembly lines to get" and a relative "offset" to start from.
----     The `memory_reference` + "offset" determines the 1st line of assembly returned.
---- @return dapui.types.DisassembledInstruction[]?
----     The found instructions, if any.
+---@param client dapui.DAPClient
+---    The current DAP session's controller class.
+---@param memory_reference string
+---    The memory address used to anchor the disassembly.
+---    Important: This is *not* always the starting line of the disassembly.
+---    That depends on `instruction_counter`.
+---@param instruction_counter _DiassemblyInstructionCounter
+---    A "number of disassembly lines to get" and a relative "offset" to start from.
+---    The `memory_reference` + "offset" determines the 1st line of assembly returned.
+---@return dapui.types.DisassembledInstruction[]?
+---    The found instructions, if any.
 ---
 local function _get_instructions(client, memory_reference, instruction_counter)
-  --- @source https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Disassemble
-  --- @type dapui.types.DisassembleResponse
+  ---@source https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Disassemble
+  ---@type dapui.types.DisassembleResponse
   local response
   local success
 
@@ -190,10 +189,10 @@ end
 
 --- Get the disassembly text from `instructions`.
 ---
---- @param instructions dapui.types.DisassembledInstruction[]
----     Each of the instructions to query for individual element lengths.
---- @return string[]
----     # The raw disassembly lines to display, later.
+---@param instructions dapui.types.DisassembledInstruction[]
+---    Each of the instructions to query for individual element lengths.
+---@return string[]
+---    The raw disassembly lines to display, later.
 ---
 local function _get_lines(instructions)
   if config.disassembly.column_aligned then
@@ -231,14 +230,13 @@ end
 
 --- Find the current memory address of an active DAP `client`.
 ---
---- @param client dapui.DAPClient
----     The current DAP session's controller class.
---- @return string?
----     The found memory address, if any.
+---@param client dapui.DAPClient
+---    The current DAP session's controller class.
+---@return string?
+---    The found memory address, if any.
 ---
 local function _get_session_frame(client)
-  if client.session == nil
-  then
+  if client.session == nil then
     -- client.session will be nil when exiting so we stop before that can error.
     return nil
   end
@@ -273,18 +271,18 @@ end
 --- ignore all but the first call. This is helpful to prevent spammy autocommands
 --- from triggering too often.
 ---
---- @source https://gist.github.com/runiq/31aa5c4bf00f8e0843cd267880117201#debouncing-on-the-leading-edge
+---@source https://gist.github.com/runiq/31aa5c4bf00f8e0843cd267880117201#debouncing-on-the-leading-edge
 ---
---- @param function_ fun(...)
----     A function to call or defer.
---- @param timeout number
----     Timeout in millisecond.
---- @return function, vim.loop.timer
----     # The debounced function and timer. Remember to call `timer:close()` at the end
----     or you will leak memory!
+---@param function_ fun(...)
+---    A function to call or defer.
+---@param timeout number
+---    Timeout in millisecond.
+---@return function, vim.loop.timer
+---    The debounced function and timer. Remember to call `timer:close()` at the end
+---    or you will leak memory!
 ---
 local function _debounce_leading(function_, timeout)
-  --- @type vim.loop.timer
+  ---@type vim.loop.timer
   local timer = vim.loop.new_timer()
 
   local running = false
@@ -310,10 +308,10 @@ end
 
 --- Highlight the Disassembly instruction that is about to be executed.
 ---
---- @param buffer integer
----     A 0-or-more Neovim Buffer ID which will be modified by this function.
---- @param row integer
----     A 1-or-more value indicating the cursor line to highlight.
+---@param buffer integer
+---    A 0-or-more Neovim Buffer ID which will be modified by this function.
+---@param row integer
+---    A 1-or-more value indicating the cursor line to highlight.
 ---
 local function _highlight_current_instruction(buffer, row)
   vim.api.nvim_buf_set_extmark(
@@ -333,14 +331,13 @@ end
 
 --- Set-up `instruction_counter` for the first time using `height`, if needed.
 ---
---- @param instruction_counter _DiassemblyInstructionCounter
----     The packed data to modify if it has not be set before.
---- @param height integer
----     A 1-or-more window vertical height indicator.
+---@param instruction_counter _DiassemblyInstructionCounter
+---    The packed data to modify if it has not be set before.
+---@param height integer
+---    A 1-or-more window vertical height indicator.
 ---
 local function _initialize_counters(instruction_counter, height)
-  if instruction_counter.count == nil or instruction_counter.offset == nil
-  then
+  if instruction_counter.count == nil or instruction_counter.offset == nil then
     -- Initialize the instructions for the first time
     instruction_counter.count = height * 2
     instruction_counter.offset = -1 * height
@@ -354,17 +351,17 @@ end
 --- DAP Disassemble requests will be made (it depends on how close the cursor is to
 --- the top ot bottom of the buffer).
 ---
---- @source
----     - https://github.com/mfussenegger/nvim-dap/issues/331#issuecomment-1801296947
----     - https://github.com/puremourning/vimspector/blob/66617adda22d29c60ec2ee9bcb854329352ada80/python3/vimspector/disassembly.py#L229-L260
+---@source
+---    - https://github.com/mfussenegger/nvim-dap/issues/331#issuecomment-1801296947
+---    - https://github.com/puremourning/vimspector/blob/66617adda22d29c60ec2ee9bcb854329352ada80/python3/vimspector/disassembly.py#L229-L260
 ---
---- @param buffer integer
----     A 0-or-more Neovim Buffer ID which will be modified by this function.
---- @param state _DisassemblyWindowState
----     A secondary Disassembly Buffer controller object. Used to determine things
----     like whether or not the auto-commands should run and how.
---- @param send_ready function()
----     The callback which, when called, triggers the Disassembly Buffer to redraw.
+---@param buffer integer
+---    A 0-or-more Neovim Buffer ID which will be modified by this function.
+---@param state _DisassemblyWindowState
+---    A secondary Disassembly Buffer controller object. Used to determine things
+---    like whether or not the auto-commands should run and how.
+---@param send_ready function()
+---    The callback which, when called, triggers the Disassembly Buffer to redraw.
 ---
 local function _setup_auto_commands(buffer, state, instruction_counter, send_ready)
   -- Force a redraw of the window whenever its size has changed or the cursor is moving
@@ -373,25 +370,18 @@ local function _setup_auto_commands(buffer, state, instruction_counter, send_rea
     {
       buffer = buffer,
       callback = function()
-        if state.mute_line_adjustments
-        then
-          return
-        end
-
         local window = vim.fn.bufwinid(buffer)
         local top_line = vim.fn.getwininfo(window)[1].topline
         local height = vim.api.nvim_win_get_height(window)
 
-        if top_line == 1
-        then
+        if top_line == 1 then
           -- We're at the top of the buffer, request another page above the cursor
           instruction_counter.offset = instruction_counter.offset - height
           instruction_counter.count = instruction_counter.count + height  -- Get increasingly more
 
           state.adjust_direction_down = true
           send_ready()
-        elseif top_line >= (vim.api.nvim_buf_line_count(buffer) - height)
-        then
+        elseif top_line >= (vim.api.nvim_buf_line_count(buffer) - height) then
           -- We're at the botton page, request a new page below the cursor
           instruction_counter.offset = math.min(0, instruction_counter.offset + height)
           instruction_counter.count = instruction_counter.count + height  -- Get increasingly more
@@ -408,15 +398,15 @@ end
 
 --- Configure `buffer` so it can display in `client` when buffer-rendering is requested.
 ---
---- @param client dapui.DAPClient
----     The current DAP session's controller class.
---- @param send_ready function
----     A callback that will trigger `render()`, which updates the display of
----     the nvim-dap-ui Disassembly Buffer
---- @return dapui.types.RenderableComponent
+---@param client dapui.DAPClient
+---    The current DAP session's controller class.
+---@param send_ready function
+---    A callback that will trigger `render()`, which updates the display of
+---    the nvim-dap-ui Disassembly Buffer
+---@return dapui.types.RenderableComponent
 ---
 return function(client, buffer, send_ready)
-  --- @type _DiassemblyInstructionCounter
+  ---@type _DiassemblyInstructionCounter
   local instruction_counter = {
     offset = nil,
     count = nil,
@@ -431,17 +421,20 @@ return function(client, buffer, send_ready)
     return math.max(0, -1 * instruction_counter.offset) + 1
   end
 
-  --- @type _DisassemblyWindowState
+  ---@type _DisassemblyWindowState
   local state = {
     adjust_direction_down = nil,
-    mute_line_adjustments = false,
     should_reset_the_cursor = false
   }
 
   _setup_auto_commands(buffer, state, instruction_counter, send_ready)
 
   -- TODO: Add configuration option from "Visual" to something else
-  vim.api.nvim_set_hl(0, _SELECTION_HIGHLIGHT_GROUP, {link="Visual"})
+  vim.api.nvim_set_hl(
+    0,
+    _SELECTION_HIGHLIGHT_GROUP,
+    config.disassembly.styles.current_frame or {link="Visual"}
+  )
 
   local on_exit = function()
     -- Remove auto-commands as needed
@@ -493,14 +486,12 @@ return function(client, buffer, send_ready)
       vim.api.nvim_buf_clear_namespace(buffer, _VIRTUAL_SELECTION, 0, -1)
 
       -- TODO: Consider writing a single blob of text
-      for _, line in ipairs(_get_lines(instructions))
-      do
+      for _, line in ipairs(_get_lines(instructions)) do
         canvas:write(line)
       end
 
-      if _adjust_direction_down ~= nil
-      then
-        --- @type integer
+      if _adjust_direction_down ~= nil then
+        ---@type integer
         local offset
 
         if _adjust_direction_down then
@@ -520,8 +511,7 @@ return function(client, buffer, send_ready)
             _highlight_current_instruction(buffer, current_instruction_line)
           end
         )
-      elseif state.should_reset_the_cursor
-      then
+      elseif state.should_reset_the_cursor then
         instruction_counter.count = height * 2
         instruction_counter.offset = -1 * height
         local current_instruction_line = _get_computed_instruction_line()

@@ -2,12 +2,14 @@ local config = require("dapui.config")
 local Canvas = require("dapui.render.canvas")
 local util = require("dapui.util")
 
+---@return dapui.elements.disassembly
+---    Create the Disassembly Buffer interface and return it.
+---
 return function(client)
   local dapui = { elements = {} }
-  local auto_commands = {}
 
-  ---@class dapui.elements.disassembly
-  --- Displays the Assembly code of the current frame, if supported by the client adapter.
+  --- @class dapui.elements.disassembly
+  ---     Displays the Assembly code of the current frame, if supported by the client.
   dapui.elements.disassembly = {}
 
   local send_ready = util.create_render_loop(function()
