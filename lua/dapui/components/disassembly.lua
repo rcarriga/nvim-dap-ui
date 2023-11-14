@@ -3,7 +3,7 @@ local util = require("dapui.util")
 
 
 local _GROUP = vim.api.nvim_create_augroup("NvimDapUiDisassembly", { clear = false})
-local _SELECTION_HIGHLIGHT_GROUP = "NvimDapUiDisassemblyHighlightLine"
+local _SELECTION_HIGHLIGHT_GROUP = "DapUIDisassemblyHighlightLine"
 local _VIRTUAL_SELECTION = vim.api.nvim_create_namespace("NvimDapUiDisassemblyVirtualSelection")
 
 ---@class _DiassemblyInstructionCounter
@@ -423,12 +423,6 @@ return function(client, buffer, send_ready)
 
   _setup_auto_commands(buffer, state, instruction_counter, send_ready)
 
-  vim.api.nvim_set_hl(
-    0,
-    _SELECTION_HIGHLIGHT_GROUP,
-    config.disassembly.styles.current_frame or {link="Visual"}
-  )
-
   local on_exit = function()
     -- Remove auto-commands as needed
     vim.api.nvim_clear_autocmds({buffer=buffer, group=_GROUP})
@@ -445,6 +439,13 @@ return function(client, buffer, send_ready)
   client.listen.exited(on_exit)
   client.listen.terminated(on_exit)
 
+  local _force_cursor = _debounce_leading(
+    function(window, cursor_row)
+      vim.api.nvim_win_set_cursor(window, {cursor_row, 0})
+    end,
+    20  -- A small enough number that won't risk triggering `_force_cursor` 2+ times
+  )
+
   local _reset_cursor = _debounce_leading(
     function(window, buffer_, cursor_row)
       state.should_reset_the_cursor = false
@@ -456,6 +457,7 @@ return function(client, buffer, send_ready)
 
   return {
     render = function(canvas)
+      -- Reset any state that needs to be reset
       local _adjust_direction_down = state.adjust_direction_down
       state.adjust_direction_down = nil
 
@@ -476,10 +478,24 @@ return function(client, buffer, send_ready)
         return
       end
 
+      -- Set-up the canvas for writing
       vim.api.nvim_buf_clear_namespace(buffer, _VIRTUAL_SELECTION, 0, -1)
-
       canvas:write(_get_lines(instructions))
 
+      -- Now that the canvas is updated, set up per-line mappings
+      local current_instruction_line = _get_computed_instruction_line()
+
+      for line = 1, canvas:length() do
+        canvas:add_mapping(
+          "expand",
+          function()
+            _force_cursor(window, current_instruction_line)
+          end,
+          {line=line}
+        )
+      end
+
+      -- Since the canvas updated, the user's current cursor may be out of date. Fix it
       if _adjust_direction_down ~= nil then
         ---@type integer
         local offset
@@ -492,7 +508,6 @@ return function(client, buffer, send_ready)
 
         local current_row = vim.api.nvim_win_get_cursor(window)[1]
         local new_row = current_row + offset
-        local current_instruction_line = _get_computed_instruction_line()
 
         -- Important: You need to schedule this or the line will not highlight correctly
         vim.schedule(
@@ -504,7 +519,6 @@ return function(client, buffer, send_ready)
       elseif state.should_reset_the_cursor then
         instruction_counter.count = height * 2
         instruction_counter.offset = -1 * height
-        local current_instruction_line = _get_computed_instruction_line()
         _reset_cursor(window, buffer, current_instruction_line)
       end
     end
