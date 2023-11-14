@@ -451,7 +451,7 @@ return function(client, buffer, send_ready)
       vim.api.nvim_win_set_cursor(window, {cursor_row, 0})
       _highlight_current_instruction(buffer_, cursor_row)
     end,
-    200  -- TODO: Tune this value, later
+    20  -- A small enough number that won't risk triggering `_reset_cursor` 2+ times
   )
 
   return {
