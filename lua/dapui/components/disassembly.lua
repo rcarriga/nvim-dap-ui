@@ -307,17 +307,12 @@ end
 ---    A 1-or-more value indicating the cursor line to highlight.
 ---
 local function _highlight_current_instruction(buffer, row)
-  vim.api.nvim_buf_set_extmark(
-      buffer,
-      _VIRTUAL_SELECTION,
-      row - 1,
-      0,
-      {
-          end_line = row,
-          end_col = 0,
-          hl_group = _SELECTION_HIGHLIGHT_GROUP,
-          hl_mode = "blend",
-      }
+  vim.fn.sign_place(
+    _VIRTUAL_SELECTION,
+    "",
+    "DapUIDisassemblyCurrentLineSign",
+    buffer,
+    { lnum = row }
   )
 end
 
@@ -478,7 +473,6 @@ return function(client, buffer, send_ready)
       end
 
       -- Set-up the canvas for writing
-      vim.api.nvim_buf_clear_namespace(buffer, _VIRTUAL_SELECTION, 0, -1)
       canvas:write(_get_lines(instructions))
 
       -- Now that the canvas is updated, set up per-line mappings

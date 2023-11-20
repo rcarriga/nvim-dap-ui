@@ -1,3 +1,26 @@
+- Disassembly parse, allow any contents inside of a comment if we can
+
+- need error recovery when the user goes too far up or down
+- New action (not <Enter>. Use another action, maybe)
+
+--- Fix this bug
+    If error - stepping outside of the code window breaks things
+    Debug adapter reported a frame at line 8 column 1, but: Cursor position outside buffer. Ensure executable is up2date and if us
+    ing a source mapping ensure it is correct
+- Make PR
+     - Suggest a tree-sitter-disassembly parser
+     - Copying the line is weird. Why?
+     - Ask about the weir coloring if it can be turned off
+     - Moving the cursor left/right in a line looks weird. Fix?
+
+https://github.com/microsoft/debug-adapter-protocol/issues/200
+:lua require("dap").session():request("readMemory", {memoryReference="0x0000000000400015", count=1000}, function(error, result
+) print(vim.inspect(result)) end)
+
+- https://github.com/RaafatTurki/hex.nvim/issues/15
+ - Could be a good idea to have a hex viewer
+
+
 # nvim-dap-ui
 
 ## Introduction

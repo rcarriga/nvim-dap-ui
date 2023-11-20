@@ -102,6 +102,11 @@ function dapui.setup(user_config)
     elements[module] = elem
   end
 
+  vim.fn.sign_define(
+    "DapUIDisassemblyCurrentLineSign",
+    { texthl = "DapUIDisassemblyHighlightLine", text = "►" }
+  )
+
   local element_buffers = {}
   for name, elem in pairs(elements) do
     element_buffers[name] = elem.buffer
