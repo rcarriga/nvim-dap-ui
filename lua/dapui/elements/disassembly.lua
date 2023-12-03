@@ -20,6 +20,9 @@ return function(client)
     filetype = "dapui_disassembly",
   })()
 
+  -- TODO: Check if this exists first, before setting it
+  vim.treesitter.start(buffer, "disassembly")
+
   local disassembly = require("dapui.components.disassembly")(client, buffer, send_ready)
 
   ---@nodoc
