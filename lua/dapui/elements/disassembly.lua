@@ -1,3 +1,8 @@
+--- Responsible for displaying the nvim-dap-ui Disassembly buffer.
+---
+--- @module 'dapui.elements.disassembly'
+---
+
 local config = require("dapui.config")
 local Canvas = require("dapui.render.canvas")
 local util = require("dapui.util")
@@ -20,8 +25,9 @@ return function(client)
     filetype = "dapui_disassembly",
   })()
 
-  -- TODO: Check if this exists first, before setting it
-  vim.treesitter.start(buffer, "disassembly")
+  if vim.treesitter.language.get_lang("disassembly") ~= nil then
+    vim.treesitter.start(buffer, "disassembly")
+  end
 
   local disassembly = require("dapui.components.disassembly")(client, buffer, send_ready)
 

@@ -1,3 +1,8 @@
+--- The implementation for the "DAP Disassembly" canvas.
+---
+--- @module 'dapui.components.disassembly'
+---
+
 local config = require("dapui.config")
 local util = require("dapui.util")
 

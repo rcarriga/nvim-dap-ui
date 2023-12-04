@@ -331,10 +331,9 @@ Alias~
 `dapui.FloatingAction` → `"close"`
 
 ==============================================================================
-dapui.elements.disassembly                                        *dapui.elements.disassembly*
+dapui.elements.disassembly                                *dapui.elements.disassembly*
 
-Displays the Assembly code of the current frame, if supported by the client
-adapter.
+Displays instruction Assembly code, if supported by the client adapter.
 
 
 ==============================================================================

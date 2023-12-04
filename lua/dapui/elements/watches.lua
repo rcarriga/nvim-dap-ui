@@ -71,7 +71,7 @@ return function(client)
   end
 
   ---@nodoc
-  dapui.elements.watches.buffer = util.create_buffer("DAP Watches <leader>dw", {
+  dapui.elements.watches.buffer = util.create_buffer("DAP Watches", {
     filetype = "dapui_watches",
     omnifunc = "v:lua.require'dap'.omnifunc",
   })
