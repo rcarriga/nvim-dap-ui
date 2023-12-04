@@ -29,6 +29,28 @@ local _VIRTUAL_SELECTION = vim.api.nvim_create_namespace("NvimDapUiDisassemblyVi
 ---    A function that, when called, starts in `start` milliseconds,
 ---    stops at `timeout`, and all the while calls `function`.
 
+
+--- Check if `instructions` has any invalid portions.
+---
+--- This function typically returns `true` whenever `instruction_counter.count`
+--- is too high. When that happens, the `instructions` has at least one element
+--- that has incomplete contents.
+---
+---@param instructions dapui.types.DisassembledInstruction[]
+---    Each of the instructions to query for individual element lengths.
+---@return boolean
+---    If `instructions` is complete, return `true. Otherwise, return `false`.
+---
+local function _is_valid(instructions)
+  for _, instruction in ipairs(instructions) do
+    if instruction.instructionBytes == nil then
+      return false
+    end
+  end
+
+  return true
+end
+
 --- Figure out the spacing needed for every column in `instructions`.
 ---
 --- Each instruction address has potentially varying lengths of memory addresses,
@@ -43,7 +65,7 @@ local _VIRTUAL_SELECTION = vim.api.nvim_create_namespace("NvimDapUiDisassemblyVi
 ---@param instructions dapui.types.DisassembledInstruction[]
 ---    Each of the instructions to query for individual element lengths.
 ---@return string
----    # The recommended template that will provided aligned columns.
+---    The recommended template that will provided aligned columns.
 ---
 local function _get_alignment_template(instructions)
   local address_max = 1
@@ -449,6 +471,12 @@ return function(client, buffer, send_ready)
     20  -- A small enough number that won't risk triggering `_reset_cursor` 2+ times
   )
 
+  ---@type _DiassemblyInstructionCounter
+  local previous_instruction_counter = {
+    count = nil,
+    offset = nil,
+  }
+
   return {
     render = function(canvas)
       -- Reset any state that needs to be reset
@@ -468,8 +496,17 @@ return function(client, buffer, send_ready)
 
       local instructions = _get_instructions(client, memory_reference, instruction_counter)
 
-      if instructions == nil then
-        return
+      if instructions == nil or not _is_valid(instructions) then
+        -- Important: we `- height` because `_is_valid` tends to only be true when
+        -- the count is too high. By backing off a bit, we ensure that the window
+        -- will still be in-bounds.
+        --
+        instruction_counter.count = previous_instruction_counter.count - height
+        instruction_counter.offset = previous_instruction_counter.offset
+        instructions = _get_instructions(client, memory_reference, instruction_counter)
+      else
+        previous_instruction_counter.count = instruction_counter.count
+        previous_instruction_counter.offset = instruction_counter.offset
       end
 
       -- Set-up the canvas for writing

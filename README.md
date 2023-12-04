@@ -1,4 +1,6 @@
-- Need error recovery when the user goes too far up or down
+local w = require('dap.ui.widgets'); w.sidebar(w.sessions, nil, '5 sp').open();
+- Use this to show how to make new pop-up widgets
+
 - Consider a different action other than <Enter>
 
 
