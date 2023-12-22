@@ -1,5 +1,5 @@
-local async = require("dapui.async")
-local a = async.tests
+local nio = require("nio")
+local a = nio.tests
 local Scopes = require("dapui.elements.scopes")
 local tests = require("dapui.tests")
 tests.bootstrap()
@@ -74,7 +74,7 @@ describe("scopes element", function()
     scopes = nil
   end)
   a.it("renders initial lines", function()
-    local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
     assert.same({
       "Locals:",
       "   a number = 1",
@@ -109,8 +109,8 @@ describe("scopes element", function()
     a.it("renders expanded lines", function()
       local keymaps = tests.util.get_mappings(scopes.buffer())
       keymaps["<CR>"](3)
-      async.sleep(10)
-      local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
+      nio.sleep(10)
+      local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.same({
         "Locals:",
         "   a number = 1",
@@ -124,7 +124,7 @@ describe("scopes element", function()
     a.it("renders expanded highlights", function()
       local keymaps = tests.util.get_mappings(scopes.buffer())
       keymaps["<CR>"](3)
-      async.sleep(10)
+      nio.sleep(10)
       local formatted = tests.util.get_highlights(buf)
       assert.same({
         { "DapUIScope", 0, 0, 0, 6 },

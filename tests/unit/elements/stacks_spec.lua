@@ -1,5 +1,5 @@
-local async = require("dapui.async")
-local a = async.tests
+local nio = require("nio")
+local a = nio.tests
 local Stacks = require("dapui.elements.stacks")
 local tests = require("dapui.tests")
 tests.bootstrap()
@@ -86,7 +86,7 @@ describe("stacks element", function()
     client.request.threads()
     client.request.scopes({ frameId = 1 })
     buf = stacks.buffer()
-    async.sleep(10)
+    nio.sleep(10)
   end)
   after_each(function()
     pcall(vim.api.nvim_buf_delete, buf, { force = true })
@@ -95,7 +95,7 @@ describe("stacks element", function()
   end)
   a.it("renders initial lines", function()
     stacks.render()
-    local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
     assert.same({
       "Thread 1:",
       " stack_frame_1 file_1:1",
@@ -131,8 +131,8 @@ describe("stacks element", function()
       stacks.render()
       local keymaps = tests.util.get_mappings(stacks.buffer())
       keymaps["t"](1)
-      async.sleep(10)
-      local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
+      nio.sleep(10)
+      local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.same({
         "Thread 1:",
         " stack_frame_1 file_1:1",

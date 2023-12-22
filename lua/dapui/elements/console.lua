@@ -1,4 +1,4 @@
-local async = require("dapui.async")
+local nio = require("nio")
 local dap = require("dap")
 local util = require("dapui.util")
 
@@ -15,7 +15,7 @@ return function()
   local autoscroll = true
   ---@nodoc
   local function get_buf()
-    if async.api.nvim_buf_is_valid(console_buf) then
+    if nio.api.nvim_buf_is_valid(console_buf) then
       return console_buf
     end
     console_buf = util.create_buffer("DAP Console", { filetype = "dapui_console" })()
@@ -24,18 +24,18 @@ return function()
         autoscroll = true
         vim.cmd("normal! G")
       end, { silent = true, buffer = console_buf })
-      async.api.nvim_create_autocmd({ "InsertEnter", "CursorMoved" }, {
-        group = async.api.nvim_create_augroup("dap-repl-au", { clear = true }),
+      nio.api.nvim_create_autocmd({ "InsertEnter", "CursorMoved" }, {
+        group = nio.api.nvim_create_augroup("dap-repl-au", { clear = true }),
         buffer = console_buf,
         callback = function()
-          local active_buf = async.api.nvim_win_get_buf(0)
+          local active_buf = nio.api.nvim_win_get_buf(0)
           if active_buf == console_buf then
-            local lnum = async.api.nvim_win_get_cursor(0)[1]
-            autoscroll = lnum == async.api.nvim_buf_line_count(console_buf)
+            local lnum = nio.api.nvim_win_get_cursor(0)[1]
+            autoscroll = lnum == nio.api.nvim_buf_line_count(console_buf)
           end
         end,
       })
-      async.api.nvim_buf_attach(console_buf, false, {
+      nio.api.nvim_buf_attach(console_buf, false, {
         on_lines = function(_, _, _, _, _, _)
           if autoscroll and vim.fn.mode() == "n" then
             vim.cmd("normal! G")

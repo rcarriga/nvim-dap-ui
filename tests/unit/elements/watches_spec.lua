@@ -1,5 +1,5 @@
-local async = require("dapui.async")
-local a = async.tests
+local nio = require("nio")
+local a = nio.tests
 local Watches = require("dapui.elements.watches")
 local tests = require("dapui.tests")
 tests.bootstrap()
@@ -50,7 +50,7 @@ describe("watches element", function()
   end)
   describe("with no expressions", function()
     a.it("renders no expressions lines", function()
-      local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
+      local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.same({ "No Expressions", "" }, lines)
     end)
     a.it("renders lines after expression update", function()
@@ -63,8 +63,8 @@ describe("watches element", function()
     watches.add("a")
     watches.add("b - 1")
     watches.add("c")
-    async.sleep(10)
-    local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
+    nio.sleep(10)
+    local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
     assert.same(
       { " a = 'a value'", " b - 1 number = 1", " c table = { d = 1 }", "" },
       lines
@@ -75,7 +75,7 @@ describe("watches element", function()
     watches.add("a")
     watches.add("b - 1")
     watches.add("c")
-    async.sleep(10)
+    nio.sleep(10)
     local highlights = tests.util.get_highlights(buf)
     assert.same({
       { "DapUIWatchesValue", 0, 0, 0, 3 },
@@ -93,15 +93,15 @@ describe("watches element", function()
     a.it("renders expanded lines", function()
       watches.add("c")
       watches.toggle_expand(1)
-      async.sleep(10)
+      nio.sleep(10)
 
-      local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
+      local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.same({ " c table = { d = 1 }", "   d number = 1", "" }, lines)
     end)
     a.it("renders expanded highlights", function()
       watches.add("c")
       watches.toggle_expand(1)
-      async.sleep(10)
+      nio.sleep(10)
 
       local highlights = tests.util.get_highlights(buf)
       assert.same({
