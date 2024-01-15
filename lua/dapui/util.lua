@@ -206,7 +206,13 @@ end
 function M.apply_mapping(mappings, func, buffer)
   for _, key in pairs(mappings) do
     if type(func) ~= "string" then
-      vim.api.nvim_buf_set_keymap(buffer, "n", key, "", { noremap = true, callback = func, nowait = true })
+      vim.api.nvim_buf_set_keymap(
+        buffer,
+        "n",
+        key,
+        "",
+        { noremap = true, callback = func, nowait = true }
+      )
     else
       vim.api.nvim_buf_set_keymap(buffer, "n", key, func, { noremap = true, nowait = true })
     end
