@@ -19,6 +19,7 @@ local DAPUIClient = {}
 ---@field _frame_set fun(frame: dapui.types.StackFrame)
 ---@field stopped_thread_id integer
 ---@field capabilities dapui.types.Capabilities
+---@field threads table<integer, dapui.types.Thread>
 
 local proxied_session_keys = {}
 for _, key in ipairs({
@@ -26,6 +27,7 @@ for _, key in ipairs({
   "_frame_set",
   "stopped_thread_id",
   "capabilities",
+  "threads",
 }) do
   proxied_session_keys[key] = true
 end

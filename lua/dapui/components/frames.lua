@@ -12,13 +12,16 @@ return function(client, send_ready)
     ---@async
     ---@param canvas dapui.Canvas
     render = function(canvas, thread_id, show_subtle, indent)
-      local success, response = pcall(client.request.stackTrace, { threadId = thread_id })
-      local current_frame_id = nil
-
-      if not success then
+      if not client.session then
         return
       end
-      local frames = response.stackFrames
+
+      local current_frame_id = nil
+
+      local frames = client.session.threads[thread_id].frames
+      if not frames then
+        return
+      end
 
       if not show_subtle then
         frames = vim.tbl_filter(function(frame)
