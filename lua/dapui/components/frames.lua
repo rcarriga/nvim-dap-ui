@@ -18,7 +18,13 @@ return function(client, send_ready)
 
       local current_frame_id = nil
 
-      local frames = client.session.threads[thread_id].frames
+      local threads = client.session.threads
+
+      if not threads or not threads[thread_id] then
+        return
+      end
+
+      local frames = threads[thread_id].frames
       if not frames then
         return
       end
