@@ -24,7 +24,7 @@ return function(client, send_ready)
         return
       end
 
-      local frames = client.session.threads[thread_id].frames
+      local frames = threads[thread_id].frames
       if not frames then
         return
       end
