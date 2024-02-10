@@ -186,9 +186,11 @@ function dapui.eval(expr, args)
     prev_expr = expr
     local elem = dapui.elements.hover
     elem.set_expression(expr, args.context)
-    local line_no = async.fn.screenrow()
-    local col_no = async.fn.screencol()
-    local position = { line = line_no, col = col_no }
+    local win_pos = async.api.nvim_win_get_position(0)
+    local position = {
+      line = win_pos[1] + async.fn.winline(),
+      col = win_pos[2] + async.fn.wincol() - 1,
+    }
     open_float = require("dapui.windows").open_float("hover", elem, position, args)
     if open_float then
       open_float:listen("close", function()
