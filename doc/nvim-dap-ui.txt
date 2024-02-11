@@ -283,6 +283,8 @@ in this layout
 {position} `("left"|"right"|"top"|"bottom")` Which side of editor to open
 layout on
 
+                                                           *dapui.Config.layout.element*
+Fields~
 {id} `(string)` Element ID
 {size} `(number)` Size of the element in lines/columns or as proportion of
 total editor size (0-1)
