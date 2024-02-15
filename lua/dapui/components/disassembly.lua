@@ -495,6 +495,11 @@ return function(client, buffer, send_ready)
       end
 
       local window = vim.fn.bufwinid(buffer)
+
+      if window == -1 then
+        return
+      end
+
       local height = vim.api.nvim_win_get_height(window)
 
       _initialize_counters(instruction_counter, height)
