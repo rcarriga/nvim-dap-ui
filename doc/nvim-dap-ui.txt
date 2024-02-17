@@ -47,7 +47,7 @@ There is a simple step by step guide here: https://github.com/mortepau/codicons.
 
 
 Configure nvim-dap-ui
-See also~
+See also ~
 |dapui.Config|
 
 Default values:
@@ -126,10 +126,10 @@ Default values:
 Parameters~
 {user_config?} `(dapui.Config)`
 
-Type~
+Type ~
 `(table<string, dapui.Element>)`
 
-Type~
+Type ~
 dapui.Element
 
                                                         *dapui.FloatElementArgs*
@@ -169,7 +169,7 @@ of the buffer.
 Parameters~
 {expr?} `(string)` Expression to evaluate. If nil, then in normal more the
 current word is used, and in visual mode the currently highlighted text.
-{args} `(dapui.EvalArgs)`
+{args?} `(dapui.EvalArgs)`
 
                                                          *dapui.update_render()*
 `update_render`({update})
@@ -283,6 +283,8 @@ in this layout
 {position} `("left"|"right"|"top"|"bottom")` Which side of editor to open
 layout on
 
+                                                   *dapui.Config.layout.element*
+Fields~
 {id} `(string)` Element ID
 {size} `(number)` Size of the element in lines/columns or as proportion of
 total editor size (0-1)
