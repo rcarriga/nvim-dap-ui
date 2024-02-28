@@ -31,7 +31,7 @@ local dapui = {}
 ---@field size number Size of the layout in lines/columns
 ---@field position "left"|"right"|"top"|"bottom" Which side of editor to open
 --- layout on
----
+
 ---@class dapui.Config.layout.element
 ---@field id string Element ID
 ---@field size number Size of the element in lines/columns or as proportion of
