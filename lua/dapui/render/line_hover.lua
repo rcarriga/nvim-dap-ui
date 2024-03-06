@@ -112,6 +112,7 @@ function M.show()
     local _, _, col, details = unpack(mark)
     if not details.end_col or details.end_col > orig_col then
       details.end_row = 0
+      details.ns_id = nil
       details.end_col = details.end_col and (details.end_col - orig_col)
       col = math.max(col, orig_col)
       pcall(api.nvim_buf_set_extmark, hover_buf, namespace, 0, col - orig_col, details)
