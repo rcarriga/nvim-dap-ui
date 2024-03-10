@@ -36,7 +36,7 @@ local function auto_close(win_id, buf_id, orig_line, orig_text)
       buf_wins[vim.api.nvim_get_current_buf()] = nil
       local ok, error = pcall(api.nvim_win_close, win_id, true)
       if not ok then
-        vim.notify(error, vim.log.levels.DEBUG, {title = "DAP UI"})
+        require("dapui.util").notify(error, vim.log.levels.DEBUG)
       end
     end,
     once = true,
@@ -123,7 +123,7 @@ function M.show()
       col = math.max(col, orig_col)
       local ok, error = pcall(api.nvim_buf_set_extmark, hover_buf, namespace, 0, col - orig_col, details)
       if not ok then
-        vim.notify(error, vim.log.levels.DEBUG, {title = "DAP UI"})
+        require("dapui.util").notify(error, vim.log.levels.DEBUG)
       end
     end
   end
