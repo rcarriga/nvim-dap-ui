@@ -63,9 +63,9 @@ function M.show()
   end
 
   if
-      content_width <= 0
-      or content_width
-      < vim.fn.winwidth(0) - vim.fn.getwininfo(vim.api.nvim_get_current_win())[1].textoff - (orig_col + 1)
+    content_width <= 0
+    or content_width
+      < vim.fn.winwidth(0) - vim.fn.getwininfo(vim.api.nvim_get_current_win())[1].textoff - orig_col - 1
   then
     return
   end
