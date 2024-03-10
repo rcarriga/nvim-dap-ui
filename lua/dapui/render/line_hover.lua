@@ -119,8 +119,8 @@ function M.show()
     if not details.end_col or details.end_col > orig_col then
       details.end_row = 0
       details.ns_id = nil
-      col = math.max(col, orig_col)
       details.end_col = details.end_col and (details.end_col - orig_col)
+      col = math.max(col, orig_col)
       local ok, error = pcall(api.nvim_buf_set_extmark, hover_buf, namespace, 0, col - orig_col, details)
       if not ok then
         vim.notify(error, vim.log.levels.DEBUG, {title = "DAP UI"})
