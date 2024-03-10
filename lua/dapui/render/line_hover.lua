@@ -21,6 +21,9 @@ local function auto_close(win_id, buf_id, orig_line, orig_text)
   local group = api.nvim_create_augroup("DAPUILongLineExpand" .. buf_id, { clear = true })
   api.nvim_create_autocmd({ "WinEnter", "TabClosed", "CursorMoved" }, {
     callback = function()
+      if not api.nvim_win_is_valid(win_id) then
+        return
+      end
       local cur_line = vim.fn.line(".")
       if
         api.nvim_get_current_buf() == buf_id
@@ -31,7 +34,10 @@ local function auto_close(win_id, buf_id, orig_line, orig_text)
         return
       end
       buf_wins[vim.api.nvim_get_current_buf()] = nil
-      pcall(api.nvim_win_close, win_id, true)
+      local ok, error = pcall(api.nvim_win_close, win_id, true)
+      if not ok then
+        vim.notify(error, vim.log.levels.DEBUG, {title = "DAP UI"})
+      end
     end,
     once = true,
     group = group,
@@ -43,22 +49,23 @@ function M.show()
   if api.nvim_win_get_config(0).relative ~= "" then
     return
   end
-  local orig_line = vim.fn.line(".")
-  local orig_col = vim.fn.col(".")
 
-  local line_content = vim.fn.getline("."):sub(orig_col)
+  local orig_line, orig_col = unpack(api.nvim_win_get_cursor(0))
+  orig_line = orig_line - 1
+
+  local line_content = vim.fn.getline("."):sub(orig_col + 1)
   local content_width = vim.str_utfindex(line_content)
 
   if vim.fn.screencol() + content_width > vim.opt.columns:get() then
-    orig_col = 1
+    orig_col = 0
     line_content = vim.fn.getline(".")
     content_width = vim.str_utfindex(line_content)
   end
 
   if
-    content_width <= 0
-    or content_width
-      < vim.fn.winwidth(0) - vim.fn.getwininfo(vim.api.nvim_get_current_win())[1].textoff - orig_col
+      content_width <= 0
+      or content_width
+      < vim.fn.winwidth(0) - vim.fn.getwininfo(vim.api.nvim_get_current_win())[1].textoff - (orig_col + 1)
   then
     return
   end
@@ -70,8 +77,8 @@ function M.show()
   local extmarks = api.nvim_buf_get_extmarks(
     buffer,
     namespace,
-    { orig_line - 1, 0 },
-    { orig_line, 1 },
+    { orig_line, 0 },
+    { orig_line, -1 },
     { details = true }
   )
 
@@ -107,15 +114,17 @@ function M.show()
     end)
   end
 
-  orig_col = orig_col - 1 -- Working with 0-based index now
   for _, mark in ipairs(extmarks) do
     local _, _, col, details = unpack(mark)
     if not details.end_col or details.end_col > orig_col then
       details.end_row = 0
       details.ns_id = nil
-      details.end_col = details.end_col and (details.end_col - orig_col)
       col = math.max(col, orig_col)
-      pcall(api.nvim_buf_set_extmark, hover_buf, namespace, 0, col - orig_col, details)
+      details.end_col = details.end_col and (details.end_col - orig_col)
+      local ok, error = pcall(api.nvim_buf_set_extmark, hover_buf, namespace, 0, col - orig_col, details)
+      if not ok then
+        vim.notify(error, vim.log.levels.DEBUG, {title = "DAP UI"})
+      end
     end
   end
 
