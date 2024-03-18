@@ -1,6 +1,6 @@
-local async = require("dapui.async")
+local nio = require("nio")
 local Breakpoints = require("dapui.elements.breakpoints")
-local a = async.tests
+local a = nio.tests
 local tests = require("dapui.tests")
 tests.bootstrap()
 local mocks = tests.mocks
@@ -42,8 +42,8 @@ describe("breakpoints element", function()
     })
     for path, data in pairs(init_bps) do
       local path_buf = vim.api.nvim_create_buf(true, true)
-      async.api.nvim_buf_set_name(path_buf, path)
-      async.api.nvim_buf_set_lines(path_buf, 0, -1, false, data.lines)
+      nio.api.nvim_buf_set_name(path_buf, path)
+      nio.api.nvim_buf_set_lines(path_buf, 0, -1, false, data.lines)
       for line, bp in pairs(data.bps) do
         client.breakpoints.toggle(path_buf, line, bp)
       end
@@ -63,7 +63,7 @@ describe("breakpoints element", function()
   end)
 
   a.it("renders lines", function()
-    local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
     assert.same({
       "test_a:",
       " 1 line_a_1",

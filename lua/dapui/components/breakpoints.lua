@@ -1,5 +1,5 @@
 local config = require("dapui.config")
-local async = require("dapui.async")
+local nio = require("nio")
 local util = require("dapui.util")
 
 ---@param client dapui.DAPClient
@@ -79,7 +79,7 @@ return function(client, send_ready)
     local sorted = {}
     for buffer, breakpoints in pairs(merged_breakpoints) do
       sorted[#sorted + 1] = {
-        name = async.api.nvim_buf_get_name(buffer),
+        name = nio.api.nvim_buf_get_name(buffer),
         buffer = buffer,
         breakpoints = breakpoints,
       }
@@ -97,7 +97,7 @@ return function(client, send_ready)
       local current_line = 0
       local current_file = ""
       if current_frame and current_frame.source and current_frame.source.path then
-        current_file = async.fn.bufname(current_frame.source.path)
+        current_file = nio.fn.bufname(current_frame.source.path)
         current_line = current_frame.line
       end
       local indent = config.render.indent

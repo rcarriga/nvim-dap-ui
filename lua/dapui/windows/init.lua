@@ -1,6 +1,6 @@
 local M = {}
 
-local async = require("dapui.async")
+local nio = require("nio")
 local api = vim.api
 local util = require("dapui.util")
 local config = require("dapui.config")
@@ -142,7 +142,7 @@ function M.open_float(name, element, position, settings)
     local height = settings.height
 
     if not width or not height then
-      local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
+      local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
       if not width then
         width = 0
         for _, line in ipairs(lines) do
@@ -161,7 +161,7 @@ function M.open_float(name, element, position, settings)
     float_win:resize(width, height)
   end
 
-  async.api.nvim_buf_attach(buf, true, {
+  nio.api.nvim_buf_attach(buf, true, {
     on_lines = function()
       if not vim.api.nvim_win_is_valid(float_win.win_id) then
         return true

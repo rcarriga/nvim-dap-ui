@@ -1,5 +1,5 @@
 local util = require("dapui.util")
-local async = require("dapui.async")
+local nio = require("nio")
 
 ---@param client dapui.DAPClient
 return function(client)
@@ -18,15 +18,15 @@ return function(client)
       end
 
       if (source.sourceReference or 0) > 0 then
-        local buf = async.api.nvim_create_buf(false, true)
+        local buf = nio.api.nvim_create_buf(false, true)
         local response = client.request.source({ sourceReference = source.sourceReference })
         if not response.content then
           util.notify("No source available for frame", vim.log.levels.WARN)
           return
         end
-        async.api.nvim_buf_set_lines(buf, 0, 0, true, vim.split(response.content, "\n"))
-        async.api.nvim_buf_set_option(buf, "bufhidden", "delete")
-        async.api.nvim_buf_set_option(buf, "modifiable", false)
+        nio.api.nvim_buf_set_lines(buf, 0, 0, true, vim.split(response.content, "\n"))
+        nio.api.nvim_buf_set_option(buf, "bufhidden", "delete")
+        nio.api.nvim_buf_set_option(buf, "modifiable", false)
         return util.open_buf(buf, line, column)
       end
 
@@ -43,7 +43,7 @@ return function(client)
       local bufnr = vim.uri_to_bufnr(
         util.is_uri(path) and path or vim.uri_from_fname(vim.fn.fnamemodify(path, ":p"))
       )
-      async.fn.bufload(bufnr)
+      nio.fn.bufload(bufnr)
       return util.open_buf(bufnr, line, column)
     end)()
     if opened and set_frame then
