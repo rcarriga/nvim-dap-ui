@@ -25,7 +25,7 @@ return function(client, send_ready)
     end,
     ---@param canvas dapui.Canvas
     render = function(canvas)
-      local frame = client.session.current_frame
+      local frame = client.session and client.session.current_frame
       if not frame then
         return
       end
