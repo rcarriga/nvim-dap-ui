@@ -82,9 +82,9 @@ return function(client, send_ready)
         canvas:add_mapping("edit", function()
           prompt_func = function(new_value)
             async.run(function()
-              client.lib.set_variable(parent_ref, variable, new_value)
               prompt_func = nil
               prompt_fill = nil
+              client.lib.set_variable(parent_ref, variable, new_value)
               send_ready()
             end)
           end
