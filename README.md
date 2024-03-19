@@ -33,6 +33,12 @@ Plug 'rcarriga/nvim-dap-ui'
 use { "rcarriga/nvim-dap-ui", requires = {"mfussenegger/nvim-dap", "nvim-neotest/nvim-nio"} }
 ```
 
+[**lazy.nvim**](https://github.com/folke/lazy.nvim)
+
+```lua
+{ "rcarriga/nvim-dap-ui", dependencies = {"mfussenegger/nvim-dap", "nvim-neotest/nvim-nio"} }
+```
+
 It is highly recommended to use [neodev.nvim](https://github.com/folke/neodev.nvim) to enable type checking for nvim-dap-ui to get
 type checking, documentation and autocompletion for all API functions.
 
