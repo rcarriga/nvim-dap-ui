@@ -119,6 +119,7 @@ end
 ---@field width integer Fixed width of window
 ---@field height integer Fixed height of window
 ---@field enter boolean Whether or not to enter the window after opening
+---@field title string Title of window
 
 --- Open a floating window containing the desired element.
 ---
@@ -140,8 +141,12 @@ function dapui.float_element(elem_name, args)
     end
     local elem = elements[elem_name]
     elem.render()
-    args =
-      vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
+    args = vim.tbl_deep_extend(
+      "keep",
+      args or {},
+      elem.float_defaults and elem.float_defaults() or {},
+      { title = elem_name }
+    )
     nio.scheduler()
     open_float = require("dapui.windows").open_float(elem_name, elem, position, args)
     if open_float then
