@@ -135,6 +135,7 @@ function M.open_float(name, element, position, settings)
     width = settings.width or 1,
     position = position,
     buffer = buf,
+    title = settings.title,
   })
 
   local resize = function()
