@@ -1,4 +1,4 @@
-local async = require("dapui.async")
+local nio = require("nio")
 local dap = require("dap")
 
 return function()
@@ -14,18 +14,18 @@ return function()
   local function get_buffer()
     -- TODO: All of this is a hack because of an error with indentline when buffer
     -- is opened in a window so have to manually find the window that was opened.
-    local all_wins = async.api.nvim_list_wins()
+    local all_wins = nio.api.nvim_list_wins()
     local open_wins = {}
     for _, win in pairs(all_wins) do
       open_wins[win] = true
     end
     pcall(dap.repl.open, {})
 
-    local buf = async.fn.bufnr("dap-repl")
+    local buf = nio.fn.bufnr("dap-repl")
 
-    for _, win in ipairs(async.api.nvim_list_wins()) do
+    for _, win in ipairs(nio.api.nvim_list_wins()) do
       if not open_wins[win] then
-        pcall(async.api.nvim_win_close, win, true)
+        pcall(nio.api.nvim_win_close, win, true)
         break
       end
     end
@@ -38,7 +38,7 @@ return function()
 
   ---@nodoc
   function dapui.elements.repl.buffer()
-    if not async.api.nvim_buf_is_valid(buf or -1) then
+    if not nio.api.nvim_buf_is_valid(buf or -1) then
       buf = get_buffer()
     end
     return buf

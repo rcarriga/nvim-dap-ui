@@ -1,11 +1,11 @@
-local async = require("dapui.async")
+local nio = require("nio")
 local namespace = require("dapui.render.canvas").namespace
 
 local M = {}
 
 function M.get_highlights(bufnr)
   local formatted = {}
-  local extmarks = async.api.nvim_buf_get_extmarks(bufnr, namespace, 0, -1, { details = true })
+  local extmarks = nio.api.nvim_buf_get_extmarks(bufnr, namespace, 0, -1, { details = true })
   for _, extmark in ipairs(extmarks) do
     local _, start_row, start_col, details = unpack(extmark)
     table.insert(formatted, {

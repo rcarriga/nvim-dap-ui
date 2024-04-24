@@ -1,9 +1,9 @@
 local config = require("dapui.config")
-local async = require("dapui.async")
+local nio = require("nio")
 
 local M = {}
 
-local api = async.api
+local api = nio.api
 
 local render_tasks = {}
 
@@ -16,9 +16,9 @@ end
 
 ---@return function
 function M.create_render_loop(render)
-  local render_event = async.control.event()
+  local render_event = nio.control.event()
 
-  render_tasks[#render_tasks + 1] = async.run(function()
+  render_tasks[#render_tasks + 1] = nio.run(function()
     while true do
       render_event.wait()
       render_event.clear()
@@ -26,7 +26,7 @@ function M.create_render_loop(render)
         local traceback = debug.traceback(msg, 1)
         M.notify(("Rendering failed: %s"):format(traceback), vim.log.levels.WARN)
       end)
-      async.sleep(10)
+      nio.sleep(10)
     end
   end)
 
@@ -36,32 +36,32 @@ function M.create_render_loop(render)
 end
 
 function M.get_current_expr()
-  if async.fn.mode() == "v" then
-    local start = async.fn.getpos("v")
-    local finish = async.fn.getpos(".")
+  if nio.fn.mode() == "v" then
+    local start = nio.fn.getpos("v")
+    local finish = nio.fn.getpos(".")
     local lines = M.get_selection(start, finish)
     return table.concat(lines, "\n")
   end
-  return async.fn.expand("<cexpr>")
+  return nio.fn.expand("<cexpr>")
 end
 
 function M.create_buffer(name, options)
   local buf
   return function()
     if not buf then
-      buf = name ~= "" and async.fn.bufnr(name) or -1
+      buf = name ~= "" and nio.fn.bufnr(name) or -1
     end
-    if async.api.nvim_buf_is_valid(buf) then
+    if nio.api.nvim_buf_is_valid(buf) then
       return buf
     end
-    buf = async.api.nvim_create_buf(true, true)
+    buf = nio.api.nvim_create_buf(true, true)
     options = vim.tbl_extend("keep", options or {}, {
       modifiable = false,
       buflisted = false,
     })
-    async.api.nvim_buf_set_name(buf, name)
+    nio.api.nvim_buf_set_name(buf, name)
     for opt, value in pairs(options) do
-      async.api.nvim_buf_set_option(buf, opt, value)
+      nio.api.nvim_buf_set_option(buf, opt, value)
     end
     return buf
   end

@@ -31,6 +31,13 @@
 --- you can patch it via Font Patcher(https://github.com/ryanoasis/nerd-fonts#option-8-patch-your-own-font).
 --- There is a simple step by step guide here: https://github.com/mortepau/codicons.nvim#how-to-patch-fonts.
 
+local success, _ = pcall(require, "nio")
+if not success then
+  error(
+    "nvim-dap-ui requires nvim-nio to be installed. Install from https://github.com/nvim-neotest/nvim-nio"
+  )
+end
+
 local dap = require("dap")
 
 ---@class dapui
@@ -40,10 +47,8 @@ local dapui = {}
 local windows = require("dapui.windows")
 local config = require("dapui.config")
 local util = require("dapui.util")
-local async = require("dapui.async")
+local nio = require("nio")
 local controls = require("dapui.controls")
-
-dapui.async = async
 
 ---@type table<string, dapui.Element>
 ---@nodoc
@@ -58,7 +63,7 @@ local function query_elem_name()
       entries[#entries + 1] = name
     end
   end
-  return async.ui.select(entries, {
+  return nio.ui.select(entries, {
     prompt = "Select an element:",
     format_item = function(entry)
       return entry:sub(1, 1):upper() .. entry:sub(2)
@@ -122,12 +127,12 @@ end
 ---@param elem_name string
 ---@param args? dapui.FloatElementArgs
 function dapui.float_element(elem_name, args)
-  async.run(function()
+  nio.run(function()
     if open_float then
       return open_float:jump_to()
     end
-    local line_no = async.fn.screenrow()
-    local col_no = async.fn.screencol()
+    local line_no = nio.fn.screenrow()
+    local col_no = nio.fn.screencol()
     local position = { line = line_no, col = col_no }
     elem_name = elem_name or query_elem_name()
     if not elem_name then
@@ -137,7 +142,7 @@ function dapui.float_element(elem_name, args)
     elem.render()
     args =
       vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
-    async.scheduler()
+    nio.scheduler()
     open_float = require("dapui.windows").open_float(elem_name, elem, position, args)
     if open_float then
       open_float:listen("close", function()
@@ -166,7 +171,7 @@ local prev_expr = nil
 --- current word is used, and in visual mode the currently highlighted text.
 ---@param args? dapui.EvalArgs
 function dapui.eval(expr, args)
-  async.run(function()
+  nio.run(function()
     if not dap.session() then
       util.notify("No active debug session", vim.log.levels.WARN)
       return
@@ -186,10 +191,10 @@ function dapui.eval(expr, args)
     prev_expr = expr
     local elem = dapui.elements.hover
     elem.set_expression(expr, args.context)
-    local win_pos = async.api.nvim_win_get_position(0)
+    local win_pos = nio.api.nvim_win_get_position(0)
     local position = {
-      line = win_pos[1] + async.fn.winline(),
-      col = win_pos[2] + async.fn.wincol() - 1,
+      line = win_pos[1] + nio.fn.winline(),
+      col = win_pos[2] + nio.fn.wincol() - 1,
     }
     open_float = require("dapui.windows").open_float("hover", elem, position, args)
     if open_float then
@@ -205,7 +210,7 @@ end
 --- the config
 function dapui.update_render(update)
   config.update_render(update)
-  async.run(function()
+  nio.run(function()
     for _, elem in pairs(elements) do
       elem.render()
     end
@@ -398,7 +403,7 @@ function dapui.register_element(name, element)
   end
   elements[name] = element
   windows.register_element(name, element)
-  async.run(function()
+  nio.run(function()
     element.render()
   end)
 end

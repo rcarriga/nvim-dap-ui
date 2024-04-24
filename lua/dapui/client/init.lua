@@ -1,6 +1,6 @@
 local logger = require("dapui.logging")
 local dap = require("dap")
-local async = require("dapui.async")
+local nio = require("nio")
 local util = require("dapui.util")
 local types = require("dapui.client.types")
 
@@ -111,7 +111,7 @@ end
 local function create_client(session_factory, breakpoints)
   breakpoints = breakpoints or require("dap.breakpoints")
   local request_seqs = {}
-  local async_request = async.wrap(function(command, args, cb)
+  local async_request = nio.wrap(function(command, args, cb)
     local session = session_factory()
     request_seqs[session] = request_seqs[session] or {}
     request_seqs[session][session.seq] = true
