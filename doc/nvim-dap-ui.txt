@@ -58,7 +58,7 @@ Default values:
       icons = {
         disconnect = "",
         pause = "",
-        play = "",
+        play = "",
         run_last = "",
         step_back = "",
         step_into = "",
