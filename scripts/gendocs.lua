@@ -1,5 +1,6 @@
 -- TODO: A lot of this is private code from minidoc, which could be removed if made public
 
+local util = require("dapui.util")
 local minidoc = require("mini.doc")
 
 local H = {}
@@ -108,7 +109,7 @@ H.default_input = function()
     table.insert(res, files)
   end
 
-  return vim.iter(res):flatten():totable()
+  return util.tbl_flatten(res)
 end
 
 H.default_output = function()
@@ -303,7 +304,7 @@ H.toc_insert = function(s)
     toc_entry:clear_lines()
   end
 
-  for _, l in ipairs(vim.iter(toc_lines):flatten():totable()) do
+  for _, l in ipairs(util.tbl_flatten(toc_lines)) do
     s:insert(l)
   end
 end
@@ -626,7 +627,7 @@ H.collect_strings = function(x)
     end
   end, x)
   -- Flatten to only have strings and not table of strings (from `vim.split`)
-  return vim.iter(res):flatten():totable()
+  return util.tbl_flatten(res)
 end
 
 H.file_read = function(path)

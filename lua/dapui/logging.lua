@@ -1,4 +1,5 @@
 local config = require("dapui.config")
+local util = require("dapui.util")
 local loggers = {}
 
 local log_date_format = "%FT%H:%M:%SZ%z"
@@ -39,7 +40,7 @@ function Logger.new(filename, opts)
   end)()
 
   local function path_join(...)
-    return table.concat(vim.iter({ ... }):flatten():totable(), path_sep)
+    return table.concat(util.tbl_flatten({ ... }), path_sep)
   end
 
   logger._level = opts.level or config.log_level
