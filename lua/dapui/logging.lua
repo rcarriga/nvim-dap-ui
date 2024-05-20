@@ -39,7 +39,7 @@ function Logger.new(filename, opts)
   end)()
 
   local function path_join(...)
-    return table.concat(vim.tbl_flatten({ ... }), path_sep)
+    return table.concat(vim.iter({ ... }):flatten():totable(), path_sep)
   end
 
   logger._level = opts.level or config.log_level
