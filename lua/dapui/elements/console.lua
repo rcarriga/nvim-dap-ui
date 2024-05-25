@@ -37,7 +37,9 @@ return function()
       })
       nio.api.nvim_buf_attach(console_buf, false, {
         on_lines = function(_, _, _, _, _, _)
-          if autoscroll and vim.fn.mode() == "n" then
+          local active_buf = nio.api.nvim_win_get_buf(0)
+
+          if autoscroll and vim.fn.mode() == "n" and active_buf == console_buf then
             vim.cmd("normal! G")
           end
         end,
