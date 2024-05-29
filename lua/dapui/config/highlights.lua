@@ -28,6 +28,7 @@ function M.setup()
   hi default DapUILineNumber guifg=#00f1f5
   hi default link DapUIFloatNormal NormalFloat
   hi default DapUIFloatBorder guifg=#00F1F5
+  hi default link DapUIDisassemblyHighlightLine Visual
   hi default DapUIWatchesEmpty guifg=#F70067
   hi default DapUIWatchesValue guifg=#A9FF68
   hi default DapUIWatchesError guifg=#F70067
