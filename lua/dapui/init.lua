@@ -248,7 +248,6 @@ function dapui.close(args)
     end
     for i, win_layout in ipairs(windows.layouts) do
       if not layout or layout == i then
-        win_layout:update_sizes()
         win_layout:close()
       end
     end
