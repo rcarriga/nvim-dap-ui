@@ -53,7 +53,7 @@ return function(client)
 
   ---@param variable dapui.types.Variable
   function client_lib.set_variable(container_ref, variable, value)
-    local err = pcall(function()
+    local ok, err = pcall(function()
       if client.session.capabilities.supportsSetExpression and variable.evaluateName then
         local frame_id = client.session.current_frame and client.session.current_frame.id
         client.request.setExpression({
@@ -74,7 +74,7 @@ return function(client)
         )
       end
     end)
-    if err then
+    if not ok then
       util.notify(util.format_error(err))
     end
   end
