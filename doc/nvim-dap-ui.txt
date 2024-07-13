@@ -136,6 +136,7 @@ Fields~
 {width} `(integer)` Fixed width of window
 {height} `(integer)` Fixed height of window
 {enter} `(boolean)` Whether or not to enter the window after opening
+{title} `(string)` Title of window
 
                                                          *dapui.float_element()*
 `float_element`({elem_name}, {args})
@@ -322,6 +323,8 @@ Fields~
 name to fill before trimming
 {max_value_lines?} `(integer)` Maximum number of lines to allow a value to
 fill before trimming
+{sort_variables?} `(fun(a: dapui.types.Variable, b: dapui.types.Variable):boolean)` Sorting function to determine
+render order of variables.
 
                                                                   *dapui.Action*
 Alias~

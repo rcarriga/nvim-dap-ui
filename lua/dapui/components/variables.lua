@@ -47,6 +47,9 @@ return function(client, send_ready)
     indent = indent or 0
     local success, var_data = pcall(client.request.variables, { variablesReference = parent_ref })
     local variables = success and var_data.variables or {}
+    if config.render.sort_variables then
+      table.sort(variables, config.render.sort_variables)
+    end
     for _, variable in pairs(variables) do
       local var_path = parent_path .. "." .. variable.name
 
