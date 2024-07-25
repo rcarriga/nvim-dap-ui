@@ -865,7 +865,7 @@ function DAPUIEventListenerClient.setDataBreakpoints(listener, opts) end
 ---@field filterId string ID of an exception filter returned by the `exceptionBreakpointFilters` capability.
 ---@field condition? string An expression for conditional exceptions. The exception breaks into the debugger if the result of the condition is true.
 
---- An `ExceptionPathSegment` represents a segment in a path that is used to match leafs or nodes in a tree of exceptions.
+--- An `ExceptionPathSegment` represents a segment in a path that is used to match leaves or nodes in a tree of exceptions.
 --- If a segment consists of more than one name, it matches the names provided if `negate` is false or missing, or it matches anything except the names provided if `negate` is true.
 ---@class dapui.types.ExceptionPathSegment
 ---@field negate? boolean If false or missing this segment matches the names provided, otherwise it matches anything except the names provided.

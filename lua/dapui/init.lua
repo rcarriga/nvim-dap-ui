@@ -160,7 +160,7 @@ end
 local prev_expr = nil
 
 ---@class dapui.EvalArgs
----@field context string Context to use for evalutate request, defaults to
+---@field context string Context to use for evaluate request, defaults to
 --- "hover". Hover requests should have no side effects, if you have errors
 --- with evaluation, try changing context to "repl". See the DAP specification
 --- for more details.
@@ -168,7 +168,7 @@ local prev_expr = nil
 ---@field height integer Fixed height of window
 ---@field enter boolean Whether or not to enter the window after opening
 
---- Open a floating window containing the result of evaluting an expression
+--- Open a floating window containing the result of evaluating an expression
 ---
 --- If no fixed dimensions are given, the window will expand to fit the contents
 --- of the buffer.
