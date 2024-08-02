@@ -137,6 +137,7 @@ Fields~
 {height} `(integer)` Fixed height of window
 {enter} `(boolean)` Whether or not to enter the window after opening
 {title} `(string)` Title of window
+{position} `("center")` Position of floating window
 
                                                          *dapui.float_element()*
 `float_element`({elem_name}, {args})
