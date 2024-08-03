@@ -120,6 +120,7 @@ end
 ---@field height integer Fixed height of window
 ---@field enter boolean Whether or not to enter the window after opening
 ---@field title string Title of window
+---@field position "center" Position of floating window
 
 --- Open a floating window containing the desired element.
 ---
