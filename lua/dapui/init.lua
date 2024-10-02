@@ -130,6 +130,10 @@ end
 ---@param args? dapui.FloatElementArgs
 function dapui.float_element(elem_name, args)
   nio.run(function()
+    if not dap.session() then
+      util.notify("No active debug session", vim.log.levels.WARN)
+      return
+    end
     if open_float then
       return open_float:jump_to()
     end
