@@ -288,7 +288,7 @@ H.toc_insert = function(s)
     local lines = {}
     for i = 1, math.max(#toc_entry, #tag_section) do
       local left = toc_entry[i] or ""
-      -- Use tag refernce instead of tag enclosure
+      -- Use tag reference instead of tag enclosure
       local right = string.match(tag_section[i], "%*.*%*"):gsub("%*", "|")
       -- local right = vim.trim((tag_section[i] or ""):gsub("%*", "|"))
       -- Add visual line only at first entry (while not adding trailing space)
@@ -685,7 +685,7 @@ minidoc.generate(
         H.apply_recursively(function(x)
           if not (type(x) == "table" and x.type == "section") then return end
 
-          -- Add headings before first occurence of a section which type usually
+          -- Add headings before first occurrence of a section which type usually
           -- appear several times
           if not found_param and x.info.id == "@param" then
             H.add_section_heading(x, "Parameters")
