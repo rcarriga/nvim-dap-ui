@@ -26,6 +26,10 @@ return function(client, send_ready)
 
       local frames = threads[thread_id].frames
       if not frames then
+        local success, response = pcall(client.request.stackTrace, { threadId = thread_id })
+        frames = success and response.stackFrames
+      end
+      if not frames then
         return
       end
 
