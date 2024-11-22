@@ -121,6 +121,18 @@ Default values:
       max_value_lines = 100
     }
   }
+
+Note: To disable an action by disabling it's mapping, or all mappings, you
+have to use an empty table {} as the value of the action key you'd like to
+disable. Here's an example to disable `e` initiating editing:
+
+>lua
+  dapui.setup({
+    mappings = {
+      edit = {}
+    }
+  })
+
 <
 Parameters~
 {user_config?} `(dapui.Config)`
