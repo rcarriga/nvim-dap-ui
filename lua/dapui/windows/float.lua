@@ -53,8 +53,11 @@ function Float:listen(event, callback)
   self.listeners[event][#self.listeners[event] + 1] = callback
 end
 
-function Float:resize(width, height)
-  local opts = create_opts(width, height, self.position)
+function Float:resize(width, height, position)
+  if position == nil then
+    position = self.position
+  end
+  local opts = create_opts(width, height, position)
   api.nvim_win_set_config(self.win_id, opts)
 end
 

@@ -123,12 +123,6 @@ function M.open_float(name, element, position, settings)
     float_windows[name]:jump_to()
     return float_windows[name]
   end
-  if settings.position == "center" then
-    local screen_w = vim.opt.columns:get()
-    local screen_h = vim.opt.lines:get() - vim.opt.cmdheight:get()
-    position.line = (screen_h - settings.height) / 2
-    position.col = (screen_w - settings.width) / 2
-  end
   local buf = element.buffer()
   local float_win = require("dapui.windows.float").open_float({
     height = settings.height or 1,
@@ -156,10 +150,17 @@ function M.open_float(name, element, position, settings)
       end
     end
 
+    if settings.position == "center" then
+      local screen_w = vim.opt.columns:get()
+      local screen_h = vim.opt.lines:get() - vim.opt.cmdheight:get()
+      position.line = (screen_h - height) / 2
+      position.col = (screen_w - width) / 2
+    end
+
     if width <= 0 or height <= 0 then
       return
     end
-    float_win:resize(width, height)
+    float_win:resize(width, height, position)
   end
 
   nio.api.nvim_buf_attach(buf, true, {
