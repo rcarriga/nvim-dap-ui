@@ -239,6 +239,8 @@ buffer can change over repeated calls
 {float_defaults?} `(fun(): dapui.FloatElementArgs)` Default settings for
 floating windows. Useful for element windows which should be larger than
 their content
+{allow_without_session?} `(boolean)` Allows floating the element when
+there is no active debug session
 
                                                       *dapui.register_element()*
 `register_element`({name}, {element})

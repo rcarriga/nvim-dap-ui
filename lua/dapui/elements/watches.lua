@@ -19,7 +19,10 @@ return function(client)
   --- - `remove`: Remove the watched expression.
   --- - `edit`: Edit an expression or set the value of a child variable.
   --- - `repl`: Send expression to REPL
-  dapui.elements.watches = {}
+  dapui.elements.watches = {
+    allow_without_session = true,
+  }
+
   local send_ready = util.create_render_loop(function()
     dapui.elements.watches.render()
   end)
