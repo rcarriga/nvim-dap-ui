@@ -106,7 +106,7 @@ function WindowLayout:resize(opts)
   self.set_area_size(self.opened_wins[1], self.area_state.size)
   local total_size = self:_total_size()
   for i, win_state in pairs(self.win_states) do
-    local win_size = opts.reset and win_state.init_size or win_state.size
+    local win_size = opts.reset and win_state.init_size or win_state.size or 1
     win_size = util.round(win_size * total_size)
     if win_size == 0 then
       win_size = 1
