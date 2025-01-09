@@ -90,6 +90,7 @@ function dapui.setup(user_config)
     "breakpoints",
     "repl",
     "scopes",
+    "disassembly",
     "stacks",
     "watches",
     "hover",
@@ -107,6 +108,11 @@ function dapui.setup(user_config)
 
     elements[module] = elem
   end
+
+  vim.fn.sign_define(
+    "DapUIDisassemblyCurrentLineSign",
+    { texthl = "DapUIDisassemblyHighlightLine", text = "►" }
+  )
 
   local element_buffers = {}
   for name, elem in pairs(elements) do
@@ -387,6 +393,7 @@ end
 ---@field repl dapui.elements.repl
 ---@field scopes dapui.elements.scopes
 ---@field stack dapui.elements.stacks
+---@field disassembly dapui.elements.disassembly
 ---@field watches dapui.elements.watches
 ---@field console dapui.elements.console
 dapui.elements = setmetatable({}, {

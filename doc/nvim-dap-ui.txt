@@ -337,6 +337,11 @@ Alias~
 Alias~
 `dapui.FloatingAction` → `"close"`
 
+==============================================================================
+dapui.elements.disassembly                                *dapui.elements.disassembly*
+
+Displays instruction Assembly code, if supported by the client adapter.
+
 
 ==============================================================================
 dapui.elements.scopes                                    *dapui.elements.scopes*
