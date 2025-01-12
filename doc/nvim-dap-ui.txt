@@ -428,6 +428,7 @@ Lists all breakpoints currently set.
 Mappings:
 - `open`: Jump to the location the breakpoint is set
 - `toggle`: Enable/disable the selected breakpoint
+- `remove`: Remove breakpoint. Only works on enabled breakpoints.
 
 
 ==============================================================================
