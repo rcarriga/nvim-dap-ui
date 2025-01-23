@@ -270,6 +270,9 @@ function DAPUIRequestsClient.disconnect(args) end
 ---@param opts? dapui.client.ListenerOpts
 function DAPUIEventListenerClient.disconnect(listener, opts) end
 
+--- @class dapui.types.RenderableComponent
+--- @field render fun(canvas: dapui.Canvas) Populate `canvas` with text.
+
 --- Provides formatting information for a value.
 ---@class dapui.types.ValueFormat
 ---@field hex? boolean Display the value in hex.
