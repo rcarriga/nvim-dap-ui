@@ -211,10 +211,16 @@ function M.apply_mapping(mappings, func, buffer, label)
         "n",
         key,
         "",
-        { noremap = true, callback = func, nowait = true, desc = label, }
+        { noremap = true, callback = func, nowait = true, desc = label }
       )
     else
-      vim.api.nvim_buf_set_keymap(buffer, "n", key, func, { noremap = true, nowait = true, desc = label, })
+      vim.api.nvim_buf_set_keymap(
+        buffer,
+        "n",
+        key,
+        func,
+        { noremap = true, nowait = true, desc = label }
+      )
     end
   end
 end
