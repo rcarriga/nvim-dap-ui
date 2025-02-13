@@ -150,11 +150,9 @@ local user_config = default_config
 local function fill_elements(area)
   area = vim.deepcopy(area)
   local filled = {}
-  vim.validate({
-    size = { area.size, "number" },
-    elements = { area.elements, "table" },
-    position = { area.position, "string" },
-  })
+  vim.validate("size", area.size, "number")
+  vim.validate("elements", area.elements, "table")
+  vim.validate("position", area.position, "string")
   for i, element in ipairs(area.elements) do
     if type(element) == "string" then
       filled[i] = { id = element, size = 1 / #area.elements }
