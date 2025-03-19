@@ -1,4 +1,3 @@
-local logger = require("dapui.logging")
 local dap = require("dap")
 local nio = require("nio")
 local util = require("dapui.util")
@@ -127,7 +126,6 @@ local function create_client(session_factory, breakpoints)
         local start = vim.loop.now()
         local err, body = async_request(command, args)
         local diff = vim.loop.now() - start
-        logger.debug("Command", command, "took", diff / 1000, "seconds")
         if err then
           error(Error(err, { command = command, args = args }))
         elseif body.error then

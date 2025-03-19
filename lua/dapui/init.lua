@@ -119,6 +119,8 @@ end
 ---@field width integer Fixed width of window
 ---@field height integer Fixed height of window
 ---@field enter boolean Whether or not to enter the window after opening
+---@field title string Title of window
+---@field position "center" Position of floating window
 
 --- Open a floating window containing the desired element.
 ---
@@ -128,20 +130,32 @@ end
 ---@param args? dapui.FloatElementArgs
 function dapui.float_element(elem_name, args)
   nio.run(function()
+    elem_name = elem_name or query_elem_name()
+    if not elem_name then
+      return
+    end
+    local elem = elements[elem_name]
+    if not elem then
+      util.notify("No such element: " .. elem_name, vim.log.levels.ERROR)
+      return
+    end
+    if not elem.allow_without_session and not dap.session() then
+      util.notify("No active debug session", vim.log.levels.WARN)
+      return
+    end
     if open_float then
       return open_float:jump_to()
     end
     local line_no = nio.fn.screenrow()
     local col_no = nio.fn.screencol()
     local position = { line = line_no, col = col_no }
-    elem_name = elem_name or query_elem_name()
-    if not elem_name then
-      return
-    end
-    local elem = elements[elem_name]
     elem.render()
-    args =
-      vim.tbl_deep_extend("keep", args or {}, elem.float_defaults and elem.float_defaults() or {})
+    args = vim.tbl_deep_extend(
+      "keep",
+      args or {},
+      elem.float_defaults and elem.float_defaults() or {},
+      { title = elem_name }
+    )
     nio.scheduler()
     open_float = require("dapui.windows").open_float(elem_name, elem, position, args)
     if open_float then
@@ -243,7 +257,6 @@ function dapui.close(args)
     end
     for i, win_layout in ipairs(windows.layouts) do
       if not layout or layout == i then
-        win_layout:update_sizes()
         win_layout:close()
       end
     end
@@ -393,6 +406,8 @@ dapui.elements = setmetatable({}, {
 ---@field float_defaults? fun(): dapui.FloatElementArgs Default settings for
 --- floating windows. Useful for element windows which should be larger than
 --- their content
+---@field allow_without_session boolean Allows floating the element when
+--- there is no active debug session
 
 --- Registers a new element that can be used within layouts or floating windows
 ---@param name string Name of the element

@@ -30,8 +30,9 @@ return function(client)
         return util.open_buf(buf, line, column)
       end
 
-      if not source.path then
+      if not source.path or not vim.uv.fs_stat(source.path) then
         util.notify("No source available for frame", vim.log.levels.WARN)
+        return
       end
 
       local path = source.path
@@ -53,7 +54,7 @@ return function(client)
 
   ---@param variable dapui.types.Variable
   function client_lib.set_variable(container_ref, variable, value)
-    local err = pcall(function()
+    local ok, err = pcall(function()
       if client.session.capabilities.supportsSetExpression and variable.evaluateName then
         local frame_id = client.session.current_frame and client.session.current_frame.id
         client.request.setExpression({
@@ -74,7 +75,7 @@ return function(client)
         )
       end
     end)
-    if err then
+    if not ok then
       util.notify(util.format_error(err))
     end
   end

@@ -145,7 +145,7 @@ function Canvas:render_buffer(buffer, action_keys)
       for _, callback in pairs(callbacks) do
         callback()
       end
-    end, buffer)
+    end, buffer, action)
   end
 
   local lines = self.lines

@@ -28,6 +28,10 @@ function M.enable_controls(element)
 
   local list_id = "dapui_controls"
   local events = {
+    "continue",
+    "terminate",
+    "restart",
+    "disconnect",
     "event_terminated",
     "disconnect",
     "event_exited",

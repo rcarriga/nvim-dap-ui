@@ -15,7 +15,9 @@ return function(client)
   --- Mappings:
   --- - `open`: Jump to the location the breakpoint is set
   --- - `toggle`: Enable/disable the selected breakpoint
-  dapui.elements.breakpoints = {}
+  dapui.elements.breakpoints = {
+    allow_without_session = true,
+  }
 
   local send_ready = util.create_render_loop(function()
     dapui.elements.breakpoints.render()

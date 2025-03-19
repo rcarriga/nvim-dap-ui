@@ -4,7 +4,7 @@ local config = require("dapui.config")
 
 local Float = { win_id = nil, listeners = { close = {} }, position = {} }
 
-local function create_opts(content_width, content_height, position)
+local function create_opts(content_width, content_height, position, title)
   local line_no = position.line
   local col_no = position.col
 
@@ -35,6 +35,8 @@ local function create_opts(content_width, content_height, position)
     height = height,
     style = "minimal",
     border = border,
+    title = title,
+    title_pos = title and "center",
   }
 end
 
@@ -51,8 +53,11 @@ function Float:listen(event, callback)
   self.listeners[event][#self.listeners[event] + 1] = callback
 end
 
-function Float:resize(width, height)
-  local opts = create_opts(width, height, self.position)
+function Float:resize(width, height, position)
+  if position == nil then
+    position = self.position
+  end
+  local opts = create_opts(width, height, position)
   api.nvim_win_set_config(self.win_id, opts)
 end
 
@@ -90,11 +95,12 @@ end
 --   Optional:
 --     buffer
 --     position
+--     title
 function M.open_float(settings)
   local line_no = vim.fn.screenrow()
   local col_no = vim.fn.screencol()
   local position = settings.position or { line = line_no, col = col_no }
-  local opts = create_opts(settings.width, settings.height, position)
+  local opts = create_opts(settings.width, settings.height, position, settings.title)
   local content_buffer = settings.buffer or api.nvim_create_buf(false, true)
   local content_window = api.nvim_open_win(content_buffer, false, opts)
 
