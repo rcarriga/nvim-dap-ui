@@ -67,6 +67,8 @@ local dapui = {}
 --- name to fill before trimming
 ---@field max_value_lines? integer Maximum number of lines to allow a value to
 --- fill before trimming
+---@field sort_variables? fun(a: dapui.types.Variable, b: dapui.types.Variable):boolean Sorting function to determine
+--- render order of variables.
 
 ---@alias dapui.Action "expand"|"open"|"remove"|"edit"|"repl"|"toggle"
 

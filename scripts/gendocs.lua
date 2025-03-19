@@ -1,5 +1,6 @@
 -- TODO: A lot of this is private code from minidoc, which could be removed if made public
 
+local util = require("dapui.util")
 local minidoc = require("mini.doc")
 
 local H = {}
@@ -11,15 +12,15 @@ H.pattern_sets = {
   -- Determine if line is a function definition. Captures function name and
   -- arguments. For reference see '2.5.9 – Function Definitions' in Lua manual.
   afterline_fundef = {
-    "%s*function%s+(%S-)(%b())", -- Regular definition
-    "^local%s+function%s+(%S-)(%b())", -- Local definition
-    "^(%S+)%s*=%s*function(%b())", -- Regular assignment
+    "%s*function%s+(%S-)(%b())",           -- Regular definition
+    "^local%s+function%s+(%S-)(%b())",     -- Local definition
+    "^(%S+)%s*=%s*function(%b())",         -- Regular assignment
     "^local%s+(%S+)%s*=%s*function(%b())", -- Local assignment
   },
 
   -- Determine if line is a general assignment
   afterline_assign = {
-    "^(%S-)%s*=", -- General assignment
+    "^(%S-)%s*=",         -- General assignment
     "^local%s+(%S-)%s*=", -- Local assignment
   },
 
@@ -108,7 +109,7 @@ H.default_input = function()
     table.insert(res, files)
   end
 
-  return vim.tbl_flatten(res)
+  return util.tbl_flatten(res)
 end
 
 H.default_output = function()
@@ -303,7 +304,7 @@ H.toc_insert = function(s)
     toc_entry:clear_lines()
   end
 
-  for _, l in ipairs(vim.tbl_flatten(toc_lines)) do
+  for _, l in ipairs(util.tbl_flatten(toc_lines)) do
     s:insert(l)
   end
 end
@@ -626,7 +627,7 @@ H.collect_strings = function(x)
     end
   end, x)
   -- Flatten to only have strings and not table of strings (from `vim.split`)
-  return vim.tbl_flatten(res)
+  return util.tbl_flatten(res)
 end
 
 H.file_read = function(path)
@@ -733,7 +734,6 @@ minidoc.generate(
         )
       end,
       section_post = function(section)
-
         for i, line in ipairs(section) do
           if type(line) == "string" then
             if string.find(line, "^```") then
@@ -743,7 +743,6 @@ minidoc.generate(
             end
           end
         end
-
       end,
       sections = {
         ["@generic"] = function(s)

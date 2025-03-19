@@ -76,11 +76,11 @@ describe("scopes element", function()
   a.it("renders initial lines", function()
     local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
     assert.same({
-      "Locals:",
+      " Locals:",
       "   a number = 1",
       "  b number = 2",
       "",
-      "Globals:",
+      " Globals:",
       "   CONST_A boolean = true",
     }, lines)
   end)
@@ -88,7 +88,8 @@ describe("scopes element", function()
   a.it("renders initial highlights", function()
     local formatted = tests.util.get_highlights(buf)
     assert.same({
-      { "DapUIScope", 0, 0, 0, 6 },
+      { "DapUIDecoration", 0, 0, 0, 3 },
+      { "DapUIScope", 0, 4, 0, 10 },
       { "DapUIDecoration", 1, 1, 1, 2 },
       { "DapUIVariable", 1, 3, 1, 4 },
       { "DapUIType", 1, 5, 1, 11 },
@@ -97,7 +98,8 @@ describe("scopes element", function()
       { "DapUIVariable", 2, 5, 2, 6 },
       { "DapUIType", 2, 7, 2, 13 },
       { "DapUIValue", 2, 16, 2, 17 },
-      { "DapUIScope", 4, 0, 4, 7 },
+      { "DapUIDecoration", 4, 0, 4, 3 },
+      { "DapUIScope", 4, 4, 4, 11 },
       { "DapUIDecoration", 5, 1, 5, 2 },
       { "DapUIVariable", 5, 3, 5, 10 },
       { "DapUIType", 5, 11, 5, 18 },
@@ -112,12 +114,12 @@ describe("scopes element", function()
       nio.sleep(10)
       local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.same({
-        "Locals:",
+        " Locals:",
         "   a number = 1",
         "  b number = 2",
         "    c string = '3'",
         "",
-        "Globals:",
+        " Globals:",
         "   CONST_A boolean = true",
       }, lines)
     end)
@@ -127,7 +129,8 @@ describe("scopes element", function()
       nio.sleep(10)
       local formatted = tests.util.get_highlights(buf)
       assert.same({
-        { "DapUIScope", 0, 0, 0, 6 },
+        { "DapUIDecoration", 0, 0, 0, 3 },
+        { "DapUIScope", 0, 4, 0, 10 },
         { "DapUIDecoration", 1, 1, 1, 2 },
         { "DapUIVariable", 1, 3, 1, 4 },
         { "DapUIType", 1, 5, 1, 11 },
@@ -140,7 +143,8 @@ describe("scopes element", function()
         { "DapUIVariable", 3, 4, 3, 5 },
         { "DapUIType", 3, 6, 3, 12 },
         { "DapUIValue", 3, 15, 3, 18 },
-        { "DapUIScope", 5, 0, 5, 7 },
+        { "DapUIDecoration", 5, 0, 5, 3 },
+        { "DapUIScope", 5, 4, 5, 11 },
         { "DapUIDecoration", 6, 1, 6, 2 },
         { "DapUIVariable", 6, 3, 6, 10 },
         { "DapUIType", 6, 11, 6, 18 },

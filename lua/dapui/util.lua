@@ -203,7 +203,7 @@ function M.get_selection(start, finish)
   return lines
 end
 
-function M.apply_mapping(mappings, func, buffer)
+function M.apply_mapping(mappings, func, buffer, label)
   for _, key in pairs(mappings) do
     if type(func) ~= "string" then
       vim.api.nvim_buf_set_keymap(
@@ -211,10 +211,10 @@ function M.apply_mapping(mappings, func, buffer)
         "n",
         key,
         "",
-        { noremap = true, callback = func, nowait = true }
+        { noremap = true, callback = func, nowait = true, desc = label, }
       )
     else
-      vim.api.nvim_buf_set_keymap(buffer, "n", key, func, { noremap = true, nowait = true })
+      vim.api.nvim_buf_set_keymap(buffer, "n", key, func, { noremap = true, nowait = true, desc = label, })
     end
   end
 end
@@ -312,6 +312,11 @@ function M.format_value(value_start, value)
     formatted[i] = line
   end
   return formatted
+end
+
+function M.tbl_flatten(t)
+  return vim.fn.has("nvim-0.10") == 1 and vim.iter(t):flatten(math.huge):totable()
+    or vim.tbl_flatten(t)
 end
 
 return M
