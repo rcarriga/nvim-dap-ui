@@ -87,6 +87,7 @@ function M.show()
     width = content_width,
     height = 1,
     style = "minimal",
+    border = "none",
     row = 0,
     col = 0,
   }
