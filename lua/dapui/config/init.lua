@@ -150,7 +150,7 @@ local user_config = default_config
 local function fill_elements(area)
   area = vim.deepcopy(area)
   local filled = {}
-  if vim.fn.has("nvim-0.11") then
+  if vim.fn.has("nvim-0.11") == 1 then
     vim.validate("size", area.size, "number")
     vim.validate("elements", area.elements, "table")
     vim.validate("position", area.position, "string")
