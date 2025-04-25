@@ -255,7 +255,7 @@ function M.partial(func, ...)
 end
 
 function M.send_to_repl(expression)
-  local repl_win = vim.fn.bufwinid("\\[dap-repl\\]")
+  local repl_win = vim.fn.bufwinid("\\[dap-repl") -- incomplete bracket to allow e.g. '[dap-repl-2]'
   if repl_win == -1 then
     M.float_element("repl")
     repl_win = vim.fn.bufwinid("\\[dap-repl\\]")
@@ -269,7 +269,8 @@ function M.float_element(elem_name)
   local col_no = vim.fn.screencol()
   local position = { line = line_no, col = col_no }
   local elem = require("dapui.elements." .. elem_name)
-  return require("dapui.windows").open_float(elem, position, elem.float_defaults or {})
+  if type(elem) == "function" then elem = elem() end
+  return require("dapui.windows").open_float(elem_name, elem, position, elem.settings or {})
 end
 
 function M.render_type(maybe_type)
