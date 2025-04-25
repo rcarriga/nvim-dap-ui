@@ -124,6 +124,9 @@ function M.open_float(name, element, position, settings)
     return float_windows[name]
   end
   local buf = element.buffer()
+  if type(settings) == "function" then
+    settings = settings()
+  end
   local float_win = require("dapui.windows.float").open_float({
     height = settings.height or 1,
     width = settings.width or 1,
