@@ -19,7 +19,7 @@ local function auto_close(win_id, buf_id, orig_line, orig_text)
     return
   end
   local group = api.nvim_create_augroup("DAPUILongLineExpand" .. buf_id, { clear = true })
-  api.nvim_create_autocmd({ "WinEnter", "TabClosed", "CursorMoved" }, {
+  api.nvim_create_autocmd({ "WinEnter", "TabClosed", "CursorMoved", "WinScrolled" }, {
     callback = function()
       if not api.nvim_win_is_valid(win_id) then
         return
@@ -87,6 +87,7 @@ function M.show()
     width = content_width,
     height = 1,
     style = "minimal",
+    border = "none",
     row = 0,
     col = 0,
   }
