@@ -11,6 +11,7 @@ return function(client, send_ready)
     "setFunctionBreakpoints",
     "setInstructionBreakpoints",
     "setDataBreakpoints",
+    "breakpoint",
     "stackTrace",
     "terminated",
     "exited",
