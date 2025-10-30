@@ -30,7 +30,7 @@ return function(client)
         return util.open_buf(buf, line, column)
       end
 
-      if not source.path or not vim.uv.fs_stat(source.path) then
+      if not source.path or (not util.is_uri(source.path) and not vim.uv.fs_stat(source.path)) then
         util.notify("No source available for frame", vim.log.levels.WARN)
         return
       end
