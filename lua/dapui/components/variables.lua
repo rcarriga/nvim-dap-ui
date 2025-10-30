@@ -80,6 +80,7 @@ return function(client, send_ready)
           end)
           if variable.evaluateName then
             canvas:add_mapping("repl", partial(util.send_to_repl, variable.evaluateName))
+            canvas:add_mapping("watch", partial(util.send_to_watches, variable.evaluateName))
           end
         end
         canvas:add_mapping("edit", function()

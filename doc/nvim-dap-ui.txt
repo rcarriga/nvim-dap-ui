@@ -331,7 +331,7 @@ render order of variables.
 
                                                                   *dapui.Action*
 Alias~
-`dapui.Action` → `"expand"|"open"|"remove"|"edit"|"repl"|"toggle"`
+`dapui.Action` → `"expand"|"open"|"remove"|"edit"|"repl"|"toggle"|"watch"`
 
                                                           *dapui.FloatingAction*
 Alias~
@@ -347,6 +347,7 @@ Mappings:
 - `edit`: Edit the value of a variable
 - `expand`: Toggle showing any children of variable.
 - `repl`: Send variable to REPL
+- `watch`: Send variable to watches
 
 
 ==============================================================================
