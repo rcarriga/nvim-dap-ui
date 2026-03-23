@@ -4,6 +4,7 @@ local dapui = {}
 ---@toc_entry Configuration Options
 
 ---@class dapui.Config
+---@field wrap boolean Whether or not to wrap UI text
 ---@field icons dapui.Config.icons
 ---@field mappings table<dapui.Action, string|string[]> Keys to trigger actions in elements
 ---@field element_mappings table<string, table<dapui.Action, string|string[]>> Per-element overrides of global mappings
@@ -77,6 +78,7 @@ local dapui = {}
 ---@type dapui.Config
 ---@nodoc
 local default_config = {
+  wrap = false,
   icons = { expanded = "", collapsed = "", current_frame = "" },
   mappings = {
     -- Use a table to apply multiple mappings

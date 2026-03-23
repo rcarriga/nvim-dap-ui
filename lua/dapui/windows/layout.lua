@@ -171,13 +171,14 @@ function WindowLayout:toggle()
 end
 
 function WindowLayout:_init_win_settings(win)
+  local config = require("dapui.config")
   local win_settings = {
     list = false,
     relativenumber = false,
     number = false,
     winfixwidth = true,
     winfixheight = true,
-    wrap = false,
+    wrap = config.wrap,
     signcolumn = "auto",
     spell = false,
   }
