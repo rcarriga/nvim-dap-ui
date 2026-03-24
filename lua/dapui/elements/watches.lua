@@ -29,6 +29,10 @@ return function(client)
 
   local watches = require("dapui.components.watches")(client, send_ready)
 
+  vim.api.nvim_create_user_command("DapuiUpdateWatches", function()
+    send_ready()
+  end, {})
+
   --- Add a new watch expression
   ---@param expr? string
   function dapui.elements.watches.add(expr)

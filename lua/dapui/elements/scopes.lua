@@ -20,6 +20,10 @@ return function(client)
     dapui.elements.scopes.render()
   end)
 
+  vim.api.nvim_create_user_command("DapuiUpdateScopes", function()
+    send_ready()
+  end, {})
+
   local scopes = require("dapui.components.scopes")(client, send_ready)
 
   ---@nodoc
