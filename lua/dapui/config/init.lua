@@ -71,7 +71,7 @@ local dapui = {}
 ---@field sort_variables? fun(a: dapui.types.Variable, b: dapui.types.Variable):boolean Sorting function to determine
 --- render order of variables.
 
----@alias dapui.Action "expand"|"open"|"remove"|"edit"|"repl"|"toggle"
+---@alias dapui.Action "expand"|"open"|"remove"|"edit"|"repl"|"toggle"|"watch"
 
 ---@alias dapui.FloatingAction "close"
 
@@ -88,6 +88,7 @@ local default_config = {
     edit = "e",
     repl = "r",
     toggle = "t",
+    watch = "w",
   },
   element_mappings = {},
   expand_lines = vim.fn.has("nvim-0.7") == 1,

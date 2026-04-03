@@ -264,6 +264,10 @@ function M.send_to_repl(expression)
   vim.cmd("normal i" .. expression)
 end
 
+function M.send_to_watches(expression)
+  require('dapui').elements.watches.add(expression)
+end
+
 function M.float_element(elem_name)
   local line_no = vim.fn.screenrow()
   local col_no = vim.fn.screencol()
