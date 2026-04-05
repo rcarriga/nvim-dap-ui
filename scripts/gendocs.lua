@@ -811,7 +811,7 @@ minidoc.generate(
             H.as_struct(
               {
                 H.as_struct(
-                  { "nvim-dap-ui.txt*	A UI for nvim-dap." },
+                  { "*nvim-dap-ui.txt*	A UI for nvim-dap." },
                   "section"
                 ),
               },

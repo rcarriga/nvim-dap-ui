@@ -1,4 +1,4 @@
-nvim-dap-ui.txt*	A UI for nvim-dap.
+*nvim-dap-ui.txt*	A UI for nvim-dap.
 
 ==============================================================================
 nvim-dap-ui                                                        *nvim-dap-ui*
@@ -129,7 +129,7 @@ Type ~
 `(table<string, dapui.Element>)`
 
 Type ~
-dapui.Element
+`(dapui.Element)`
 
                                                         *dapui.FloatElementArgs*
 Fields~
@@ -239,7 +239,7 @@ buffer can change over repeated calls
 {float_defaults?} `(fun(): dapui.FloatElementArgs)` Default settings for
 floating windows. Useful for element windows which should be larger than
 their content
-{allow_without_session?} `(boolean)` Allows floating the element when
+{allow_without_session} `(boolean)` Allows floating the element when
 there is no active debug session
 
                                                       *dapui.register_element()*
