@@ -48,7 +48,16 @@ return function()
     return console_buf
   end
 
-  dap.defaults.fallback.terminal_win_cmd = get_buf
+  -- Neovim 0.11 deprecated termopen() in favor of jobstart(..., {term = true})
+  -- This requires the target buffer to be empty, unmodified and not a terminal buffer
+  local function acquire_terminal_buf()
+    if nio.api.nvim_buf_is_valid(console_buf) and vim.bo[console_buf].buftype == "terminal" then
+      console_buf = -1
+    end
+    return get_buf()
+  end
+
+  dap.defaults.fallback.terminal_win_cmd = acquire_terminal_buf
 
   function dapui.elements.console.render() end
 
