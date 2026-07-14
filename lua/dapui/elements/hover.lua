@@ -12,6 +12,10 @@ return function(client)
     dapui.elements.hover.render()
   end)
 
+  vim.api.nvim_create_user_command("DapuiUpdateHover", function()
+    send_ready()
+  end, {})
+
   local hover = require("dapui.components.hover")(client, send_ready)
 
   ---@nodoc
