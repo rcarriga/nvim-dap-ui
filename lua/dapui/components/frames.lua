@@ -25,7 +25,7 @@ return function(client, send_ready)
       end
 
       local frames = threads[thread_id].frames
-      if not frames then
+      if not frames and (config.stacks_request_limit < 0 or vim.tbl_count(threads) <= config.stacks_request_limit) then
         local success, response = pcall(client.request.stackTrace, { threadId = thread_id })
         frames = success and response.stackFrames
       end

@@ -20,6 +20,8 @@ local dapui = {}
 --- after initial setup
 ---@field select_window? fun(): integer A function which returns a window to be
 --- used for opening buffers such as a stack frame location.
+---@field stacks_request_limit integer Tells how many threads the debugee can
+--- have when automatically requesting Stacks for it. -1 disables the limit.
 
 ---@class dapui.Config.icons
 ---@field expanded string
@@ -146,6 +148,7 @@ local default_config = {
     max_value_lines = 100, -- Can be integer or nil.
     indent = 1,
   },
+  stacks_request_limit = -1,
 }
 
 local user_config = default_config

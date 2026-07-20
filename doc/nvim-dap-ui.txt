@@ -119,7 +119,8 @@ Default values:
     render = {
       indent = 1,
       max_value_lines = 100
-    }
+    },
+    stacks_request_limit = -1,
   }
 <
 Parameters~
@@ -271,6 +272,8 @@ Layouts are opened in the order defined
 after initial setup
 {select_window?} `(fun(): integer)` A function which returns a window to be
 used for opening buffers such as a stack frame location.
+{stacks_request_limit} `(integer)` Tells how many threads the debugee can
+have when automatically requesting Stacks for it. -1 disables the limit.
 
                                                             *dapui.Config.icons*
 Fields~
