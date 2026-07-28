@@ -23,14 +23,13 @@ Elements can also be displayed temporarily in a floating window.
 
 See `:h dapui.setup()` for configuration options and defaults
 
-It is highly recommended to use neodev.nvim to enable type checking for
-nvim-dap-ui to get type checking, documentation and autocompletion for
-all API functions.
+It is highly recommended to use lazydev.nvim(https://github.com/folke/lazydev.nvim)
+to enable type checking for nvim-dap-ui to get type checking, documentation,
+and autocompletion for all API functions.
 
 >lua
-  require("neodev").setup({
-    library = { plugins = { "nvim-dap-ui" }, types = true },
-    ...
+  require("lazydev").setup({
+    library = { "nvim-dap-ui" },
   })
 <
 
