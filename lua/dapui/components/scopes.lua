@@ -51,13 +51,13 @@ return function(client, send_ready)
         canvas:write({
           { scope_prefix(scope), group = "DapUIDecoration" },
           " ",
-          { scope.name, group = "DapUIScope" },
+          { scope.name,          group = "DapUIScope" },
           { ":\n" },
         })
 
         -- only render expanded scopes to save resources
         if not closed_scopes[scope.name] then
-          render_vars.render(canvas, scope.name, scope.variablesReference, config.render.indent)
+          render_vars.render(canvas, scope.name, scope.variablesReference, config.render.indent, scope)
         end
 
         if i < #scopes then

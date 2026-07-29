@@ -97,6 +97,7 @@ function M.client(args)
     seq = 0,
     stopped_thread_id = args.stopped_thread_id,
     current_frame = args.current_frame,
+    threads = {},
     set_breakpoints = function() end,
 
     request = function(_, command, request_args, callback)
@@ -105,6 +106,16 @@ function M.client(args)
         error("No request handler for " .. command)
       end
       local response = args.requests[command](request_args)
+      if command == "threads" then
+        session.threads = {}
+        for _, thread in ipairs(response.threads or {}) do
+          session.threads[thread.id] = vim.deepcopy(thread)
+        end
+      elseif command == "stackTrace" then
+        local thread_id = request_args.threadId
+        session.threads[thread_id] = session.threads[thread_id] or { id = thread_id }
+        session.threads[thread_id].frames = response.stackFrames
+      end
       for _, c in pairs(dap.listeners.before[command]) do
         c(session, nil, response, request_args)
       end

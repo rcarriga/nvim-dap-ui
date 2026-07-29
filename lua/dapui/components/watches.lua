@@ -80,8 +80,8 @@ return function(client, send_ready)
         return
       end
       local frame_id = client.session
-        and client.session.current_frame
-        and client.session.current_frame.id
+          and client.session.current_frame
+          and client.session.current_frame.id
       local step = client.lib.step_number()
       for i, watch in pairs(watches) do
         local success, evaluated
@@ -138,7 +138,7 @@ return function(client, send_ready)
 
         local var_ref = success and evaluated.variablesReference or 0
         if watch.expanded and var_ref > 0 then
-          render_vars.render(canvas, watch.expression, var_ref, config.render.indent)
+          render_vars.render(canvas, watch.expression, var_ref, config.render.indent, evaluated)
         end
         if rendered_step ~= step then
           rendered_exprs[i] = evaluated.result

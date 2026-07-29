@@ -2,6 +2,7 @@ local nio = require("nio")
 local a = nio.tests
 local Watches = require("dapui.elements.watches")
 local tests = require("dapui.tests")
+local util = require("dapui.util")
 tests.bootstrap()
 local mocks = tests.mocks
 
@@ -45,13 +46,15 @@ describe("watches element", function()
     watches.render()
   end)
   after_each(function()
+    client.shutdown()
+    util.stop_render_tasks()
     pcall(vim.api.nvim_buf_delete, buf, { force = true })
     watches = nil
   end)
   describe("with no expressions", function()
     a.it("renders no expressions lines", function()
       local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.same({ "No Expressions", "" }, lines)
+      assert.same({ "No Expressions", "> " }, lines)
     end)
     a.it("renders lines after expression update", function()
       local highlights = tests.util.get_highlights(buf)
@@ -66,7 +69,7 @@ describe("watches element", function()
     nio.sleep(10)
     local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
     assert.same(
-      { " a = 'a value'", " b - 1 number = 1", " c table = { d = 1 }", "" },
+      { " a = 'a value'", " b - 1 number = 1", " c table = { d = 1 }", "> " },
       lines
     )
   end)
@@ -78,13 +81,13 @@ describe("watches element", function()
     nio.sleep(10)
     local highlights = tests.util.get_highlights(buf)
     assert.same({
-      { "DapUIWatchesValue", 0, 0, 0, 3 },
-      { "DapUIModifiedValue", 0, 8, 0, 17 },
-      { "DapUIWatchesValue", 1, 0, 1, 3 },
-      { "DapUIType", 1, 10, 1, 16 },
+      { "DapUIWatchesValue",  0, 0,  0, 3 },
+      { "DapUIModifiedValue", 0, 8,  0, 17 },
+      { "DapUIWatchesValue",  1, 0,  1, 3 },
+      { "DapUIType",          1, 10, 1, 16 },
       { "DapUIModifiedValue", 1, 19, 1, 20 },
-      { "DapUIWatchesValue", 2, 0, 2, 3 },
-      { "DapUIType", 2, 6, 2, 11 },
+      { "DapUIWatchesValue",  2, 0,  2, 3 },
+      { "DapUIType",          2, 6,  2, 11 },
       { "DapUIModifiedValue", 2, 14, 2, 23 },
     }, highlights)
   end)
@@ -96,7 +99,7 @@ describe("watches element", function()
       nio.sleep(10)
 
       local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.same({ " c table = { d = 1 }", "   d number = 1", "" }, lines)
+      assert.same({ " c table = { d = 1 }", "   d number = 1", "> " }, lines)
     end)
     a.it("renders expanded highlights", function()
       watches.add("c")
@@ -105,13 +108,13 @@ describe("watches element", function()
 
       local highlights = tests.util.get_highlights(buf)
       assert.same({
-        { "DapUIWatchesValue", 0, 0, 0, 3 },
-        { "DapUIType", 0, 6, 0, 11 },
+        { "DapUIWatchesValue",  0, 0,  0, 3 },
+        { "DapUIType",          0, 6,  0, 11 },
         { "DapUIModifiedValue", 0, 14, 0, 23 },
-        { "DapUIDecoration", 1, 1, 1, 2 },
-        { "DapUIVariable", 1, 3, 1, 4 },
-        { "DapUIType", 1, 5, 1, 11 },
-        { "DapUIValue", 1, 14, 1, 15 },
+        { "DapUIDecoration",    1, 1,  1, 2 },
+        { "DapUIVariable",      1, 3,  1, 4 },
+        { "DapUIType",          1, 5,  1, 11 },
+        { "DapUIValue",         1, 14, 1, 15 },
       }, highlights)
     end)
   end)

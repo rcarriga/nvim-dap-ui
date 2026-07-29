@@ -36,17 +36,73 @@ return function(client, send_ready)
     return rendered_vars[path] and rendered_vars[path] ~= value
   end
 
+  ---@param parent_ref integer
+  ---@param parent? dapui.types.Variable|dapui.types.Scope|dapui.types.EvaluateResponse
+  ---@return dapui.types.Variable[]
+  local function fetch_variables(parent_ref, parent)
+    local variables = {}
+    local seen = {}
+
+    local function append(args)
+      local success, var_data = pcall(client.request.variables, args)
+      if not success or not var_data or not var_data.variables then
+        return
+      end
+
+      for _, variable in ipairs(var_data.variables) do
+        local key = table.concat({
+          variable.name or "",
+          variable.value or "",
+          tostring(variable.variablesReference or 0),
+        }, "\0")
+
+        if not seen[key] then
+          seen[key] = true
+          table.insert(variables, variable)
+        end
+      end
+    end
+
+    if parent then
+      local indexed = parent.indexedVariables or 0
+      local named = parent.namedVariables or 0
+
+      if indexed > 0 then
+        append({
+          variablesReference = parent_ref,
+          filter = "indexed",
+          start = 0,
+          count = indexed,
+        })
+      end
+
+      if named > 0 then
+        append({
+          variablesReference = parent_ref,
+          filter = "named",
+        })
+      end
+
+      if indexed > 0 or named > 0 then
+        return variables
+      end
+    end
+
+    append({ variablesReference = parent_ref })
+    return variables
+  end
+
   ---@param canvas dapui.Canvas
   ---@param parent_path string
   ---@param parent_ref integer
   ---@param indent integer
-  local function render(canvas, parent_path, parent_ref, indent)
+  ---@param parent? dapui.types.Variable|dapui.types.Scope|dapui.types.EvaluateResponse
+  local function render(canvas, parent_path, parent_ref, indent, parent)
     if not canvas.prompt and prompt_func then
       canvas:set_prompt("> ", prompt_func, { fill = prompt_fill })
     end
     indent = indent or 0
-    local success, var_data = pcall(client.request.variables, { variablesReference = parent_ref })
-    local variables = success and var_data.variables or {}
+    local variables = fetch_variables(parent_ref, parent)
     if config.render.sort_variables then
       table.sort(variables, config.render.sort_variables)
     end
@@ -57,7 +113,7 @@ return function(client, send_ready)
         string.rep(" ", indent),
         { reference_prefix(var_path, variable), group = "DapUIDecoration" },
         " ",
-        { variable.name, group = "DapUIVariable" },
+        { variable.name,                        group = "DapUIVariable" },
       })
 
       local var_type = util.render_type(variable.type)
@@ -111,7 +167,7 @@ return function(client, send_ready)
       end
 
       if expanded_children[var_path] and variable.variablesReference ~= 0 then
-        render(canvas, var_path, variable.variablesReference, indent + config.render.indent)
+        render(canvas, var_path, variable.variablesReference, indent + config.render.indent, variable)
       end
     end
   end

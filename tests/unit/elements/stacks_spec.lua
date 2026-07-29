@@ -2,6 +2,7 @@ local nio = require("nio")
 local a = nio.tests
 local Stacks = require("dapui.elements.stacks")
 local tests = require("dapui.tests")
+local util = require("dapui.util")
 tests.bootstrap()
 local mocks = tests.mocks
 
@@ -92,6 +93,7 @@ describe("stacks element", function()
     pcall(vim.api.nvim_buf_delete, buf, { force = true })
     stacks = nil
     client.shutdown()
+    util.stop_render_tasks()
   end)
   a.it("renders initial lines", function()
     stacks.render()
@@ -112,17 +114,17 @@ describe("stacks element", function()
     stacks.render()
     local formatted = tests.util.get_highlights(buf)
     assert.same({
-      { "DapUIThread", 0, 0, 0, 8 },
-      { "DapUICurrentFrameName", 1, 4, 1, 17 },
-      { "DapUISource", 1, 18, 1, 24 },
-      { "DapUILineNumber", 1, 25, 1, 26 },
-      { "DapUIThread", 3, 0, 3, 8 },
-      { "DapUIFrameName", 4, 1, 4, 14 },
-      { "DapUISource", 4, 15, 4, 21 },
-      { "DapUILineNumber", 4, 22, 4, 23 },
-      { "DapUIFrameName", 5, 1, 5, 14 },
-      { "DapUISource", 5, 15, 5, 21 },
-      { "DapUILineNumber", 5, 22, 5, 23 },
+      { "DapUIThread",           0, 0,  0, 8 },
+      { "DapUICurrentFrameName", 1, 4,  1, 17 },
+      { "DapUISource",           1, 18, 1, 24 },
+      { "DapUILineNumber",       1, 25, 1, 26 },
+      { "DapUIThread",           3, 0,  3, 8 },
+      { "DapUIFrameName",        4, 1,  4, 14 },
+      { "DapUISource",           4, 15, 4, 21 },
+      { "DapUILineNumber",       4, 22, 4, 23 },
+      { "DapUIFrameName",        5, 1,  5, 14 },
+      { "DapUISource",           5, 15, 5, 21 },
+      { "DapUILineNumber",       5, 22, 5, 23 },
     }, formatted)
   end)
 
@@ -152,20 +154,20 @@ describe("stacks element", function()
       stacks.render()
       local formatted = tests.util.get_highlights(buf)
       assert.same({
-        { "DapUIThread", 0, 0, 0, 8 },
-        { "DapUICurrentFrameName", 1, 4, 1, 17 },
-        { "DapUISource", 1, 18, 1, 24 },
-        { "DapUILineNumber", 1, 25, 1, 26 },
-        { "DapUIFrameName", 2, 1, 2, 14 },
-        { "DapUISource", 2, 15, 2, 21 },
-        { "DapUILineNumber", 2, 22, 2, 23 },
-        { "DapUIThread", 4, 0, 4, 8 },
-        { "DapUIFrameName", 5, 1, 5, 14 },
-        { "DapUISource", 5, 15, 5, 21 },
-        { "DapUILineNumber", 5, 22, 5, 23 },
-        { "DapUIFrameName", 6, 1, 6, 14 },
-        { "DapUISource", 6, 15, 6, 21 },
-        { "DapUILineNumber", 6, 22, 6, 23 },
+        { "DapUIThread",           0, 0,  0, 8 },
+        { "DapUICurrentFrameName", 1, 4,  1, 17 },
+        { "DapUISource",           1, 18, 1, 24 },
+        { "DapUILineNumber",       1, 25, 1, 26 },
+        { "DapUIFrameName",        2, 1,  2, 14 },
+        { "DapUISource",           2, 15, 2, 21 },
+        { "DapUILineNumber",       2, 22, 2, 23 },
+        { "DapUIThread",           4, 0,  4, 8 },
+        { "DapUIFrameName",        5, 1,  5, 14 },
+        { "DapUISource",           5, 15, 5, 21 },
+        { "DapUILineNumber",       5, 22, 5, 23 },
+        { "DapUIFrameName",        6, 1,  6, 14 },
+        { "DapUISource",           6, 15, 6, 21 },
+        { "DapUILineNumber",       6, 22, 6, 23 },
       }, formatted)
     end)
   end)

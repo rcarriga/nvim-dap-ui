@@ -2,6 +2,7 @@ local nio = require("nio")
 local a = nio.tests
 local Hover = require("dapui.elements.hover")
 local tests = require("dapui.tests")
+local util = require("dapui.util")
 tests.bootstrap()
 local mocks = tests.mocks
 
@@ -20,6 +21,7 @@ describe("hover element", function()
             a = "'a value'",
             ["b - 1"] = { result = "1", type = "number" },
             c = { result = "{ d = 1 }", type = "table", variablesReference = 1 },
+            arr = { result = "[1]", type = "Array", variablesReference = 2, indexedVariables = 1 },
           },
         }),
         variables = mocks.variables({
@@ -30,16 +32,26 @@ describe("hover element", function()
                 value = "1",
                 type = "number",
                 variablesReference = 0,
+              }
+            },
+            [2] = {
+              {
+                name = "0",
+                value = "1",
+                type = "number",
+                variablesReference = 0,
               },
             },
           },
         }),
-      },
+      }
     })
     hover = Hover(client)
     buf = hover.buffer()
   end)
   after_each(function()
+    client.shutdown()
+    util.stop_render_tasks()
     pcall(vim.api.nvim_buf_delete, buf, { force = true })
     hover = nil
   end)
@@ -69,9 +81,9 @@ describe("hover element", function()
     nio.sleep(10)
     local formatted = tests.util.get_highlights(buf)
     assert.same({
-      { "DapUIDecoration", 0, 0, 0, 4 },
-      { "DapUIType", 0, 6, 0, 11 },
-      { "DapUIValue", 0, 14, 0, 23 },
+      { "DapUIDecoration", 0, 0,  0, 4 },
+      { "DapUIType",       0, 6,  0, 11 },
+      { "DapUIValue",      0, 14, 0, 23 },
     }, formatted)
   end)
 
@@ -95,14 +107,25 @@ describe("hover element", function()
 
       local formatted = tests.util.get_highlights(buf)
       assert.same({
-        { "DapUIDecoration", 0, 0, 0, 4 },
-        { "DapUIType", 0, 6, 0, 11 },
-        { "DapUIValue", 0, 14, 0, 23 },
-        { "DapUIDecoration", 1, 1, 1, 2 },
-        { "DapUIVariable", 1, 3, 1, 4 },
-        { "DapUIType", 1, 5, 1, 11 },
-        { "DapUIValue", 1, 14, 1, 15 },
+        { "DapUIDecoration", 0, 0,  0, 4 },
+        { "DapUIType",       0, 6,  0, 11 },
+        { "DapUIValue",      0, 14, 0, 23 },
+        { "DapUIDecoration", 1, 1,  1, 2 },
+        { "DapUIVariable",   1, 3,  1, 4 },
+        { "DapUIType",       1, 5,  1, 11 },
+        { "DapUIValue",      1, 14, 1, 15 },
       }, formatted)
+    end)
+
+    a.it("renders indexed variables for expandable arrays", function()
+      hover.set_expression("arr")
+      nio.sleep(10)
+      local keymaps = tests.util.get_mappings(hover.buffer())
+      keymaps["<CR>"](1)
+      nio.sleep(10)
+
+      local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
+      assert.same({ " arr Array = [1]", "   0 number = 1" }, lines)
     end)
   end)
 end)

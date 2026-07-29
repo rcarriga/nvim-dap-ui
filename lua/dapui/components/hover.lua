@@ -92,7 +92,7 @@ return function(client, send_ready)
       end
 
       if expanded and var_ref then
-        render_vars.render(canvas, expression, var_ref, config.render.indent)
+        render_vars.render(canvas, expression, var_ref, config.render.indent, hover_expr)
       end
       canvas:remove_line()
     end,
