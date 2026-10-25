@@ -19,7 +19,7 @@ return function(client, send_ready)
       _scopes = args.response.scopes
       -- when new scopes are parsed, automatically disable the scopes that are too expensive to render
       for _, scope in ipairs(_scopes) do
-        if scope.expensive then
+        if scope.expensive and closed_scopes[scope.name] == nil then
           closed_scopes[scope.name] = true
         end
       end
