@@ -14,14 +14,12 @@ function M.enable_controls(element)
   local buffer = element.buffer()
 
   local group = vim.api.nvim_create_augroup("DAPUIControls", {})
-  local win = vim.fn.bufwinid(buffer)
 
   M.refresh_control_panel = function()
-    if win then
+    local win = vim.fn.bufwinid(buffer)
+    if win ~= -1 then
       local is_current = win == vim.fn.win_getid()
-      if not pcall(vim.api.nvim_win_set_option, win, "winbar", M.controls(is_current)) then
-        win = nil
-      end
+      pcall(vim.api.nvim_win_set_option, win, "winbar", M.controls(is_current))
       vim.cmd("redrawstatus!")
     end
   end
@@ -46,27 +44,7 @@ function M.enable_controls(element)
   vim.api.nvim_create_autocmd("BufWinEnter", {
     buffer = buffer,
     group = group,
-    callback = function(opts)
-      if win then
-        return
-      end
-
-      win = vim.fn.bufwinid(opts.buf)
-      if win == -1 then
-        win = nil
-        return
-      end
-      M.refresh_control_panel()
-      vim.api.nvim_create_autocmd({ "WinClosed", "BufWinLeave" }, {
-        group = group,
-        buffer = buffer,
-        callback = function()
-          if win and not vim.api.nvim_win_is_valid(win) then
-            win = nil
-          end
-        end,
-      })
-    end,
+    callback = M.refresh_control_panel,
   })
   -- If original buffer is deleted, this will get newest element buffer
   vim.api.nvim_create_autocmd("BufWipeout", {
